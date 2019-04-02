@@ -1,5 +1,6 @@
 CC=gcc
 CFLAGS+=-Wall
+# LDFLAGS
 
 # add debug annotations, turn off optimizations, and #define DEBUG
 # use in bash with `DEBUG=1 make <foo>`
@@ -8,17 +9,18 @@ ifdef DEBUG
 CFLAGS+=-g -O0 -DDEBUG
 endif
 
-# run test files
-# add test file by adding to the prerequisites in test:
-test: run-test_foo
-# run a single test file
-run-test_%: test_%
+# link ncurses library
+# foo: LDFLAGS+=-lncurses
+
+# run test files (any file ending in _test.c)
+test: $(patsubst %.c, .run-%.c, $(wildcard *_test.c))
+# run a single file
+.run-%.c: %
 	./$<
-	rm $<
 # add flags for minunit libraries, works with `make test_foo` too
-test_%: CFLAGS+=-lrt -lm
-test_%: test_%.c minunit.h
-	$(CC) $(CFLAGS) -o $@ $^
+%_test: LDFLAGS+=-lrt -lm
+%_test: %_test.c minunit.h
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
 clean:
-	-rm *.o
+	-rm *.o *_test
