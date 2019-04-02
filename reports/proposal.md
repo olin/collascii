@@ -8,16 +8,19 @@ Team members:
 
 ## Project Goal
 
-A terminal-based version of [asciiflow](http://asciiflow.com/).
+Our goal is to make a collaborative ascii drawing application, through a terminal interface. Think of it like the google docs of [asciiflow](http://asciiflow.com/), but in a terminal.
+Why? Because it's funny, questionable, and a little bit artsy. Oh and a great learning experience too.
 
 ### MVP
 
+The MVP is designed to be a relatively low bar to ensure we get to a good place. 
 - An editor where you move with arrow keys and press a character to change a cell.
 - A client/server model that allows other people to connect to and edit your instance, given an IP and port.
 - Featuring a status bar a la vim.
 
 ### Additional Features (ordered by priority)
 
+This list of features is designed such that no matter where we stop, we'll be happy with what we have.
 - Different modes to support more features (eg. box mode)
   - Drawing straight lines
   - Drawing boxes
@@ -60,3 +63,6 @@ Going forward, there are two main unknowns for us: creating an interactive edito
 
 - Evan: Read Chapters 11 (Sockets and Networking) and 12 (Threads) of HFC for more info on networking in C. _Done when they're read and a written summary is commented in Trello._
 - Evan: Write a spec and implementation of a single-threaded server/client that can send an ascii canvas back and forth. _Done when a pull-request with the code is approved and merged._
+- Matt: Go through ncurses tutorials above. _Done when they're read and a written summary is commented in Trello._
+- Matt: Write spec for Terminal UI _Done when pull request is merged_
+- Matt: sketch ncurses implementation. _Done when checked and pull request is merged_ 
