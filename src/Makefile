@@ -8,5 +8,8 @@ ifdef DEBUG
 CFLAGS+=-g -O0 -DDEBUG
 endif
 
+test_%: CFLAGS+=-lrt -lm
+test_%: 
+
 clean:
-	rm *.o
+	rm *.o *.out

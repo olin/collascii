@@ -1,0 +1,7 @@
+## Project-Related
+*.out
+
+## C-Related
+*.o
+*.a
+*.lib
