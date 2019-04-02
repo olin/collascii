@@ -37,7 +37,7 @@ A terminal-based version of [asciiflow](http://asciiflow.com/).
 
 ### Evan
 
-I'd like to work with 3rd-party libraries, implement a concurrent networked program, and learn how to write a terminal interface.
+I'd like to work with 3rd-party libraries, implement a concurrent networked program, and learn how to write a terminal interface. I'm looking forward to writing thoughtful APIs that are used in multiple ways, and above all else I want to create something that people will enjoy using.
 
 ### Matt
 
@@ -45,12 +45,16 @@ I'm shooting for a project that says "Look I can write C, but not for important 
 
 ## What's Needed
 
+Going forward, there are two main unknowns for us: creating an interactive editor, and implementing a concurrent network protocol for connections between clients. Some resources that we've found for each are listed below:
 - text editor (of sorts) for drawing and displaying the canvas
   - [this project](https://github.com/SelinaWang/SoftSysZis/blob/master/reports/report.md) built a text editor following [this guide](https://viewsourcecode.org/snaptoken/kilo/index.html) (they **did not** use `ncurses`)
   - [this project](https://github.com/vickymmcd/SillyString/blob/master/reports/report.md) used `ncurses` to build an interactive escape the room game and found [NCURSES introduction](https://invisible-island.net/ncurses/ncurses-intro.html) and [NCURSES tutorial](http://tldp.org/HOWTO/NCURSES-Programming-HOWTO/) useful.
-  - [this tutorial](https://cheukyin699.github.io/tutorial/c++/2015/02/01/ncurses-editor-tutorial-01.html) covers creating a text-editor in `ncurses`
+  - [this tutorial](https://cheukyin699.github.io/tutorial/c++/2015/02/01/ncurses-editor-tutorial-01.html) covers creating a text-editor in `ncurses` with C++
 - a network protocol for sending updates to the canvas between users
   - Right now my inclination is to work with an HTTP/[ARPA Internet Text Messages](https://tools.ietf.org/html/rfc822) related format over TCP, and go from there.
+  - [this project](https://github.com/shrutiyer/SoftSysServerClient/blob/master/reports/report.md) implemented a client/server for a chat room
+  - [Beej's Guide to Network Programming has a section on synchronous connections](https://beej.us/guide/bgnet/html/multi/advanced.html)
+  - Head First C has some chapters on networking (11 and 12) that discuss `fork`ing and multiple clients
 
 ## First Steps
 
