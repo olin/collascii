@@ -7,10 +7,9 @@
 
 #include "network.h"
 
-/* _send
+/* Wrapper for send() that sends the entire buffer
  *
- * Wrapper for send() that sends the entire buffer, calling it multiple times
- * if necessary.
+ * Calls it multiple times if necessary.
  *
  * Returns the number of bytes sent or -1 on error
  */
@@ -31,9 +30,7 @@ int _send(int sockfd, char *buffer, int bufflen)
     return numsent;
 }
 
-/* get_in_addr
- *
- * An IPv4 and IPv6 agnostic way to get an in_addr type
+/* An IPv4 and IPv6 agnostic way to get an in_addr type
  *
  * Returns: a pointer to either a in_addr or in6_addr type
  */
@@ -47,9 +44,7 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 }
 
-/* get_addrinfo_ip
- *
- * Get a string representation of the IP of an addrinfo.
+/* Get a string representation of the IP of an addrinfo.
  *
  * Returns: -1 on error, 0 otherwise
  */
@@ -64,9 +59,8 @@ int get_addrinfo_ip(struct addrinfo *p, char *s, int slen)
     return 0;
 }
 
-/* get_socket
+/* Get the first available socket from the addrinfo linked list.
  *
- * Get the first available socket from the addrinfo linked list.
  * Caller must free the addrinfo that list is pointed towards (this frees res as well).
  *
  * Returns: a socket file descriptor, or -1 on error
