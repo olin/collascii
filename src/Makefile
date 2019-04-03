@@ -21,6 +21,9 @@ endif
 frontend.out: LDLIBS +=-lncurses
 frontend.out: cursor.o
 
+client.out: network.o
+server.out: network.o
+
 ## PATTERNS
 
 # Generate .out files for easier .gitignore. Based on the builtin make rule
