@@ -49,13 +49,24 @@ void schari(Canvas *canvas, int i, char c)
     scharxy(canvas, col, row, c);
 }
 
+char gcharxy(Canvas *canvas, int x, int y) {
+    return canvas->rows[y][x];
+}
+
+char gchari(Canvas *canvas, int i) {
+    int row = i / canvas->num_cols;
+    int col = i % canvas->num_cols;
+    return canvas->rows[row][col];
+}
+
 int load_string(Canvas *canvas, char *str)
 {
-    int slen = strlen(str);
-    for (int i = 0; i < slen; i++)
+    int i;
+    for (i = 0; str[i] != '\0' && i < canvas->num_cols*canvas->num_rows; i++)
     {
         schari(canvas, i, str[i]);
     }
+    return i;
 }
 
 void print_canvas(Canvas *canvas)
@@ -72,13 +83,43 @@ void print_canvas(Canvas *canvas)
     }
 }
 
-int main() {
-    Canvas* c = make_canvas(3, 3);
-    load_string(c, "X XXXXX X");
-    print_canvas(c);
-    printf("\n");
-    scharxy(c, 1, 2, 'O');
-    print_canvas(c);
-    free_canvas(c);
-    return 0;
+int serialize_canvas(Canvas *canvas, char* buf) {
+    int i;
+    for (i = 0; i < canvas->num_cols*canvas->num_rows; i++){
+        buf[i] = gchari(canvas, i);
+    }
+    return i;
 }
+
+void deserialize_canvas(char* bytes, Canvas* canvas) {
+    load_string(canvas, bytes);
+}
+
+// int main() {
+//     // creating
+//     Canvas* c = make_canvas(3, 3);
+//     load_string(c, "X XXXXX X");
+//     print_canvas(c);
+
+//     // setting
+//     printf("Set (1, 2) to 'O'\n");
+//     scharxy(c, 1, 2, 'O');
+//     print_canvas(c);
+
+//     // serialization
+//     printf("Original:\n");
+//     print_canvas(c);
+//     char buffer[10];
+//     serialize_canvas(c, buffer);
+//     buffer[9] = '\0';
+//     printf("Serialized:\n");
+//     printf("'%s'\n", buffer);
+//     Canvas* c2 = make_canvas(3,3);
+//     deserialize_canvas(buffer, c2);
+//     printf("Deserialized:\n");
+//     print_canvas(c2);
+
+//     // free
+//     free_canvas(c);
+//     return 0;
+// }
