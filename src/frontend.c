@@ -4,10 +4,10 @@
 
 int STATUS_HEIGHT = 1;
 
+// TODO: Factor out to different file?
 /* The Cursor struct helps with controls.
  * It also maps the drawing area to the canvas nicely.
  */
-
 typedef struct CURSOR {
     int x;
     int y;
@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
         setup_colors();
     }
 
+    //// Init environment
     // Create Canvas
     WINDOW *canvas = create_newwin(LINES - (STATUS_HEIGHT), COLS,// Account for lines
                                     0, 0, TRUE);
@@ -102,7 +103,6 @@ int main(int argc, char *argv[]) {
                                     FALSE);
     keypad(canvas, TRUE);  /* enable keyboard mapping */
 
-    int num = 0;
     Cursor *cursor = cursor_init();
 
     char test_msg[] = "Test mode";
@@ -110,42 +110,41 @@ int main(int argc, char *argv[]) {
 
     wrefresh(status);
 
+    //// Main loop
     int ch;
     while ((ch = wgetch(canvas)))
     {
         switch(ch) {	
             case KEY_LEFT:
-                // mvwaddch(canvas, 1, 1, 'L');
 				move_left(cursor);
 				break;
 			case KEY_RIGHT:
-                // mvwaddch(canvas, 1, 1, 'R');
 				move_right(cursor);
 				break;
 			case KEY_UP:
-                // mvwaddch(canvas, 1, 1, 'U');
 				move_up(cursor);
 				break;
 			case KEY_DOWN:
-                // mvwaddch(canvas, 1, 1, 'D');
 				move_down(cursor);
 				break;
             default:
-            // waddch(canvas, ch);
             if (' ' <= ch && ch <= '~') {  // check if ch is printable
                 mvwaddch(canvas, y_to_canvas(cursor), x_to_canvas(cursor), ch);
             } else {
-                mvwaddch(status, 0, COLS-1, 'X');
+                // Print non-print characters to bottom left in status bar
+                mvwaddch(status, 0, COLS-3, ch); 
             }
 		}
+        // Move UI cursor to the right place
         wmove(canvas, y_to_canvas(cursor), x_to_canvas(cursor));
-        wrefresh(canvas);
 
-        /* process the command keystroke */
+        wrefresh(status);
+        wrefresh(canvas); // Refresh Canvas last so it gets the cursor
     }
 
+    // Cleanup
     free_cursor(cursor);
-    finish(0);               /* we are done */
+    finish(0);
 }
 
 static void setup_colors() {
