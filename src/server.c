@@ -8,21 +8,78 @@
 #include <unistd.h>
 
 #include "network.h"
+#include "canvas.h"
 
+Canvas* canvas;
 
+int send_response(int sockfd, int code, char* msg) {
+    char buffer[128];
+    int numwritten = snprintf(buffer, sizeof(buffer), "%d %s\n\n", code, msg);
+    if (numwritten >= sizeof(buffer)) {
+        fprintf(stderr, "send_response: reached startline buffer limit");
+    }
+    return _send(sockfd, buffer, numwritten);
+}
 
 int handlerequest(int sockfd) {
-    // receive from connection
-    int numbytes;
-    char buf[400];  // TODO: pull out to constant
-    if ((numbytes = recv(sockfd, buf, 400-1, 0)) == -1) {
-        perror("recv");
-        exit(1);
+    char startlinebuffer[32];
+    int numread = readline(sockfd, startlinebuffer, sizeof(startlinebuffer));
+    printf("handle_message: Read %d bytes\n", numread);
+    printf("'%s'", startlinebuffer);
+    if (numread == sizeof(startlinebuffer)) {
+        fprintf(stderr, "handle_message: startline buffer filled");
+        return -1;
     }
-    buf[numbytes] = '\0'; // end buffer string
-    printf("Received:\n%s\n", buf);
-    // return what was sent
-    _send(sockfd, buf, numbytes);
+    printf("handle_message: startline: '%s'\n", startlinebuffer);
+    // read startline
+    requesttype rtype;
+    char* method;
+    if ((method = strtok(startlinebuffer, ' ')) == NULL) {
+        fprintf(stderr, "handle_message: unable to parse method");
+        return -1;
+    }
+
+    if (strcmp(method, "GET") == 0) {
+        rtype = GET;
+        readline(sockfd);
+
+    } else if (strcmp(method, "PUT") == 0) {
+        rtype = PUT;
+        readline(sockfd);
+    }
+
+    char buf[2];
+    if (readline(sockfd, buf, sizeof(buf)) != 1) {
+        fprintf(stderr, "handle_message: unexpected request headers");
+    }
+
+    switch (rtype)
+    {
+        case GET:
+            // return canvas data
+            send_response(sockfd, 100, "3x3");
+            send_canvas(sockfd, canvas);
+            printf("Canvas requested.");
+            break;
+
+        case PUT:
+            // read and load canvas
+            if (read_canvas(sockfd, canvas) != 0) {
+                fprintf(stderr, "read_canvas returned nonzero");
+                send_response(sockfd, 300, "");
+                return -1;
+            }
+            send_response(sockfd, 200, "");
+            printf("Updated canvas.");
+            print_canvas(canvas);
+            break;
+
+        default:
+            // else return error
+            send_response(sockfd, 300, "");
+            printf("Unknown request");
+            return -1;
+    }
     return 0;
 }
 
@@ -115,5 +172,8 @@ int listenandloop(char* port) {
 }
 
 int main() {
+    canvas = make_canvas(3, 3);
+    load_string(canvas, "X X X X X");
     listenandloop("8080");
+    return 0;
 }

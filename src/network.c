@@ -74,14 +74,6 @@ int request_canvas(int sockfd) {
 }
 
 int send_canvas(int sockfd, Canvas* canvas) {
-    char startline[32];
-    int ret = snprintf(startline, sizeof(startline), "PUT %dx%d\n\n", canvas->num_cols, canvas->num_rows);
-    if (!(ret >=0 && ret < sizeof(startline))) {
-        fprintf(stderr, "send_canvas: snprintf returned %d\n", ret);
-        return -1;
-    }
-    _send(sockfd, startline, strlen(startline));
-
     int buffsize = canvas->num_cols*canvas->num_rows;
     char buffer[buffsize];
     int numbytes = serialize_canvas(canvas, buffer);
@@ -89,7 +81,31 @@ int send_canvas(int sockfd, Canvas* canvas) {
         fprintf(stderr, "send_canvas: expected %d bytes but got %d\n", buffsize, numbytes);
         return -1;
     }
-    _send(sockfd, buffer, numbytes);
+    return _send(sockfd, buffer, numbytes);
+}
+
+int push_canvas(int sockfd, Canvas* canvas) {
+    char startline[32];
+    int ret = snprintf(startline, sizeof(startline), "%dx%d\n\n", canvas->num_cols, canvas->num_rows);
+    if (!(ret >=0 && ret < sizeof(startline))) {
+        fprintf(stderr, "send_canvas: snprintf returned %d\n", ret);
+        return -1;
+    }
+    _send(sockfd, startline, strlen(startline));
+    send_canvas(sockfd, canvas);
+    return 0;
+}
+
+int read_canvas(int sockfd, Canvas* canvas) {
+    int buffsize = canvas->num_cols*canvas->num_rows;
+    char buffer[buffsize + 1];
+    int numbytes = recv(sockfd, buffer, buffsize, 0);
+    if (numbytes != buffsize) {
+        fprintf(stderr, "read_canvas: expected %d bytes but got %d\n", buffsize, numbytes);
+        return -1;
+    }
+    buffer[buffsize] = '\0';
+    deserialize_canvas(buffer, canvas);
     return 0;
 }
 
@@ -114,42 +130,7 @@ int readline(int sockfd, char* buffer, int bufsize) {
 }
 
 int handle_message(int sockfd) {
-    char startlinebuffer[32];
-    int numread = readline(sockfd, startlinebuffer, sizeof(startlinebuffer));
-    printf("handle_message: Read %d bytes\n", numread);
-    if (numread == sizeof(startlinebuffer)) {
-        fprintf(stderr, "handle_message: startline buffer filled");
-        return -1;
-    }
-    printf("handle_message: startline: '%s'\n", startlinebuffer);
-    // read startline
-    requesttype rtype;
-    char* method;
-    if ((method = strtok(startlinebuffer, ' ')) == NULL) {
-        fprintf(stderr, "handle_message: unable to parse method");
-        return -1;
-    }
-
-    if (strcmp(method, "GET") == 0) {
-        rtype = GET;
-        readline();
-    } else if (strcmp(method, "PUT") == 0) {
-        rtype = PUT;
-    }
-
-    switch (rtype)
-    {
-        case GET:
-            // send_canvas(sockfd, )
-            break;
-
-        case PUT:
-            // read and load canvas
-            break;
-
-        default:
-            break;
-    }
+    // TODO: fill this in
 }
 
 /* Get the first available socket from the addrinfo linked list.

@@ -21,8 +21,8 @@ endif
 frontend.out: LDLIBS +=-lncurses
 frontend.out: cursor.o
 
-client.out: network.o
-server.out: network.o
+client.out: network.o canvas.o
+server.out: network.o canvas.o
 
 ## PATTERNS
 
