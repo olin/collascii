@@ -49,11 +49,11 @@ void move_right(Cursor* cursor) {
 }
 
 int x_to_canvas(Cursor* cursor) {
-    return cursor->x + 1;  // TODO: Don't hardcode border
+    return cursor->x + 1;
 }
 
 int y_to_canvas(Cursor* cursor) {
-    return cursor->y + 1;  // TODO: Don't hardcode border
+    return cursor->y + 1;
 }
 
 void free_cursor(Cursor* cursor) {
@@ -91,17 +91,13 @@ int main(int argc, char *argv[]) {
     if (has_colors()) { 
         setup_colors();
     }
-
-    //// Init environment
-    // Create Canvas
-    WINDOW *canvas = create_newwin(LINES - (STATUS_HEIGHT), COLS,// Account for lines
-                                    0, 0, TRUE);
     
-    // Create Status bar
-    WINDOW *status = create_newwin(STATUS_HEIGHT + 2, COLS, 
-                                    LINES - (STATUS_HEIGHT), 0,
-                                    FALSE);
-    keypad(canvas, TRUE);  /* enable keyboard mapping */
+    WINDOW *canvas = create_canvas_win();
+    WINDOW *status = create_status_win();
+
+    // Enable keyboard mapping
+    keypad(canvas, TRUE);
+    keypad(status, TRUE);
 
     Cursor *cursor = cursor_init();
 
@@ -150,12 +146,8 @@ int main(int argc, char *argv[]) {
 static void setup_colors() {
     start_color();
 
-    /*
-     * Simple color assignment, often all we need.  Color pair 0 cannot
-     * be redefined.  This example uses the same value for the color
-     * pair as for the foreground color, though of course that is not
-     * necessary:
-     */
+    // TODO: Use #define to get colors for standard uses
+    // Assign color codes
     init_pair(1, COLOR_RED,     COLOR_BLACK);
     init_pair(2, COLOR_GREEN,   COLOR_BLACK);
     init_pair(3, COLOR_BLUE,    COLOR_BLACK);
@@ -181,9 +173,34 @@ WINDOW *create_newwin(int height, int width, int starty, int startx, int should_
 	return local_win;
 }
 
+WINDOW *create_canvas_win() {
+	WINDOW *local_win;
+
+	local_win = newwin(LINES - (STATUS_HEIGHT + 1), COLS, 0, 0);
+
+    wborder(local_win, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE,      // Sides:   ls,  rs,  ts,  bs,
+                       ACS_ULCORNER, ACS_URCORNER, ACS_LTEE, ACS_RTEE); // Corners: tl,  tr,  bl,  br
+    
+    wrefresh(local_win);
+	return local_win;
+}
+
+WINDOW *create_status_win() {
+	WINDOW *local_win;
+
+	local_win = newwin(STATUS_HEIGHT + 2, COLS, 
+                        LINES - (STATUS_HEIGHT+2), 0);
+
+    wborder(local_win, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE,      // Sides:   ls,  rs,  ts,  bs,
+                       ACS_LTEE, ACS_RTEE, ACS_LLCORNER, ACS_LRCORNER); // Corners: tl,  tr,  bl,  br
+    
+    wrefresh(local_win);
+	return local_win;
+}
+
 int print_status(char* str, WINDOW* window) {
     wattrset(window, COLOR_PAIR(7));
-    return mvwprintw(window, 0, 1, str);
+    return mvwprintw(window, 1, 1, str);
 }
 
 static void finish(int sig) {
