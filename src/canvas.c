@@ -2,6 +2,8 @@
  *
  * TODO: add function to check if canvases are equal
  * TODO: add save/read from file options
+ * TODO: conform to ncurses y,x
+ * TODO: prepend canvas on canvas functions
  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -14,6 +16,9 @@ typedef struct
 } Canvas;
 
 /* Create a canvas object
+ *
+ * TODO: swap to rows, cols to match ncurses height, width format
+ * TODO: rename to canvas_new
  *
  * Returned pointer should be freed with free_canvas
  */
@@ -32,6 +37,7 @@ Canvas *make_canvas(int cols, int rows)
 
 /* Free a canvas object
  *
+ * TODO: rename to canvas_free
  */
 void free_canvas(Canvas *canvas)
 {
