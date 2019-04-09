@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS+=-Wall
 # global includes
-LDFLAGS+=-lncurses
+# LDFLAGS+=-lncurses
 
 # add debug annotations, turn off optimizations, and #define DEBUG
 # use in bash with `DEBUG=1 make <foo>`
@@ -29,6 +29,7 @@ test: $(patsubst %.c, .run-%.c, $(wildcard *_test.c))
 
 frontend.out: frontend.c frontend.h
 	$(CC) frontend.c $(CFLAGS) $(LDFLAGS) -o frontend.out
+frontend: LDLIBS +=-lncurses
 
 clean:
 	-rm *.o *_test
