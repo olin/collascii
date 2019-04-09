@@ -1,3 +1,10 @@
+/* Library for common network tasks
+ *
+ * TODO: add a wrapper for recv?
+ * TODO: handle CTRL-C and other signals to shutdown sockets
+ * TODO: check creation of hints and if everything should be set to 0 initially
+*/
+
 #include <stdlib.h>
 #include <stdio.h>
 
