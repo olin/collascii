@@ -13,6 +13,13 @@ endif
 # link ncurses library
 # foo: LDFLAGS+=-lncurses
 
+# Generate .out files for easier .gitignore. Based on the default make rule
+# https://www.gnu.org/software/make/manual/html_node/Catalogue-of-Rules.html#Catalogue-of-Rules
+%.out: %.c
+	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
+
+LINK.c = $(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(TARGET_ARCH)
+
 # **GNU Make only** run all test files (any file ending in _test.c)
 # turns each `foo_test.c` into `.run-foo_test.c` with "Text Functions"
 test: $(patsubst %.c, .run-%.c, $(wildcard *_test.c))
@@ -27,9 +34,9 @@ test: $(patsubst %.c, .run-%.c, $(wildcard *_test.c))
 %_test: %_test.c minunit.h
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
 
-frontend.out: frontend.c frontend.h
-	$(CC) frontend.c $(CFLAGS) $(LDFLAGS) -o frontend.out
-frontend: LDLIBS +=-lncurses
+# frontend.out: frontend.c frontend.h
+# 	$(CC) frontend.c $(CFLAGS) $(LDLIBS) -o frontend.out
+frontend.out: LDLIBS +=-lncurses
 
 clean:
-	-rm *.o *_test
+	-rm *.o *_test *.out
