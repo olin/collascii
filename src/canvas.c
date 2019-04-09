@@ -1,3 +1,8 @@
+/* API for Canvas objects
+ *
+ * TODO: add function to check if canvases are equal
+ * TODO: add save/read from file options
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,6 +13,10 @@ typedef struct
     char **rows;
 } Canvas;
 
+/* Create a canvas object
+ *
+ * Returned pointer should be freed with free_canvas
+ */
 Canvas *make_canvas(int cols, int rows)
 {
     Canvas *canvas = malloc(sizeof(Canvas));
@@ -21,6 +30,9 @@ Canvas *make_canvas(int cols, int rows)
     return canvas;
 }
 
+/* Free a canvas object
+ *
+ */
 void free_canvas(Canvas *canvas)
 {
     // free each row first
@@ -35,13 +47,18 @@ void free_canvas(Canvas *canvas)
 }
 
 /* Set a single character at position x, y
- * Top left of canvas is (0, 0)
+ *
+ * Top left of canvas is (0, 0).
  */
 void scharxy(Canvas *canvas, int x, int y, char c)
 {
     canvas->rows[y][x] = c;
 }
 
+/* Set a single character with single index i
+ *
+ * Index starts at 0 at position (0, 0) and increments first horizontally.
+ */
 void schari(Canvas *canvas, int i, char c)
 {
     int row = i / canvas->num_cols;
@@ -49,16 +66,32 @@ void schari(Canvas *canvas, int i, char c)
     scharxy(canvas, col, row, c);
 }
 
+/* Get the character at position x, y
+ *
+ */
 char gcharxy(Canvas *canvas, int x, int y) {
     return canvas->rows[y][x];
 }
 
+/* Get the character at index i
+ *
+ */
 char gchari(Canvas *canvas, int i) {
     int row = i / canvas->num_cols;
     int col = i % canvas->num_cols;
     return canvas->rows[row][col];
 }
 
+/* Fill a canvas with characters from string str
+ *
+ * Stops at the null character or when the canvas is full.
+ *
+ * String indices are mapped to canvas indices, so with a canvas of size 3x3
+ * the first character is placed at (0, 0), the second at (1, 0), and the fourth
+ * at (1, 0).
+ *
+ * Returns: the number of characters written
+ */
 int load_string(Canvas *canvas, char *str)
 {
     int i;
@@ -69,6 +102,10 @@ int load_string(Canvas *canvas, char *str)
     return i;
 }
 
+/* Print a canvas to stdout
+ *
+ * TODO: add option ala fprintf for stderr
+ */
 void print_canvas(Canvas *canvas)
 {
     char *row;
@@ -83,6 +120,16 @@ void print_canvas(Canvas *canvas)
     }
 }
 
+/* Convert a canvas object into a character buffer
+ *
+ * A canvas of size nxm requires a buffer of size n*m bytes (chars).
+ *
+ * Does NOT null-terminate the buffer.
+ *
+ * TODO: accept sizeof(buf) and assert size is correct?
+ *
+ * Returns: the number of bytes written to buf
+ */
 int serialize_canvas(Canvas *canvas, char* buf) {
     int i;
     for (i = 0; i < canvas->num_cols*canvas->num_rows; i++){
@@ -91,6 +138,10 @@ int serialize_canvas(Canvas *canvas, char* buf) {
     return i;
 }
 
+/* Load a serialized canvas into a canvas object
+ *
+ * TODO: consider creating a canvas instead of filling one
+ */
 void deserialize_canvas(char* bytes, Canvas* canvas) {
     load_string(canvas, bytes);
 }
