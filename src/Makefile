@@ -36,7 +36,7 @@ test: $(patsubst %.c, .run-%.c, $(wildcard *_test.c))
 
 # frontend.out: frontend.c frontend.h
 # 	$(CC) frontend.c $(CFLAGS) $(LDLIBS) -o frontend.out
-# frontend.out: cursor.o
+frontend.out: cursor.o
 frontend.out: LDLIBS +=-lncurses
 
 clean:
