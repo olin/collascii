@@ -2,7 +2,7 @@
 #include <signal.h>
 #include "frontend.h"
 
-int STATUS_HEIGHT = 1;
+int STATUS_HEIGHT = 1;  // not including borders
 
 // TODO: Factor out to different file?
 /* The Cursor struct helps with controls.
@@ -13,50 +13,50 @@ typedef struct CURSOR {
     int y;
 } Cursor;
 
-Cursor *cursor_init() {
+Cursor *cursor_new() {
     Cursor *cursor = malloc(sizeof(Cursor));
     cursor->x = 0;
     cursor->y = 0; 
     return cursor;
 }
 
-void move_up(Cursor* cursor) {
+void cursor_move_up(Cursor* cursor) {
     if (cursor->y == 0) {
         return;
     }
     cursor->y--;
 }
 
-void move_down(Cursor* cursor) {
+void cursor_move_down(Cursor* cursor) {
     if (cursor->y == (LINES - 2)) { // Take box lines into account
         return;
     }
     cursor->y++;
 }
 
-void move_left(Cursor* cursor) {
+void cursor_move_left(Cursor* cursor) {
     if (cursor->x == 0) {
         return;
     }
     cursor->x--;
 }
 
-void move_right(Cursor* cursor) {
+void cursor_move_right(Cursor* cursor) {
     if (cursor->x == (COLS - 2)) { // Take box lines into account
         return;
     }
     cursor->x++;
 }
 
-int x_to_canvas(Cursor* cursor) {
+int cursor_x_to_canvas(Cursor* cursor) {
     return cursor->x + 1;
 }
 
-int y_to_canvas(Cursor* cursor) {
+int cursor_y_to_canvas(Cursor* cursor) {
     return cursor->y + 1;
 }
 
-void free_cursor(Cursor* cursor) {
+void cursor_free(Cursor* cursor) {
     free(cursor);
 }
 
@@ -71,10 +71,27 @@ void free_cursor(Cursor* cursor) {
  * |                                        |
  * |                                        |
  * |                                        |
- * ___________________________________________  
+ * |________________________________________|  
  * |                                        |  command window
- * ___________________________________________
+ * |________________________________________|
  * */
+
+void cursor_key_to_move(int arrow, Cursor *cursor) {
+    switch(arrow) {	
+        case KEY_LEFT:
+            cursor_move_left(cursor);
+            break;
+        case KEY_RIGHT:
+            cursor_move_right(cursor);
+            break;
+        case KEY_UP:
+            cursor_move_up(cursor);
+            break;
+        case KEY_DOWN:
+            cursor_move_down(cursor);
+            break;
+    }
+}
 
 int main(int argc, char *argv[]) {
     /* initialize your non-curses data structures here */
@@ -92,54 +109,48 @@ int main(int argc, char *argv[]) {
         setup_colors();
     }
     
-    WINDOW *canvas = create_canvas_win();
-    WINDOW *status = create_status_win();
+    WINDOW *canvas_win = create_canvas_win();
+    WINDOW *status_win = create_status_win();
 
     // Enable keyboard mapping
-    keypad(canvas, TRUE);
-    keypad(status, TRUE);
+    keypad(canvas_win, TRUE);
+    keypad(status_win, TRUE);
 
-    Cursor *cursor = cursor_init();
+    Cursor *cursor = cursor_new();
 
     char test_msg[] = "Test mode";
-    print_status(test_msg, status);
+    print_status(test_msg, status_win);
 
-    wrefresh(status);
+    wrefresh(status_win);
 
     //// Main loop
+    int last_arrow_direction = KEY_RIGHT;
     int ch;
-    while ((ch = wgetch(canvas)))
+    while ((ch = wgetch(canvas_win)))
     {
-        switch(ch) {	
-            case KEY_LEFT:
-				move_left(cursor);
-				break;
-			case KEY_RIGHT:
-				move_right(cursor);
-				break;
-			case KEY_UP:
-				move_up(cursor);
-				break;
-			case KEY_DOWN:
-				move_down(cursor);
-				break;
-            default:
+        if ((ch == KEY_LEFT) || (ch == KEY_RIGHT) || (ch == KEY_UP) || (ch == KEY_DOWN)) {
+            cursor_key_to_move(ch, cursor);
+            last_arrow_direction = ch;
+        } else {
             if (' ' <= ch && ch <= '~') {  // check if ch is printable
-                mvwaddch(canvas, y_to_canvas(cursor), x_to_canvas(cursor), ch);
+                mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor), ch);
+                cursor_key_to_move(last_arrow_direction, cursor);
             } else {
-                // Print non-print characters to bottom left in status bar
-                mvwaddch(status, 0, COLS-3, ch); 
+                // Print non-print characters to bottom left in status_win bar
+                mvwaddch(status_win, 0, COLS-3, ch); 
             }
-		}
+        }
         // Move UI cursor to the right place
-        wmove(canvas, y_to_canvas(cursor), x_to_canvas(cursor));
+        wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
 
-        wrefresh(status);
-        wrefresh(canvas); // Refresh Canvas last so it gets the cursor
+        wrefresh(status_win);
+        wrefresh(canvas_win); // Refresh Canvas last so it gets the cursor
     }
 
     // Cleanup
-    free_cursor(cursor);
+    cursor_free(cursor);
+    destroy_win(status_win);
+    destroy_win(canvas_win);
     finish(0);
 }
 
@@ -175,8 +186,9 @@ WINDOW *create_newwin(int height, int width, int starty, int startx, int should_
 
 WINDOW *create_canvas_win() {
 	WINDOW *local_win;
-
-	local_win = newwin(LINES - (STATUS_HEIGHT + 1), COLS, 0, 0);
+    
+    //                                        + 1 due to bottom border
+	local_win = newwin(LINES - (STATUS_HEIGHT + 1), COLS, 0, 0);  // height, width, starty, startx
 
     wborder(local_win, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE,      // Sides:   ls,  rs,  ts,  bs,
                        ACS_ULCORNER, ACS_URCORNER, ACS_LTEE, ACS_RTEE); // Corners: tl,  tr,  bl,  br
@@ -187,7 +199,7 @@ WINDOW *create_canvas_win() {
 
 WINDOW *create_status_win() {
 	WINDOW *local_win;
-
+    //                               + 2 due to horizontal borders
 	local_win = newwin(STATUS_HEIGHT + 2, COLS, 
                         LINES - (STATUS_HEIGHT+2), 0);
 
@@ -196,6 +208,15 @@ WINDOW *create_status_win() {
     
     wrefresh(local_win);
 	return local_win;
+}
+
+void destroy_win(WINDOW *local_win)
+{	
+	// Clear borders explicitly
+    wborder(local_win, ' ', ' ', ' ',' ',' ',' ',' ',' ');
+	
+	wrefresh(local_win);
+	delwin(local_win);
 }
 
 int print_status(char* str, WINDOW* window) {

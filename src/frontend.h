@@ -4,6 +4,7 @@ static void finish(int sig);
 static void setup_colors();
 WINDOW *create_canvas_win();
 WINDOW *create_status_win();
+void destroy_win();
 
 int print_status(char* str, WINDOW* window);
 
