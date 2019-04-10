@@ -8,14 +8,14 @@ static char load_str[] = "012345";
 static Canvas *c1, *c2;
 
 MU_TEST(test_canvas_new) {
-    c1 = canvas_new(cols, rows);
+    c1 = canvas_new(rows, cols);
     mu_assert(c1->num_cols == cols, "cols should be 2");
     mu_assert(c1->num_rows == rows, "rows should be 3");
     canvas_free(c1);
 }
 
 MU_TEST(test_canvas_load_str) {
-    c1 = canvas_new(cols, rows);
+    c1 = canvas_new(rows, cols);
     int numset = canvas_load_str(c1, load_str);
     mu_assert(numset == sizeof(load_str) - 1, "numset should be 6");
     mu_check(c1->rows[0][0] == '0');
@@ -30,8 +30,8 @@ MU_TEST(test_canvas_load_str) {
 
 MU_TEST(test_canvas_eq) {
     // canvas with same content
-    c1 = canvas_new(cols, rows);
-    c2 = canvas_new(cols, rows);
+    c1 = canvas_new(rows, cols);
+    c2 = canvas_new(rows, cols);
 
     // canvases of different sizes
     Canvas *c3 = canvas_new(cols - 1, rows);
@@ -74,7 +74,7 @@ MU_TEST_SUITE(canvas_bootstrapping) {
 }
 
 void test_setup(void) {
-    c1 = canvas_new(cols, rows);
+    c1 = canvas_new(rows, cols);
     canvas_load_str(c1, load_str);
 }
 
@@ -128,7 +128,7 @@ MU_TEST(test_canvas_serialize_deserialize) {
     int numwritten = canvas_serialize(c1, buf);
     mu_assert(numwritten == sizeof(buf), "Serialized form should be size cols*rows");
 
-    c2 = canvas_new(c1->num_cols, c1->num_rows);
+    c2 = canvas_new(c1->num_rows, c1->num_cols);
     canvas_deserialize(buf, c2);
     mu_assert(canvas_eq(c1, c2), "Canvases should be equivalent");
 

@@ -9,7 +9,7 @@ typedef struct
     char **rows;
 } Canvas;
 
-Canvas *canvas_new(int cols, int rows);
+Canvas *canvas_new(int rows, int cols);
 Canvas *canvas_cpy(Canvas *orig);
 void canvas_free(Canvas *canvas);
 void canvas_scharxy(Canvas *canvas, int x, int y, char c);

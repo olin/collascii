@@ -16,11 +16,9 @@ typedef struct
 
 /* Create a canvas object
  *
- * TODO: swap to rows, cols to match ncurses height, width format
- *
  * Returned pointer should be freed with free_canvas
  */
-Canvas *canvas_new(int cols, int rows)
+Canvas *canvas_new(int rows, int cols)
 {
     Canvas *canvas = malloc(sizeof(Canvas));
     canvas->num_cols = cols;
@@ -40,7 +38,7 @@ Canvas *canvas_new(int cols, int rows)
 Canvas *canvas_cpy(Canvas *orig)
 {
     // allocate new canvas
-    Canvas *copy = canvas_new(orig->num_cols, orig->num_rows);
+    Canvas *copy = canvas_new(orig->num_rows, orig->num_cols);
     // copy rows over from orig
     for (int i = 0; i < orig->num_rows; i++)
     {
