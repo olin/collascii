@@ -82,9 +82,9 @@ void test_teardown(void) {
 	canvas_free(c1);
 }
 
-MU_TEST(test_canvas_gcharxy) {
-    mu_check(c1->rows[2][1] == canvas_gcharxy(c1, 1, 2));
-    mu_check(c1->rows[2][1] != canvas_gcharxy(c1, 0, 2));
+MU_TEST(test_canvas_gcharyx) {
+    mu_check(c1->rows[2][1] == canvas_gcharyx(c1, 2, 1));
+    mu_check(c1->rows[2][1] != canvas_gcharyx(c1, 2, 0));
 }
 
 MU_TEST(test_canvas_gchari) {
@@ -92,13 +92,13 @@ MU_TEST(test_canvas_gchari) {
     mu_check(c1->rows[2][1] != canvas_gchari(c1, 4));
 }
 
-MU_TEST(test_canvas_scharxy) {
+MU_TEST(test_canvas_scharyx) {
     mu_check(c1->rows[0][0] != 'X');
-    canvas_scharxy(c1, 0, 0, 'X');
+    canvas_scharyx(c1, 0, 0, 'X');
     mu_check(c1->rows[0][0] == 'X');
 
     mu_check(c1->rows[2][1] != 'X');
-    canvas_scharxy(c1, 1, 2, 'X');
+    canvas_scharyx(c1, 2, 1, 'X');
     mu_check(c1->rows[2][1] == 'X');
 }
 
@@ -139,9 +139,9 @@ MU_TEST(test_canvas_serialize_deserialize) {
 MU_TEST_SUITE(canvas_main) {
     MU_SUITE_CONFIGURE(&test_setup, &test_teardown);
 
-    MU_RUN_TEST(test_canvas_gcharxy);
+    MU_RUN_TEST(test_canvas_gcharyx);
     MU_RUN_TEST(test_canvas_gchari);
-    MU_RUN_TEST(test_canvas_scharxy);
+    MU_RUN_TEST(test_canvas_scharyx);
     MU_RUN_TEST(test_canvas_schari);
 
     MU_RUN_TEST(test_canvas_cpy);

@@ -12,9 +12,9 @@ typedef struct
 Canvas *canvas_new(int rows, int cols);
 Canvas *canvas_cpy(Canvas *orig);
 void canvas_free(Canvas *canvas);
-void canvas_scharxy(Canvas *canvas, int x, int y, char c);
+void canvas_scharyx(Canvas *canvas, int y, int x, char c);
 void canvas_schari(Canvas *canvas, int i, char c);
-char canvas_gcharxy(Canvas *canvas, int x, int y);
+char canvas_gcharyx(Canvas *canvas, int y, int x);
 char canvas_gchari(Canvas *canvas, int i);
 int canvas_load_str(Canvas *canvas, char *str);
 int canvas_fprint(FILE *stream, Canvas *canvas);

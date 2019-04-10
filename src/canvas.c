@@ -1,7 +1,6 @@
 /* API for Canvas objects
  *
  * TODO: add save/read from file options
- * TODO: conform to ncurses y,x
  * TODO: assert get/set positions are within canvas sizes?
  */
 #include <stdlib.h>
@@ -68,7 +67,7 @@ void canvas_free(Canvas *canvas)
  *
  * Top left of canvas is (0, 0).
  */
-void canvas_scharxy(Canvas *canvas, int x, int y, char c)
+void canvas_scharyx(Canvas *canvas, int y, int x, char c)
 {
     canvas->rows[y][x] = c;
 }
@@ -81,13 +80,13 @@ void canvas_schari(Canvas *canvas, int i, char c)
 {
     int row = i / canvas->num_cols;
     int col = i % canvas->num_cols;
-    canvas_scharxy(canvas, col, row, c);
+    canvas->rows[row][col] = c;
 }
 
 /* Get the character at position (x, y)
  *
  */
-char canvas_gcharxy(Canvas *canvas, int x, int y)
+char canvas_gcharyx(Canvas *canvas, int y, int x)
 {
     return canvas->rows[y][x];
 }
