@@ -2,7 +2,6 @@
  *
  * TODO: add save/read from file options
  * TODO: conform to ncurses y,x
- * TODO: prepend canvas on canvas functions
  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -69,7 +68,7 @@ void canvas_free(Canvas *canvas)
  *
  * Top left of canvas is (0, 0).
  */
-void scharxy(Canvas *canvas, int x, int y, char c)
+void canvas_scharxy(Canvas *canvas, int x, int y, char c)
 {
     canvas->rows[y][x] = c;
 }
@@ -78,24 +77,24 @@ void scharxy(Canvas *canvas, int x, int y, char c)
  *
  * Index starts at 0 at position (0, 0) and increments first horizontally.
  */
-void schari(Canvas *canvas, int i, char c)
+void canvas_schari(Canvas *canvas, int i, char c)
 {
     int row = i / canvas->num_cols;
     int col = i % canvas->num_cols;
-    scharxy(canvas, col, row, c);
+    canvas_scharxy(canvas, col, row, c);
 }
 
 /* Get the character at position x, y
  *
  */
-char gcharxy(Canvas *canvas, int x, int y) {
+char canvas_gcharxy(Canvas *canvas, int x, int y) {
     return canvas->rows[y][x];
 }
 
 /* Get the character at index i
  *
  */
-char gchari(Canvas *canvas, int i) {
+char canvas_gchari(Canvas *canvas, int i) {
     int row = i / canvas->num_cols;
     int col = i % canvas->num_cols;
     return canvas->rows[row][col];
@@ -111,12 +110,12 @@ char gchari(Canvas *canvas, int i) {
  *
  * Returns: the number of characters written
  */
-int load_string(Canvas *canvas, char *str)
+int canvas_load_str(Canvas *canvas, char *str)
 {
     int i;
     for (i = 0; str[i] != '\0' && i < canvas->num_cols*canvas->num_rows; i++)
     {
-        schari(canvas, i, str[i]);
+        canvas_schari(canvas, i, str[i]);
     }
     return i;
 }
@@ -125,7 +124,7 @@ int load_string(Canvas *canvas, char *str)
  *
  * TODO: add option ala fprintf for stderr
  */
-void print_canvas(Canvas *canvas)
+void canvas_print(Canvas *canvas)
 {
     char *row;
     for (int i = 0; i < canvas->num_rows; i++)
@@ -149,10 +148,10 @@ void print_canvas(Canvas *canvas)
  *
  * Returns: the number of bytes written to buf
  */
-int serialize_canvas(Canvas *canvas, char* buf) {
+int canvas_serialize(Canvas *canvas, char* buf) {
     int i;
     for (i = 0; i < canvas->num_cols*canvas->num_rows; i++){
-        buf[i] = gchari(canvas, i);
+        buf[i] = canvas_gchari(canvas, i);
     }
     return i;
 }
@@ -161,8 +160,8 @@ int serialize_canvas(Canvas *canvas, char* buf) {
  *
  * TODO: consider creating a canvas instead of filling one
  */
-void deserialize_canvas(char* bytes, Canvas* canvas) {
-    load_string(canvas, bytes);
+void canvas_deserialize(char* bytes, Canvas* canvas) {
+    canvas_load_str(canvas, bytes);
 }
 
 /* Check if two canvases are the same
@@ -177,7 +176,7 @@ int canvas_eq(Canvas* a, Canvas* b) {
     // compare values
     int size = a->num_cols*a->num_rows;
     for (int i = 0; i < size; i++) {
-        if (gchari(a, i) != gchari(b, i)) {
+        if (canvas_gchari(a, i) != canvas_gchari(b, i)) {
             return 0;
         }
     }
@@ -188,30 +187,30 @@ int canvas_eq(Canvas* a, Canvas* b) {
 int main() {
     // creating
     Canvas* c = canvas_new(3, 3);
-    load_string(c, "X XXXXX X");
-    print_canvas(c);
+    canvas_load_str(c, "X XXXXX X");
+    canvas_print(c);
 
     Canvas* c_cpy = canvas_cpy(c);
 
 
     // setting
     printf("Set (1, 2) to 'O'\n");
-    scharxy(c, 1, 2, 'O');
-    print_canvas(c);
+    canvas_scharxy(c, 1, 2, 'O');
+    canvas_print(c);
     printf("Equivalent: %s\n", canvas_eq(c_cpy, c) ? "True" : "False");
 
     // serialization
     printf("Original:\n");
-    print_canvas(c);
+    canvas_print(c);
     char buffer[10];
-    serialize_canvas(c, buffer);
+    canvas_serialize(c, buffer);
     buffer[9] = '\0';
     printf("Serialized:\n");
     printf("'%s'\n", buffer);
     Canvas* c2 = canvas_new(3,3);
-    deserialize_canvas(buffer, c2);
+    canvas_deserialize(buffer, c2);
     printf("Deserialized:\n");
-    print_canvas(c2);
+    canvas_print(c2);
     printf("Equivalent: %s\n", canvas_eq(c, c2) ? "True" : "False");
 
     // free
