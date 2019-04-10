@@ -1,7 +1,5 @@
 CC=gcc
 CFLAGS+=-Wall
-# global includes
-# LDFLAGS+=-lncurses
 
 # add debug annotations, turn off optimizations, and #define DEBUG
 # use in bash with `DEBUG=1 make <foo>`
@@ -10,10 +8,22 @@ ifdef DEBUG
 CFLAGS+=-g -O0 -DDEBUG
 endif
 
-# link ncurses library
-# foo: LDFLAGS+=-lncurses
+## EXAMPLES
 
-# Generate .out files for easier .gitignore. Based on the default make rule
+# link ncurses library
+# foo: LDLIBS+=-lncurses
+
+# require library canvas.c for foo
+# foo.out: canvas.o
+
+## FILE-SPECIFIC MODIFICATIONS
+
+frontend.out: LDLIBS +=-lncurses
+frontend.out: cursor.o
+
+## PATTERNS
+
+# Generate .out files for easier .gitignore. Based on the builtin make rule
 # https://www.gnu.org/software/make/manual/html_node/Catalogue-of-Rules.html#Catalogue-of-Rules
 %.out: %.c
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
@@ -30,14 +40,10 @@ test: $(patsubst %.c, .run-%.c, $(wildcard *_test.c))
 	./$<
 
 # add flags for minunit libraries, works with `make test_foo` too
-%_test: LDFLAGS+=-lrt -lm
-%_test: %_test.c minunit.h
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
-
-# frontend.out: frontend.c frontend.h
-# 	$(CC) frontend.c $(CFLAGS) $(LDLIBS) -o frontend.out
-frontend.out: cursor.o
-frontend.out: LDLIBS +=-lncurses
+%_test: LDLIBS+=-lrt -lm
+# require foo.c, foo_test, and minunit.h for foo_test
+%_test: %.o %_test.c minunit.h
+	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 clean:
 	-rm *.o *_test *.out
