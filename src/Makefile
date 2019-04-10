@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS+=-Wall
+CFLAGS+=-Wall -std=c99
 
 # add debug annotations, turn off optimizations, and #define DEBUG
 # use in bash with `DEBUG=1 make <foo>`
