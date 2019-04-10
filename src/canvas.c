@@ -18,11 +18,10 @@ typedef struct
 /* Create a canvas object
  *
  * TODO: swap to rows, cols to match ncurses height, width format
- * TODO: rename to canvas_new
  *
  * Returned pointer should be freed with free_canvas
  */
-Canvas *make_canvas(int cols, int rows)
+Canvas *canvas_new(int cols, int rows)
 {
     Canvas *canvas = malloc(sizeof(Canvas));
     canvas->num_cols = cols;
@@ -37,9 +36,8 @@ Canvas *make_canvas(int cols, int rows)
 
 /* Free a canvas object
  *
- * TODO: rename to canvas_free
  */
-void free_canvas(Canvas *canvas)
+void canvas_free(Canvas *canvas)
 {
     // free each row first
     for (int i = 0; i < canvas->num_rows; i++)
@@ -152,31 +150,32 @@ void deserialize_canvas(char* bytes, Canvas* canvas) {
     load_string(canvas, bytes);
 }
 
-// int main() {
-//     // creating
-//     Canvas* c = make_canvas(3, 3);
-//     load_string(c, "X XXXXX X");
-//     print_canvas(c);
+int main() {
+    // creating
+    Canvas* c = canvas_new(3, 3);
+    load_string(c, "X XXXXX X");
+    print_canvas(c);
 
-//     // setting
-//     printf("Set (1, 2) to 'O'\n");
-//     scharxy(c, 1, 2, 'O');
-//     print_canvas(c);
+    // setting
+    printf("Set (1, 2) to 'O'\n");
+    scharxy(c, 1, 2, 'O');
+    print_canvas(c);
 
-//     // serialization
-//     printf("Original:\n");
-//     print_canvas(c);
-//     char buffer[10];
-//     serialize_canvas(c, buffer);
-//     buffer[9] = '\0';
-//     printf("Serialized:\n");
-//     printf("'%s'\n", buffer);
-//     Canvas* c2 = make_canvas(3,3);
-//     deserialize_canvas(buffer, c2);
-//     printf("Deserialized:\n");
-//     print_canvas(c2);
+    // serialization
+    printf("Original:\n");
+    print_canvas(c);
+    char buffer[10];
+    serialize_canvas(c, buffer);
+    buffer[9] = '\0';
+    printf("Serialized:\n");
+    printf("'%s'\n", buffer);
+    Canvas* c2 = canvas_new(3,3);
+    deserialize_canvas(buffer, c2);
+    printf("Deserialized:\n");
+    print_canvas(c2);
 
-//     // free
-//     free_canvas(c);
-//     return 0;
-// }
+    // free
+    canvas_free(c);
+    canvas_free(c2);
+    return 0;
+}
