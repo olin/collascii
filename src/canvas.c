@@ -2,6 +2,7 @@
  *
  * TODO: add save/read from file options
  * TODO: conform to ncurses y,x
+ * TODO: assert get/set positions are within canvas sizes?
  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -190,6 +191,8 @@ int canvas_serialize(Canvas *canvas, char *buf)
 /* Load a serialized canvas into a canvas object
  *
  * TODO: consider creating a canvas instead of filling one
+ *
+ * TODO: get size of buffer?
  */
 void canvas_deserialize(char *bytes, Canvas *canvas)
 {
