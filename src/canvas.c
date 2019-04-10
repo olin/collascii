@@ -1,6 +1,5 @@
 /* API for Canvas objects
  *
- * TODO: add function to check if canvases are equal
  * TODO: add save/read from file options
  * TODO: conform to ncurses y,x
  * TODO: prepend canvas on canvas functions
@@ -32,6 +31,22 @@ Canvas *canvas_new(int cols, int rows)
         canvas->rows[i] = calloc(cols, sizeof(char));
     }
     return canvas;
+}
+
+/* Create and return a deep copy of a canvas
+ *
+ * Returned pointer should be freed with free_canvas
+ */
+Canvas *canvas_cpy(Canvas *orig) {
+    // allocate new canvas
+    Canvas *copy = canvas_new(orig->num_cols, orig->num_rows);
+    // copy rows over from orig
+    for (int i = 0; i < orig->num_rows; i++)
+    {
+        memcpy(copy->rows[i], orig->rows[i], sizeof(char) * orig->num_cols);
+    }
+
+    return copy;
 }
 
 /* Free a canvas object
@@ -150,16 +165,40 @@ void deserialize_canvas(char* bytes, Canvas* canvas) {
     load_string(canvas, bytes);
 }
 
+/* Check if two canvases are the same
+ *
+ * Returns: 1 if equal, 0 if not
+ */
+int canvas_eq(Canvas* a, Canvas* b) {
+    // compare sizes
+    if (a->num_cols != b->num_cols || a->num_rows != b->num_rows) {
+        return 0;
+    }
+    // compare values
+    int size = a->num_cols*a->num_rows;
+    for (int i = 0; i < size; i++) {
+        if (gchari(a, i) != gchari(b, i)) {
+            return 0;
+        }
+    }
+    // return 1 if both pass
+    return 1;
+}
+
 int main() {
     // creating
     Canvas* c = canvas_new(3, 3);
     load_string(c, "X XXXXX X");
     print_canvas(c);
 
+    Canvas* c_cpy = canvas_cpy(c);
+
+
     // setting
     printf("Set (1, 2) to 'O'\n");
     scharxy(c, 1, 2, 'O');
     print_canvas(c);
+    printf("Equivalent: %s\n", canvas_eq(c_cpy, c) ? "True" : "False");
 
     // serialization
     printf("Original:\n");
@@ -173,6 +212,7 @@ int main() {
     deserialize_canvas(buffer, c2);
     printf("Deserialized:\n");
     print_canvas(c2);
+    printf("Equivalent: %s\n", canvas_eq(c, c2) ? "True" : "False");
 
     // free
     canvas_free(c);
