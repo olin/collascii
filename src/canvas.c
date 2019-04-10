@@ -120,22 +120,45 @@ int canvas_load_str(Canvas *canvas, char *str)
     return i;
 }
 
-/* Print a canvas to stdout
+/* Print a canvas to a file stream
  *
- * TODO: add option ala fprintf for stderr
+ * Returns: the number of characters printed if successful, or a negative value
+ * on output error from fprintf
  */
-void canvas_print(Canvas *canvas)
-{
+int canvas_fprint(FILE *stream, Canvas *canvas) {
     char *row;
+    int res;
+    int total = 0;
     for (int i = 0; i < canvas->num_rows; i++)
     {
+        // print row char by char
         row = canvas->rows[i];
         for (int j = 0; j < canvas->num_cols; j++)
         {
-            printf("%c", row[j]);
+            res = fprintf(stream, "%c", row[j]);
+            if (res < 0) {
+                return res;
+            }
+            total += res;
         }
-        printf("\n");
+        // finish row
+        res = printf("\n");
+        if (res < 0) {
+            return res;
+        }
+        total += res;
     }
+    return total;
+}
+
+/* Print a canvas to stdout
+ *
+ * Returns: the number of characters printed if successful, or a negative value
+ * on output error from fprintf
+ */
+int canvas_print(Canvas *canvas)
+{
+    return canvas_fprint(stdout, canvas);
 }
 
 /* Convert a canvas object into a character buffer
