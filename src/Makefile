@@ -19,7 +19,7 @@ endif
 ## FILE-SPECIFIC MODIFICATIONS
 
 frontend.out: LDLIBS +=-lncurses
-frontend.out: cursor.o
+frontend.out: cursor.o fe_modes.o
 
 ## PATTERNS
 

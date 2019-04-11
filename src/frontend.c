@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <signal.h>
 #include "frontend.h"
-#include "cursor.h"
 
 /* Layout
  * ___________________________________________ 
@@ -17,22 +16,10 @@
  * |________________________________________|  
  * |                                        |  command window
  * |________________________________________|
- * */
+ * 
+ */
 
 int STATUS_HEIGHT = 1;  // not including borders
-
-/* State keeps track of relevant variables for mode functions.
- * If you add something, don't forget to also add an init before the main loop.
- * 
- * TODO: replace last_arrow with linked list of previous inputs?
- * Make sure its length is capped.
- */
-typedef struct {
-    int ch_in;
-    Cursor *cursor;
-    
-    int last_arrow_direction;
-} State;
 
 int main(int argc, char *argv[]) {
     /* initialize your non-curses data structures here */
@@ -78,25 +65,7 @@ int main(int argc, char *argv[]) {
 
     while ((state->ch_in = wgetch(canvas_win))) {
 
-        if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) || (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
-            cursor_key_to_move(state->ch_in, state->cursor);
-            state->last_arrow_direction = state->ch_in;
-        } else {
-            if (' ' <= state->ch_in && state->ch_in <= '~') {  // check if ch is printable
-                mvwaddch(canvas_win, cursor_y_to_canvas(state->cursor), cursor_x_to_canvas(state->cursor), state->ch_in);
-                cursor_key_to_move(state->last_arrow_direction, state->cursor);
-            } else if (state->ch_in == KEY_BACKSPACE) {
-                cursor_key_to_move(cursor_opposite_dir(state->last_arrow_direction), cursor);
-                mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor), ' ');
-            } else if (state->ch_in == KEY_DC) {
-                mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor), ' ');
-            } else {
-                // Print non-print characters to bottom left in status_win bar
-                mvwaddch(status_win, 1, COLS-3, state->ch_in); 
-            }
-        }
-        // Move UI cursor to the right place
-        wmove(canvas_win, cursor_y_to_canvas(state->cursor), cursor_x_to_canvas(state->cursor));
+        mode_arrow_input(state, canvas_win, status_win);
 
         wrefresh(status_win);
         wrefresh(canvas_win); // Refresh Canvas last so it gets the cursor
