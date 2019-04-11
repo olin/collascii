@@ -167,7 +167,7 @@ int canvas_print(Canvas *canvas)
 
 /* Convert a canvas object into a character buffer
  *
- * A canvas of size nxm requires a buffer of size n*m bytes (chars).
+ * A canvas of size n rols, m cols requires a buffer of size n*m bytes (chars).
  *
  * Does NOT null-terminate the buffer.
  *

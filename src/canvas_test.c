@@ -7,6 +7,7 @@ static char load_str[] = "012345";
 
 static Canvas *c1, *c2;
 
+// Begin canvas_bootstrapping tests
 MU_TEST(test_canvas_new) {
     c1 = canvas_new(rows, cols);
     mu_assert(c1->num_cols == cols, "cols should be 2");
@@ -73,6 +74,7 @@ MU_TEST_SUITE(canvas_bootstrapping) {
     MU_RUN_TEST(test_canvas_eq);
 }
 
+// Begin canvas_main tests
 void test_setup(void) {
     c1 = canvas_new(rows, cols);
     canvas_load_str(c1, load_str);
