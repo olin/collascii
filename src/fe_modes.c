@@ -9,7 +9,7 @@
 #include "fe_modes.h"
 
 int (*mode_functions[]) (State*, WINDOW*, WINDOW*) = {
-    mode_status,
+    mode_picker,
     mode_arrow_input,
 };
 
@@ -34,7 +34,7 @@ void exit_to_status(State *state) {
  *
  * Default mode. Used to choose other modes.
  */
-int mode_status(State *state, WINDOW *canvas_win, WINDOW *status_win) {
+int mode_picker(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     return 0;
 }
 

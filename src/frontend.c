@@ -1,9 +1,6 @@
 #include <stdlib.h>
 #include <signal.h>
-
-// ?Keep this commented. it gets included through frontend.h
 #include "fe_modes.h"
-
 #include "frontend.h"
 
 /* Layout
@@ -61,15 +58,20 @@ int main(int argc, char *argv[]) {
     
 
     //// Main loop
-    State new_state = { .ch_in = 0,
+    State new_state = {
+                        .ch_in = 0,
                         .cursor = cursor,
                         .last_arrow_direction = KEY_RIGHT,
-                    };
+                      };
     State *state = &new_state;
 
     while ((state->ch_in = wgetch(canvas_win))) {
+        // fprintf(stderr, "(%c, %i)    ", (char)state->ch_in, state->ch_in);
 
-        mode_arrow_input(state, canvas_win, status_win);
+        // TAB          '\t'
+        // Shift+TAB    KEY_BTAB
+        // Enter        '\r' (Maybe platform dependent?)
+        mode_functions[INSERT](state, canvas_win, status_win);
 
         wrefresh(status_win);
         wrefresh(canvas_win); // Refresh Canvas last so it gets the cursor
