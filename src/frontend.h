@@ -2,10 +2,8 @@
 #define frontend_h
 
 #include "cursor.h"
-#include <curses.h>
+#include <ncurses.h>
 
-// Keep this commented. it gets included through frontend.h
-// #include "fe_modes.h"
 
 /* State keeps track of changing variables for mode functions.
  * If you add something, don't forget to also add an init before the main loop.
@@ -21,8 +19,8 @@ typedef struct {
 } State;
 
 
-static void finish(int sig);
-static void setup_colors();
+void finish(int sig);
+void setup_colors();
 WINDOW *create_canvas_win();
 WINDOW *create_status_win();
 void destroy_win();

@@ -1,5 +1,9 @@
 #include <stdlib.h>
 #include <signal.h>
+
+// ?Keep this commented. it gets included through frontend.h
+#include "fe_modes.h"
+
 #include "frontend.h"
 
 /* Layout
@@ -78,7 +82,7 @@ int main(int argc, char *argv[]) {
     finish(0);
 }
 
-static void setup_colors() {
+void setup_colors() {
     start_color();
 
     // TODO: Use #define to get colors for standard uses
@@ -148,7 +152,7 @@ int print_status(char* str, WINDOW* window) {
     return mvwprintw(window, 1, 1, str);
 }
 
-static void finish(int sig) {
+void finish(int sig) {
     endwin();
 
     /* do your non-curses wrapup here */

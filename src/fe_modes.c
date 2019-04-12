@@ -8,6 +8,10 @@
  */
 #include "fe_modes.h"
 
+int (*mode_functions[]) (State*, WINDOW*, WINDOW*) = {
+    mode_status,
+    mode_arrow_input,
+};
 
   //////////////////////
  // HELPER FUNCTIONS //

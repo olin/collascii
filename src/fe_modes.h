@@ -7,9 +7,6 @@
 int mode_status(State *state, WINDOW *canvas_win, WINDOW *status_win);
 int mode_arrow_input(State *state, WINDOW *canvas_win, WINDOW *status_win);
 
-int (*mode_functions[]) (State*, WINDOW*, WINDOW*) = {
-    mode_status,
-    mode_arrow_input,
-};
+extern int (*mode_functions[]) (State*, WINDOW*, WINDOW*);
 
 #endif
