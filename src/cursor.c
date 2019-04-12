@@ -66,6 +66,19 @@ void cursor_key_to_move(int arrow, Cursor *cursor) {
     }
 }
 
+int cursor_opposite_dir(int arrow){
+    switch(arrow) {
+        case KEY_LEFT:
+            return KEY_RIGHT;
+        case KEY_RIGHT:
+            return KEY_LEFT;
+        case KEY_UP:
+            return KEY_DOWN;
+        case KEY_DOWN:
+            return KEY_UP;
+    }
+}
+
 void cursor_free(Cursor* cursor) {
     free(cursor);
 }

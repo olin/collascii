@@ -63,9 +63,14 @@ int main(int argc, char *argv[]) {
             if (' ' <= ch && ch <= '~') {  // check if ch is printable
                 mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor), ch);
                 cursor_key_to_move(last_arrow_direction, cursor);
+            } else if (ch == KEY_BACKSPACE){
+                cursor_key_to_move(cursor_opposite_dir(last_arrow_direction), cursor);
+                mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor), ' ');
+            } else if (ch == KEY_DC){
+                mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor), ' ');
             } else {
                 // Print non-print characters to bottom left in status_win bar
-                mvwaddch(status_win, 0, COLS-3, ch); 
+                mvwaddch(status_win, 0, COLS-3, ch);
             }
         }
         // Move UI cursor to the right place
