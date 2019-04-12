@@ -77,6 +77,7 @@ int cursor_opposite_dir(int arrow){
         case KEY_DOWN:
             return KEY_UP;
     }
+    return -1;
 }
 
 void cursor_free(Cursor* cursor) {
