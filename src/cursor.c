@@ -21,7 +21,7 @@ void cursor_move_up(Cursor* cursor) {
 }
 
 void cursor_move_down(Cursor* cursor) {
-    if (cursor->y == (LINES - 2)) { // Take box lines into account
+    if (cursor->y == (LINES - 5)) { // Take box lines into account
         return;
     }
     cursor->y++;
@@ -35,7 +35,7 @@ void cursor_move_left(Cursor* cursor) {
 }
 
 void cursor_move_right(Cursor* cursor) {
-    if (cursor->x == (COLS - 2)) { // Take box lines into account
+    if (cursor->x == (COLS - 3)) { // Take box lines into account
         return;
     }
     cursor->x++;
