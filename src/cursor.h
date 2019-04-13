@@ -5,12 +5,18 @@
  * It also maps the drawing area to the canvas nicely.
  */
 
+#ifndef _CURSOR_H_
+#define _CURSOR_H_
+
 typedef struct CURSOR {
   int x;
   int y;
 } Cursor;
 
-Cursor* cursor_new();
+#define canvas_max_x (COLS - 3)
+#define canvas_max_y (LINES - 5)
+
+Cursor *cursor_new();
 void cursor_free(Cursor* cursor);
 
 void cursor_move_up(Cursor* cursor);
