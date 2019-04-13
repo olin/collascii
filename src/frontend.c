@@ -100,9 +100,41 @@ void setup_colors() {
   init_pair(7, COLOR_BLACK, COLOR_WHITE);
 }
 
-WINDOW *create_newwin(int height, int width, int starty, int startx,
-                      int should_draw_box) {
-  WINDOW *local_win;
+void update_screen_size(WINDOW *canvas_win, WINDOW *status_win){
+    static int window_w_old, window_h_old;
+    int window_w_new, window_h_new;
+    
+    getmaxyx(stdscr, window_w_new, window_h_new);
+
+    if (window_h_new != window_h_old || window_w_new != window_w_old){
+        window_h_old = window_h_new;
+        window_w_old = window_w_new;
+
+        wresize(canvas_win, window_h_new - (STATUS_HEIGHT + 1), window_w_new);
+        wresize(status_win, STATUS_HEIGHT + 2, window_w_new);
+
+        mvwin(status_win, window_h_new - (STATUS_HEIGHT+2), 0);
+
+        wclear(stdscr);
+        wclear(canvas_win);
+        wclear(status_win);
+
+        // Redraw borders
+        wborder(canvas_win, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE,      // Sides:   ls,  rs,  ts,  bs,
+                       ACS_ULCORNER, ACS_URCORNER, ACS_LTEE, ACS_RTEE); // Corners: tl,  tr,  bl,  br
+        wborder(status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE,      // Sides:   ls,  rs,  ts,  bs,
+                       ACS_LTEE, ACS_RTEE, ACS_LLCORNER, ACS_LRCORNER); // Corners: tl,  tr,  bl,  br
+
+        wrefresh(canvas_win);
+        wrefresh(status_win);
+    }
+
+}
+
+WINDOW *create_newwin(int height, int width, int starty, int startx, int should_draw_box) {
+	WINDOW *local_win;
+
+	local_win = newwin(height, width, starty, startx);
 
   local_win = newwin(height, width, starty, startx);
 

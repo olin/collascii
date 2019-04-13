@@ -9,6 +9,7 @@
 
 void finish(int sig);
 void setup_colors();
+void update_screen_size(WINDOW *canvas_win, WINDOW *status_win);
 WINDOW *create_canvas_win();
 WINDOW *create_status_win();
 void destroy_win();
