@@ -49,7 +49,12 @@ int main(int argc, char *argv[]) {
     char test_msg[] = "Test mode";
     print_status(test_msg, status_win);
 
+
+    // Move cursor to starting location and redraw
+    wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
     wrefresh(status_win);
+    wrefresh(canvas_win); // Refresh Canvas last so it gets the cursor
+    
 
     //// Main loop
     int last_arrow_direction = KEY_RIGHT;
