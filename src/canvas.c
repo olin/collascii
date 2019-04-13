@@ -97,6 +97,45 @@ char canvas_gchari(Canvas *canvas, int i) {
   return canvas->rows[row][col];
 }
 
+int canvas_ldstryxc(Canvas *canvas, char *str, int y, int x, char transparent) {
+    int col = x;
+    int row = y;
+    int i;
+    for (i = 0; str[i] != '\0'; i++) {
+        // wrap to start col if at end
+        if (col >= canvas->num_cols || str[i] == '\n') {
+            row++;
+            col = x;
+            // skip newline chars
+            if (str[i] == '\n') {
+                continue;
+            }
+        }
+        // finish if at end of canvas
+        if (row >= canvas->num_rows) {
+            break;
+        }
+        // update pixel value
+        if (str[i] != transparent) {
+            canvas_scharyx(canvas, row, col, str[i]);
+        }
+        col++;
+    }
+    return i;
+}
+
+int canvas_ldstryx(Canvas *canvas, char *str, int y, int x) {
+    return canvas_ldstryxc(canvas, str, y, x, '\0');
+}
+
+int canvas_ldstr(Canvas *canvas, char *str) {
+    return canvas_ldstryx(canvas, str, 0, 0);
+}
+
+int canvas_load_str(Canvas* canvas, char *str) {
+    return canvas_ldstr(canvas, str);
+}
+
 /* Fill a canvas with characters from string str
  *
  * Stops at the null character or when the canvas is full.
@@ -107,13 +146,15 @@ char canvas_gchari(Canvas *canvas, int i) {
  *
  * Returns: the number of characters written
  */
-int canvas_load_str(Canvas *canvas, char *str) {
-  int i;
-  for (i = 0; str[i] != '\0' && i < canvas->num_cols * canvas->num_rows; i++) {
-    canvas_schari(canvas, i, str[i]);
-  }
-  return i;
-}
+// int canvas_load_str(Canvas *canvas, char *str)
+// {
+//     int i;
+//     for (i = 0; str[i] != '\0' && i < canvas->num_cols * canvas->num_rows; i++)
+//     {
+//         canvas_schari(canvas, i, str[i]);
+//     }
+//     return i;
+// }
 
 /* Print a canvas to a file stream
  *
