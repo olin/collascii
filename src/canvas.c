@@ -9,19 +9,33 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+/* Fill a canvas with char fill
+ *
+ */
+int canvas_fill(Canvas *canvas, char fill) {
+    for (int i = 0; i < canvas->num_rows; i++)
+    {
+        memset(canvas->rows[i], ' ', canvas->num_cols);
+    }
+}
+
 /* Create a canvas object
  *
  * Returned pointer should be freed with free_canvas
  */
-Canvas *canvas_new(int rows, int cols) {
-  Canvas *canvas = malloc(sizeof(Canvas));
-  canvas->num_cols = cols;
-  canvas->num_rows = rows;
-  canvas->rows = malloc(rows * sizeof(char *));
-  for (int i = 0; i < rows; i++) {
-    canvas->rows[i] = calloc(cols, sizeof(char));
-  }
-  return canvas;
+Canvas *canvas_new(int rows, int cols)
+{
+    Canvas *canvas = malloc(sizeof(Canvas));
+    canvas->num_cols = cols;
+    canvas->num_rows = rows;
+    canvas->rows = malloc(rows * sizeof(char *));
+    for (int i = 0; i < rows; i++)
+    {
+        canvas->rows[i] = malloc(cols * sizeof(char));
+    }
+    canvas_fill(canvas, ' ');
+    return canvas;
 }
 
 Canvas *canvas_new_blank(int rows, int cols) {
