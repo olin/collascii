@@ -1,11 +1,17 @@
 #include <signal.h>
 #include <stdlib.h>
 
+#include "canvas.h"
 #include "cursor.h"
 #include "fe_modes.h"
 #include "frontend.h"
 #include "mode_id.h"
 #include "state.h"
+
+WINDOW *canvas_win, *status_win;
+Cursor *cursor;
+
+Canvas *canvas;
 
 /* Layout
  * ___________________________________________
@@ -38,18 +44,22 @@ int main(int argc, char *argv[]) {
   (void)noecho();       /* don't print on getch() */
   curs_set(2);
 
-  if (has_colors()) {
-    setup_colors();
-  }
+    if (has_colors()) { 
+        setup_colors();
+    }
+    
+    canvas_win = create_canvas_win();
+    status_win = create_status_win();
 
-  WINDOW *canvas_win = create_canvas_win();
-  WINDOW *status_win = create_status_win();
+    canvas = canvas_new(1000,1000);
+    for(int i=0; i<1000000; i++){
+        canvas_schari(canvas, i, ' ');
+    }
 
   // Enable keyboard mapping
   keypad(canvas_win, TRUE);
   keypad(status_win, TRUE);
-
-  Cursor *cursor = cursor_new();
+  cursor = cursor_new();
 
   char test_msg[] = "Test mode";
   print_status(test_msg, status_win);
@@ -102,7 +112,20 @@ void setup_colors() {
   init_pair(7, COLOR_BLACK, COLOR_WHITE);
 }
 
-void update_screen_size(WINDOW *canvas_win, WINDOW *status_win, Cursor *cursor){
+void frontend_set_char(char ch){
+    canvas_scharyx(canvas, cursor_y_to_canvas(cursor)-1, cursor_x_to_canvas(cursor)-1, ch);
+    mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor), ch);
+}
+
+void redraw_canvas_win(){
+    for(int x=0; x<canvas_max_x; x++){
+        for(int y=0; y<canvas_max_y; y++){
+            mvwaddch(canvas_win, y+1, x+1, canvas_gcharyx(canvas, y, x));
+        }
+    }
+}
+
+void update_screen_size(){
     static int window_h_old, window_w_old;
 
     int window_h_new, window_w_new;
@@ -130,6 +153,7 @@ void update_screen_size(WINDOW *canvas_win, WINDOW *status_win, Cursor *cursor){
     
         // TODO: redraw canvas and status windows
         print_status("resized", status_win);
+        redraw_canvas_win();
 
         // Move cursor inside the canvas
         if(cursor->x >= canvas_max_x){
