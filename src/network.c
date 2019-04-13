@@ -18,11 +18,11 @@
 
 /* Wrapper for send() that sends the entire buffer
  *
- * Calls it multiple times if necessary.
+ * Calls send multiple times if necessary.
  *
  * Returns the number of bytes sent or -1 on error
  */
-int _send(int sockfd, char *buffer, int bufflen)
+int sendall(int sockfd, char *buffer, int bufflen)
 {
     int numsent = 0; // total number of bytes sent
     int res = 0;     // saved for return value of send
@@ -31,7 +31,7 @@ int _send(int sockfd, char *buffer, int bufflen)
         res = send(sockfd, buffer + numsent, bufflen - numsent, 0);
         if (res == -1)
         {
-            perror("_send");
+            perror("sendall");
             return -1;
         }
         numsent += res;
@@ -70,7 +70,7 @@ int get_addrinfo_ip(struct addrinfo *p, char *s, int slen)
 
 int request_canvas(int sockfd) {
     char* msg = "GET\n\n";
-    _send(sockfd, msg, sizeof(msg));
+    sendall(sockfd, msg, sizeof(msg));
 }
 
 int send_canvas(int sockfd, Canvas* canvas) {
@@ -81,7 +81,7 @@ int send_canvas(int sockfd, Canvas* canvas) {
         fprintf(stderr, "send_canvas: expected %d bytes but got %d\n", buffsize, numbytes);
         return -1;
     }
-    return _send(sockfd, buffer, numbytes);
+    return sendall(sockfd, buffer, numbytes);
 }
 
 int push_canvas(int sockfd, Canvas* canvas) {
@@ -91,7 +91,7 @@ int push_canvas(int sockfd, Canvas* canvas) {
         fprintf(stderr, "send_canvas: snprintf returned %d\n", ret);
         return -1;
     }
-    _send(sockfd, startline, strlen(startline));
+    sendall(sockfd, startline, strlen(startline));
     send_canvas(sockfd, canvas);
     return 0;
 }

@@ -18,7 +18,7 @@ int send_response(int sockfd, int code, char* msg) {
     if (numwritten >= sizeof(buffer)) {
         fprintf(stderr, "send_response: reached startline buffer limit");
     }
-    return _send(sockfd, buffer, numwritten);
+    return sendall(sockfd, buffer, numwritten);
 }
 
 int handlerequest(int sockfd) {

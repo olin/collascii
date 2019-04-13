@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 
     freeaddrinfo(servinfo); // all done with this structure
 
-    _send(sockfd, "foo", 3);
+    sendall(sockfd, "foo", 3);
 
     if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
         perror("recv");
