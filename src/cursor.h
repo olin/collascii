@@ -5,9 +5,6 @@
  * It also maps the drawing area to the canvas nicely.
  */
 
-#ifndef _CURSOR_H_
-#define _CURSOR_H_
-
 typedef struct CURSOR {
   int x;
   int y;

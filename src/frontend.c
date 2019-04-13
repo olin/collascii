@@ -64,7 +64,6 @@ int main(int argc, char *argv[]) {
       .ch_in = 0,
       .cursor = cursor,
       .current_mode = MODE_INSERT,
-
       .last_arrow_direction = KEY_RIGHT,
       .last_canvas_mode = MODE_INSERT,
   };
@@ -74,6 +73,9 @@ int main(int argc, char *argv[]) {
     // fprintf(stderr, "(%c, %i)    ", (char)state->ch_in, state->ch_in);
 
     mode_functions[state->current_mode](state, canvas_win, status_win);
+
+    update_screen_size(canvas_win, status_win, cursor);
+
 
     wrefresh(status_win);
     wrefresh(canvas_win);  // Refresh Canvas last so it gets the cursor
@@ -100,11 +102,12 @@ void setup_colors() {
   init_pair(7, COLOR_BLACK, COLOR_WHITE);
 }
 
-void update_screen_size(WINDOW *canvas_win, WINDOW *status_win){
-    static int window_w_old, window_h_old;
-    int window_w_new, window_h_new;
-    
-    getmaxyx(stdscr, window_w_new, window_h_new);
+void update_screen_size(WINDOW *canvas_win, WINDOW *status_win, Cursor *cursor){
+    static int window_h_old, window_w_old;
+
+    int window_h_new, window_w_new;
+
+    getmaxyx(stdscr, window_h_new, window_w_new);
 
     if (window_h_new != window_h_old || window_w_new != window_w_old){
         window_h_old = window_h_new;
@@ -120,13 +123,22 @@ void update_screen_size(WINDOW *canvas_win, WINDOW *status_win){
         wclear(status_win);
 
         // Redraw borders
-        wborder(canvas_win, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE,      // Sides:   ls,  rs,  ts,  bs,
-                       ACS_ULCORNER, ACS_URCORNER, ACS_LTEE, ACS_RTEE); // Corners: tl,  tr,  bl,  br
         wborder(status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE,      // Sides:   ls,  rs,  ts,  bs,
                        ACS_LTEE, ACS_RTEE, ACS_LLCORNER, ACS_LRCORNER); // Corners: tl,  tr,  bl,  br
+        wborder(canvas_win, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE,      // Sides:   ls,  rs,  ts,  bs,
+                       ACS_ULCORNER, ACS_URCORNER, ACS_LTEE, ACS_RTEE); // Corners: tl,  tr,  bl,  br
+    
+        // TODO: redraw canvas and status windows
+        print_status("resized", status_win);
 
-        wrefresh(canvas_win);
-        wrefresh(status_win);
+        // Move cursor inside the canvas
+        if(cursor->x >= canvas_max_x){
+            cursor->x = canvas_max_x;
+        }
+        if(cursor->y >= canvas_max_y){
+            cursor->y = canvas_max_y;
+        }
+
     }
 
 }
@@ -186,9 +198,9 @@ void destroy_win(WINDOW *local_win) {
   delwin(local_win);
 }
 
-int print_status(char *str, WINDOW *window) {
-  wattrset(window, COLOR_PAIR(7));
-  return mvwprintw(window, 1, 1, str);
+int print_status(char* str, WINDOW* window) {
+    // wattrset(window, COLOR_PAIR(7));
+    return mvwprintw(window, 1, 1, str);
 }
 
 void finish(int sig) {

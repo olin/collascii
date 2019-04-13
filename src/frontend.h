@@ -2,6 +2,7 @@
 #define frontend_h
 
 #include <ncurses.h>
+#include "cursor.h"
 
 #define KEY_TAB '\t'
 #define KEY_SHIFT_TAB KEY_BTAB
@@ -9,7 +10,7 @@
 
 void finish(int sig);
 void setup_colors();
-void update_screen_size(WINDOW *canvas_win, WINDOW *status_win);
+void update_screen_size(WINDOW *canvas_win, WINDOW *status_win, Cursor *cursor);
 WINDOW *create_canvas_win();
 WINDOW *create_status_win();
 void destroy_win();
