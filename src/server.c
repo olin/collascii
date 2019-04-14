@@ -172,6 +172,13 @@ int listenandloop(char* port) {
 }
 
 int main() {
+    // TODO:
+    // open socket and listen at port
+    // wait for connection
+    // on each connection:
+    // - parse request
+    // - handle request
+    // - return response
     canvas = make_canvas(3, 3);
     load_string(canvas, "X X X X X");
     listenandloop("8080");

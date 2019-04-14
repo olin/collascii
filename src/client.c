@@ -19,6 +19,18 @@
 
 int main(int argc, char *argv[])
 {
+    // TODO:
+    // open socket
+    // on connect:
+    // - GET request
+    // - intialize canvas
+    // wait for user input
+    // on user input:
+    // - map canvas change to PUT request
+    // - send request
+    // - parse response
+    // - update canvas accordingly
+
     int sockfd, numbytes;
     char buf[MAXDATASIZE];
     struct addrinfo hints, *servinfo, *p;
