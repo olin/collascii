@@ -11,9 +11,9 @@ typedef struct {
 Canvas *canvas_new(int rows, int cols);
 Canvas *canvas_new_blank(int rows, int cols);
 
-canvas_resize(Canvas **orig, int newrows, int newcols);
 Canvas *canvas_cpy(Canvas *orig);
 void canvas_free(Canvas *canvas);
+void canvas_resize(Canvas **orig, int newrows, int newcols);
 void canvas_scharyx(Canvas *canvas, int y, int x, char c);
 void canvas_schari(Canvas *canvas, int i, char c);
 char canvas_gcharyx(Canvas *canvas, int y, int x);
