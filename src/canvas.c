@@ -13,7 +13,7 @@
 /* Fill a canvas with char fill
  *
  */
-int canvas_fill(Canvas *canvas, char fill) {
+void canvas_fill(Canvas *canvas, char fill) {
     for (int i = 0; i < canvas->num_rows; i++)
     {
         memset(canvas->rows[i], ' ', canvas->num_cols);
@@ -150,51 +150,6 @@ int canvas_load_str(Canvas* canvas, char *str) {
     return canvas_ldstr(canvas, str);
 }
 
-int canvas_writef(Canvas* canvas, FILE *f) {
-    // call canvas_fprint
-    // later: don't print trailing whitespace
-}
-
-int canvas_readf(FILE *f, Canvas *canvas) {
-    int numlines = 0;
-    int llength = 0;
-    int maxllength = 0;
-    int numchars = 0;
-
-    // read entire file, recording longest line and # lines
-    for (c in file) {
-        if (c == EOF) {
-            break;
-        }
-        numchars++;
-        if (c == '\n') {
-            // check if llength is larger
-            if (llength > maxllength) {
-                maxllength = llength;
-            }
-            // reset and continue
-            llength = 0;
-            numlines++;
-        } else {
-            llength++;
-        }
-    }
-    // make canvas of a large enough size
-    Canvas *c = canvas_new(numlines, maxllength);
-    // rewind to beginning
-    // read file into canvas
-    int bufflen = numchars + 1;
-    char buffer[bufflen];
-    char* currentchar = buffer;
-    for (int i = 0; i < bufflen; i++) {
-        c = fileread;
-        if (c == EOF) {
-            buffer[i] = '\0';
-        }
-    }
-}
-
-
 /* Fill a canvas with characters from string str
  *
  * Stops at the null character or when the canvas is full.
@@ -250,6 +205,60 @@ int canvas_fprint(FILE *stream, Canvas *canvas) {
  * on output error from fprintf
  */
 int canvas_print(Canvas *canvas) { return canvas_fprint(stdout, canvas); }
+
+int canvas_writef(Canvas* canvas, FILE *f) {
+    // call canvas_fprint
+    return canvas_fprint(f, canvas);
+    // later: don't print trailing whitespace
+}
+
+Canvas *canvas_readf(FILE *f) {
+    int numlines = 0;
+    int llength = 0;
+    int maxllength = 0;
+    int numchars = 0;
+
+    int c;
+    // read entire file, recording longest line and # lines
+    while (1) {
+        c = getc(f);
+        if (c == EOF) {
+            break;
+        }
+        numchars++;
+        if (c == '\n') {
+            // check if llength is larger
+            if (llength > maxllength) {
+                maxllength = llength;
+            }
+            // reset and continue
+            llength = 0;
+            numlines++;
+        } else {
+            llength++;
+        }
+    }
+    // rewind to beginning
+    rewind(f);
+    // read file into char buffer
+    int bufflen = numchars + 1;
+    char buffer[bufflen];
+    int i;
+    for (i = 0; i < bufflen - 1; i++) {
+        c = getc(f);
+        if (c == EOF) {
+            break;
+        }
+        buffer[i] = c;
+    }
+    // end buffer
+    buffer[i] = '\0';
+    // initialize canvas of a large enough size
+    Canvas *canvas = canvas_new(numlines, maxllength);
+    // load canvas from buffer
+    canvas_ldstr(canvas, buffer);
+    return canvas;
+}
 
 /* Convert a canvas object into a character buffer
  *
