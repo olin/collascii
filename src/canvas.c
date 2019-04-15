@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #include "canvas.h"
 
@@ -16,28 +15,25 @@
  *
  */
 void canvas_fill(Canvas *canvas, char fill) {
-    for (int i = 0; i < canvas->num_rows; i++)
-    {
-        memset(canvas->rows[i], ' ', canvas->num_cols);
-    }
+  for (int i = 0; i < canvas->num_rows; i++) {
+    memset(canvas->rows[i], ' ', canvas->num_cols);
+  }
 }
 
 /* Create a canvas object
  *
  * Returned pointer should be freed with free_canvas
  */
-Canvas *canvas_new(int rows, int cols)
-{
-    Canvas *canvas = malloc(sizeof(Canvas));
-    canvas->num_cols = cols;
-    canvas->num_rows = rows;
-    canvas->rows = malloc(rows * sizeof(char *));
-    for (int i = 0; i < rows; i++)
-    {
-        canvas->rows[i] = malloc(cols * sizeof(char));
-    }
-    canvas_fill(canvas, ' ');
-    return canvas;
+Canvas *canvas_new(int rows, int cols) {
+  Canvas *canvas = malloc(sizeof(Canvas));
+  canvas->num_cols = cols;
+  canvas->num_rows = rows;
+  canvas->rows = malloc(rows * sizeof(char *));
+  for (int i = 0; i < rows; i++) {
+    canvas->rows[i] = malloc(cols * sizeof(char));
+  }
+  canvas_fill(canvas, ' ');
+  return canvas;
 }
 
 Canvas *canvas_new_blank(int rows, int cols) {
@@ -78,18 +74,18 @@ void canvas_free(Canvas *canvas) {
 }
 
 void canvas_resize(Canvas **canvas, int newrows, int newcols) {
-    Canvas* orig = *canvas;
-    assert(orig->num_rows <= newrows);
-    assert(orig->num_cols <= newcols);
-    Canvas *new = canvas_new(newrows, newcols);
-    // copy over
-    for (int r = 0; r < orig->num_rows; r++) {
-        for (int c = 0; c < orig->num_cols; c++) {
-            new->rows[r][c] = orig->rows[r][c];
-        }
+  Canvas *orig = *canvas;
+  assert(orig->num_rows <= newrows);
+  assert(orig->num_cols <= newcols);
+  Canvas *new = canvas_new(newrows, newcols);
+  // copy over
+  for (int r = 0; r < orig->num_rows; r++) {
+    for (int c = 0; c < orig->num_cols; c++) {
+      new->rows[r][c] = orig->rows[r][c];
     }
-    *canvas = new;
-    canvas_free(orig);
+  }
+  *canvas = new;
+  canvas_free(orig);
 }
 
 /* Set a single character at position (x, y)
@@ -129,42 +125,42 @@ char canvas_gchari(Canvas *canvas, int i) {
 }
 
 int canvas_ldstryxc(Canvas *canvas, char *str, int y, int x, char transparent) {
-    int col = x;
-    int row = y;
-    int i;
-    for (i = 0; str[i] != '\0'; i++) {
-        // wrap to start col if at end
-        if (col >= canvas->num_cols || str[i] == '\n') {
-            row++;
-            col = x;
-            // skip newline chars
-            if (str[i] == '\n') {
-                continue;
-            }
-        }
-        // finish if at end of canvas
-        if (row >= canvas->num_rows) {
-            break;
-        }
-        // update pixel value
-        if (str[i] != transparent) {
-            canvas_scharyx(canvas, row, col, str[i]);
-        }
-        col++;
+  int col = x;
+  int row = y;
+  int i;
+  for (i = 0; str[i] != '\0'; i++) {
+    // wrap to start col if at end
+    if (col >= canvas->num_cols || str[i] == '\n') {
+      row++;
+      col = x;
+      // skip newline chars
+      if (str[i] == '\n') {
+        continue;
+      }
     }
-    return i;
+    // finish if at end of canvas
+    if (row >= canvas->num_rows) {
+      break;
+    }
+    // update pixel value
+    if (str[i] != transparent) {
+      canvas_scharyx(canvas, row, col, str[i]);
+    }
+    col++;
+  }
+  return i;
 }
 
 int canvas_ldstryx(Canvas *canvas, char *str, int y, int x) {
-    return canvas_ldstryxc(canvas, str, y, x, '\0');
+  return canvas_ldstryxc(canvas, str, y, x, '\0');
 }
 
 int canvas_ldstr(Canvas *canvas, char *str) {
-    return canvas_ldstryx(canvas, str, 0, 0);
+  return canvas_ldstryx(canvas, str, 0, 0);
 }
 
-int canvas_load_str(Canvas* canvas, char *str) {
-    return canvas_ldstr(canvas, str);
+int canvas_load_str(Canvas *canvas, char *str) {
+  return canvas_ldstr(canvas, str);
 }
 
 /* Fill a canvas with characters from string str
@@ -180,7 +176,8 @@ int canvas_load_str(Canvas* canvas, char *str) {
 // int canvas_load_str(Canvas *canvas, char *str)
 // {
 //     int i;
-//     for (i = 0; str[i] != '\0' && i < canvas->num_cols * canvas->num_rows; i++)
+//     for (i = 0; str[i] != '\0' && i < canvas->num_cols * canvas->num_rows;
+//     i++)
 //     {
 //         canvas_schari(canvas, i, str[i]);
 //     }
@@ -207,7 +204,7 @@ int canvas_fprint(FILE *stream, Canvas *canvas) {
       total += res;
     }
     // finish row
-    res = printf("\n");
+    res = fprintf(stream, "\n");
     if (res < 0) {
       return res;
     }
@@ -223,58 +220,58 @@ int canvas_fprint(FILE *stream, Canvas *canvas) {
  */
 int canvas_print(Canvas *canvas) { return canvas_fprint(stdout, canvas); }
 
-int canvas_writef(Canvas* canvas, FILE *f) {
-    // call canvas_fprint
-    return canvas_fprint(f, canvas);
-    // later: don't print trailing whitespace
+int canvas_writef(Canvas *canvas, FILE *f) {
+  // call canvas_fprint
+  return canvas_fprint(f, canvas);
+  // later: don't print trailing whitespace
 }
 
 Canvas *canvas_readf(FILE *f) {
-    int numlines = 0;
-    int llength = 0;
-    int maxllength = 0;
-    int numchars = 0;
+  int numlines = 0;
+  int llength = 0;
+  int maxllength = 0;
+  int numchars = 0;
 
-    int c;
-    // read entire file, recording longest line and # lines
-    while (1) {
-        c = getc(f);
-        if (c == EOF) {
-            break;
-        }
-        numchars++;
-        if (c == '\n') {
-            // check if llength is larger
-            if (llength > maxllength) {
-                maxllength = llength;
-            }
-            // reset and continue
-            llength = 0;
-            numlines++;
-        } else {
-            llength++;
-        }
+  int c;
+  // read entire file, recording longest line and # lines
+  while (1) {
+    c = getc(f);
+    if (c == EOF) {
+      break;
     }
-    // rewind to beginning
-    rewind(f);
-    // read file into char buffer
-    int bufflen = numchars + 1;
-    char buffer[bufflen];
-    int i;
-    for (i = 0; i < bufflen - 1; i++) {
-        c = getc(f);
-        if (c == EOF) {
-            break;
-        }
-        buffer[i] = c;
+    numchars++;
+    if (c == '\n') {
+      // check if llength is larger
+      if (llength > maxllength) {
+        maxllength = llength;
+      }
+      // reset and continue
+      llength = 0;
+      numlines++;
+    } else {
+      llength++;
     }
-    // end buffer
-    buffer[i] = '\0';
-    // initialize canvas of a large enough size
-    Canvas *canvas = canvas_new(numlines, maxllength);
-    // load canvas from buffer
-    canvas_ldstr(canvas, buffer);
-    return canvas;
+  }
+  // rewind to beginning
+  rewind(f);
+  // read file into char buffer
+  int bufflen = numchars + 1;
+  char buffer[bufflen];
+  int i;
+  for (i = 0; i < bufflen - 1; i++) {
+    c = getc(f);
+    if (c == EOF) {
+      break;
+    }
+    buffer[i] = c;
+  }
+  // end buffer
+  buffer[i] = '\0';
+  // initialize canvas of a large enough size
+  Canvas *canvas = canvas_new(numlines, maxllength);
+  // load canvas from buffer
+  canvas_ldstr(canvas, buffer);
+  return canvas;
 }
 
 /* Convert a canvas object into a character buffer
