@@ -8,7 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
+#include "canvas.h"
 
 /* Fill a canvas with char fill
  *
@@ -73,6 +75,21 @@ void canvas_free(Canvas *canvas) {
   free(canvas->rows);
   // free struct itself
   free(canvas);
+}
+
+void canvas_resize(Canvas **canvas, int newrows, int newcols) {
+    Canvas* orig = *canvas;
+    assert(orig->num_rows <= newrows);
+    assert(orig->num_cols <= newcols);
+    Canvas *new = canvas_new(newrows, newcols);
+    // copy over
+    for (int r = 0; r < orig->num_rows; r++) {
+        for (int c = 0; c < orig->num_cols; c++) {
+            new->rows[r][c] = orig->rows[r][c];
+        }
+    }
+    *canvas = new;
+    canvas_free(orig);
 }
 
 /* Set a single character at position (x, y)
