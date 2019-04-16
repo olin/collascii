@@ -3,16 +3,11 @@
 
 #include <ncurses.h>
 #include "cursor.h"
+#include "view.h"
 
 #define KEY_TAB '\t'
 #define KEY_SHIFT_TAB KEY_BTAB
 // #define KEY_ENTER '\r' // May be wrong in ncurses
-
-typedef struct {
-    int col, row;
-} View;
-
-View *view_new();
 
 void finish(int sig);
 void setup_colors();

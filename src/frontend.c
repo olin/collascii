@@ -12,8 +12,6 @@ WINDOW *canvas_win, *status_win;
 Cursor *cursor;
 View *view;
 
-Canvas *canvas;
-
 /* Layout
  * ___________________________________________
  * | 0 -- X, COLS                           | canvas window
@@ -31,9 +29,8 @@ Canvas *canvas;
  *
  */
 
-int STATUS_HEIGHT = 1;  // not including borders
-
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   /* initialize your non-curses data structures here */
 
   (void)signal(SIGINT, finish); /* arrange interrupts to terminate */
@@ -45,26 +42,27 @@ int main(int argc, char *argv[]) {
   (void)noecho();       /* don't print on getch() */
   curs_set(2);
 
-    if (has_colors()) { 
-        setup_colors();
-    }
-    
-    canvas_win = create_canvas_win();
-    status_win = create_status_win();
+  if (has_colors())
+  {
+    setup_colors();
+  }
 
-    cursor = cursor_new();
+  canvas_win = create_canvas_win();
+  status_win = create_status_win();
 
-    view = view_new();
+  cursor = cursor_new();
 
-    canvas = canvas_new(1000,1000);
-    for(int i=0; i<1000000; i++){
-        canvas_schari(canvas, i, ' ');
-    }
+  Canvas *canvas = canvas_new(1000, 1000);
+  for (int i = 0; i < 1000000; i++)
+  {
+    canvas_schari(canvas, i, ' ');
+  }
+
+  view = view_new(canvas);
 
   // Enable keyboard mapping
   keypad(canvas_win, TRUE);
   keypad(status_win, TRUE);
-  cursor = cursor_new();
 
   char test_msg[] = "Test mode";
   print_status(test_msg, status_win);
@@ -72,7 +70,7 @@ int main(int argc, char *argv[]) {
   // Move cursor to starting location and redraw
   wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
   wrefresh(status_win);
-  wrefresh(canvas_win);  // Refresh Canvas last so it gets the cursor
+  wrefresh(canvas_win); // Refresh Canvas last so it gets the cursor
 
   //// Main loop
   State new_state = {
@@ -81,10 +79,12 @@ int main(int argc, char *argv[]) {
       .current_mode = MODE_INSERT,
       .last_arrow_direction = KEY_RIGHT,
       .last_canvas_mode = MODE_INSERT,
+      .view = view,
   };
   State *state = &new_state;
 
-  while ((state->ch_in = wgetch(canvas_win))) {
+  while ((state->ch_in = wgetch(canvas_win)))
+  {
     // fprintf(stderr, "(%c, %i)    ", (char)state->ch_in, state->ch_in);
 
     mode_functions[state->current_mode](state, canvas_win, status_win);
@@ -101,7 +101,8 @@ int main(int argc, char *argv[]) {
   finish(0);
 }
 
-void setup_colors() {
+void setup_colors()
+{
   start_color();
 
   // TODO: Use #define to get colors for standard uses
@@ -115,73 +116,82 @@ void setup_colors() {
   init_pair(7, COLOR_BLACK, COLOR_WHITE);
 }
 
-void front_scharcursor(char ch){
-    canvas_scharyx(canvas, cursor_y_to_canvas(cursor)-1, cursor_x_to_canvas(cursor)-1, ch);
+void front_scharcursor(char ch)
+{
+  canvas_scharyx(view->canvas, cursor_y_to_canvas(cursor) - 1 + view->y, cursor_x_to_canvas(cursor) - 1 + view->x, ch);
 }
 
-void redraw_canvas_win(){
-    for(int x=0; x<canvas_max_x; x++){
-        for(int y=0; y<canvas_max_y; y++){
-            mvwaddch(canvas_win, y+1+view->row, x+1+view->col, canvas_gcharyx(canvas, y, x));
-        }
+void redraw_canvas_win()
+{
+  for (int x = 0; x < view_max_x; x++)
+  {
+    for (int y = 0; y < view_max_y; y++)
+    {
+      mvwaddch(canvas_win, y + 1, x + 1, canvas_gcharyx(view->canvas, y + view->y, x + view->x));
     }
+  }
 }
 
-void refresh_screen(){
-    update_screen_size();
-    redraw_canvas_win();
-    wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
+void refresh_screen()
+{
+  update_screen_size();
+  redraw_canvas_win();
+  wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
 
-    wrefresh(status_win);
-    wrefresh(canvas_win); // Refresh Canvas last so it gets the cursor
+  wrefresh(status_win);
+  wrefresh(canvas_win); // Refresh Canvas last so it gets the cursor
 }
 
-void update_screen_size(){
-    static int window_h_old, window_w_old;
+void update_screen_size()
+{
+  static int window_h_old, window_w_old;
 
-    int window_h_new, window_w_new;
+  int window_h_new, window_w_new;
 
-    getmaxyx(stdscr, window_h_new, window_w_new);
+  getmaxyx(stdscr, window_h_new, window_w_new);
 
-    if (window_h_new != window_h_old || window_w_new != window_w_old){
-        window_h_old = window_h_new;
-        window_w_old = window_w_new;
+  if (window_h_new != window_h_old || window_w_new != window_w_old)
+  {
+    window_h_old = window_h_new;
+    window_w_old = window_w_new;
 
-        wresize(canvas_win, window_h_new - (STATUS_HEIGHT + 1), window_w_new);
-        wresize(status_win, STATUS_HEIGHT + 2, window_w_new);
+    wresize(canvas_win, window_h_new - (STATUS_HEIGHT + 1), window_w_new);
+    wresize(status_win, STATUS_HEIGHT + 2, window_w_new);
 
-        mvwin(status_win, window_h_new - (STATUS_HEIGHT+2), 0);
+    mvwin(status_win, window_h_new - (STATUS_HEIGHT + 2), 0);
 
-        wclear(stdscr);
-        wclear(canvas_win);
-        wclear(status_win);
+    wclear(stdscr);
+    wclear(canvas_win);
+    wclear(status_win);
 
-        // Redraw borders
-        wborder(status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE,      // Sides:   ls,  rs,  ts,  bs,
-                       ACS_LTEE, ACS_RTEE, ACS_LLCORNER, ACS_LRCORNER); // Corners: tl,  tr,  bl,  br
-        wborder(canvas_win, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE,      // Sides:   ls,  rs,  ts,  bs,
-                       ACS_ULCORNER, ACS_URCORNER, ACS_LTEE, ACS_RTEE); // Corners: tl,  tr,  bl,  br
-    
-        // Move cursor inside the canvas
-        if(cursor->x >= canvas_max_x){
-            cursor->x = canvas_max_x;
-        }
-        if(cursor->y >= canvas_max_y){
-            cursor->y = canvas_max_y;
-        }
+    // Redraw borders
+    wborder(status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE, // Sides:   ls,  rs,  ts,  bs,
+            ACS_LTEE, ACS_RTEE, ACS_LLCORNER, ACS_LRCORNER);        // Corners: tl,  tr,  bl,  br
+    wborder(canvas_win, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE, // Sides:   ls,  rs,  ts,  bs,
+            ACS_ULCORNER, ACS_URCORNER, ACS_LTEE, ACS_RTEE);        // Corners: tl,  tr,  bl,  br
 
+    // Move cursor inside the canvas
+    if (cursor->x >= view_max_x)
+    {
+      cursor->x = view_max_x;
     }
-
+    if (cursor->y >= view_max_y)
+    {
+      cursor->y = view_max_y;
+    }
+  }
 }
 
-WINDOW *create_newwin(int height, int width, int starty, int startx, int should_draw_box) {
-	WINDOW *local_win;
-
-	local_win = newwin(height, width, starty, startx);
+WINDOW *create_newwin(int height, int width, int starty, int startx, int should_draw_box)
+{
+  WINDOW *local_win;
 
   local_win = newwin(height, width, starty, startx);
 
-  if (should_draw_box) {
+  local_win = newwin(height, width, starty, startx);
+
+  if (should_draw_box)
+  {
     box(local_win, 0, 0); /* 0, 0 gives default characters
                            * for the vertical and horizontal
                            * lines			*/
@@ -191,58 +201,55 @@ WINDOW *create_newwin(int height, int width, int starty, int startx, int should_
   return local_win;
 }
 
-WINDOW *create_canvas_win() {
+WINDOW *create_canvas_win()
+{
   WINDOW *local_win;
 
   //                                        + 1 due to bottom border
   local_win = newwin(LINES - (STATUS_HEIGHT + 1), COLS, 0,
-                     0);  // height, width, starty, startx
+                     0); // height, width, starty, startx
 
   wborder(local_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
-          ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
+          ACS_HLINE, // Sides:   ls,  rs,  ts,  bs,
           ACS_ULCORNER, ACS_URCORNER, ACS_LTEE,
-          ACS_RTEE);  // Corners: tl,  tr,  bl,  br
+          ACS_RTEE); // Corners: tl,  tr,  bl,  br
 
   wrefresh(local_win);
   return local_win;
 }
 
-WINDOW *create_status_win() {
+WINDOW *create_status_win()
+{
   WINDOW *local_win;
   //                               + 2 due to horizontal borders
   local_win = newwin(STATUS_HEIGHT + 2, COLS, LINES - (STATUS_HEIGHT + 2), 0);
 
   wborder(local_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
-          ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
+          ACS_HLINE, // Sides:   ls,  rs,  ts,  bs,
           ACS_LTEE, ACS_RTEE, ACS_LLCORNER,
-          ACS_LRCORNER);  // Corners: tl,  tr,  bl,  br
+          ACS_LRCORNER); // Corners: tl,  tr,  bl,  br
 
   wrefresh(local_win);
   return local_win;
 }
 
-View *view_new(){
-    View *view = malloc(sizeof(View));
-    view->col = 0;
-    view->row = 0;
-    return view;
-}
-
 void destroy_win(WINDOW *local_win)
-{	
-	// Clear borders explicitly
-    wborder(local_win, ' ', ' ', ' ',' ',' ',' ',' ',' ');
-	
-	wrefresh(local_win);
-	delwin(local_win);
+{
+  // Clear borders explicitly
+  wborder(local_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+
+  wrefresh(local_win);
+  delwin(local_win);
 }
 
-int print_status(char* str, WINDOW* window) {
-    // wattrset(window, COLOR_PAIR(7));
-    return mvwprintw(window, 1, 1, str);
+int print_status(char *str, WINDOW *window)
+{
+  // wattrset(window, COLOR_PAIR(7));
+  return mvwprintw(window, 1, 1, str);
 }
 
-void finish(int sig) {
+void finish(int sig)
+{
   endwin();
 
   /* do your non-curses wrapup here */
