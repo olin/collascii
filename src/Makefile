@@ -19,7 +19,6 @@ endif
 ## FILE-SPECIFIC MODIFICATIONS
 
 # Recipe doesn't work, using explicit rule instead
-# frontend.out: state.h mode_id.h cursor.o fe_modes.o
 frontend.out: cursor.o fe_modes.o
 frontend.out: LDLIBS +=-lncurses
 
