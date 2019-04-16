@@ -78,17 +78,16 @@ int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   } else {
     if (' ' <= state->ch_in &&
         state->ch_in <= '~') {  // check if ch is printable
-      mvwaddch(canvas_win, cursor_y_to_canvas(state->cursor),
-               cursor_x_to_canvas(state->cursor), state->ch_in);
+      front_scharcursor(state->ch_in);
       cursor_key_to_move(state->last_arrow_direction, state->cursor);
     } else if (state->ch_in == KEY_BACKSPACE) {
       cursor_key_to_move(cursor_opposite_dir(state->last_arrow_direction),
                          state->cursor);
-      mvwaddch(canvas_win, cursor_y_to_canvas(state->cursor),
-               cursor_x_to_canvas(state->cursor), ' ');
+      front_scharcursor(' ');
+
     } else if (state->ch_in == KEY_DC) {
-      mvwaddch(canvas_win, cursor_y_to_canvas(state->cursor),
-               cursor_x_to_canvas(state->cursor), ' ');
+      front_scharcursor(' ');
+
     } else {
       // Print non-print characters to bottom left in status_win bar
       mvwaddch(status_win, 1, COLS - 3, state->ch_in);
