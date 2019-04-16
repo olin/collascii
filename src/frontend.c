@@ -76,9 +76,6 @@ int main(int argc, char *argv[]) {
     while ((state->ch_in = wgetch(canvas_win))) {
         // fprintf(stderr, "(%c, %i)    ", (char)state->ch_in, state->ch_in);
 
-        // TAB          '\t'
-        // Shift+TAB    KEY_BTAB
-        // Enter        '\r' (Maybe platform dependent?)
         mode_functions[state->current_mode](state, canvas_win, status_win);
         
         wrefresh(status_win);

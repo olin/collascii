@@ -3,19 +3,9 @@
 
 #include <ncurses.h>
 
-/////
-// typedef enum {
-//     MODE_PICKER,
-//     MODE_INSERT,
-
-//     // ^ add your mode above
-//     LAST, // used to get number of elements
-// } Mode_ID;
-// /////
-
 #define KEY_TAB '\t'
 #define KEY_SHIFT_TAB KEY_BTAB
-// #define KEY_ENTER '\r'
+// #define KEY_ENTER '\r' // May be wrong in ncurses
 
 void finish(int sig);
 void setup_colors();
