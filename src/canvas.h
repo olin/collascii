@@ -3,10 +3,9 @@
 
 #include <stdio.h>
 
-typedef struct
-{
-    int num_cols, num_rows;
-    char **rows;
+typedef struct {
+  int num_cols, num_rows;
+  char **rows;
 } Canvas;
 
 Canvas *canvas_new(int rows, int cols);
