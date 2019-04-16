@@ -1,6 +1,7 @@
 #include "cursor.h"
 #include <ncurses.h>
 #include <stdlib.h>
+#include "frontend.h"
 
 /* The Cursor struct helps with controls.
  * It also maps the drawing area to the canvas nicely.

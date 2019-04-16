@@ -3,7 +3,8 @@
 
 #include <stdio.h>
 
-typedef struct {
+typedef struct
+{
   int num_cols, num_rows;
   char **rows;
 } Canvas;
@@ -25,4 +26,3 @@ void canvas_deserialize(char *bytes, Canvas *canvas);
 int canvas_eq(Canvas *a, Canvas *b);
 
 #endif
-
