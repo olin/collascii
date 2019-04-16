@@ -28,8 +28,8 @@ void view_move_up(View *view)
 
 void view_move_down(View *view)
 {
-    if (view->y == view_max_y) // Take box lines into account
-    {
+    if (view->y - view_max_y == view->canvas->num_rows)
+    { // Take box lines into account
         return;
     }
     view->y++;
@@ -46,8 +46,8 @@ void view_move_left(View *view)
 
 void view_move_right(View *view)
 {
-    if (view->x == view_max_x) // Take box lines into account
-    {
+    if (view->x + view_max_x == view->canvas->num_cols)
+    { // Take box lines into account
         return;
     }
     view->x++;
