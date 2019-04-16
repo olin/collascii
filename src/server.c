@@ -70,8 +70,8 @@ int handlerequest(int sockfd) {
                 return -1;
             }
             send_response(sockfd, 200, "");
-            printf("Updated canvas.");
-            print_canvas(canvas);
+            printf("Updated canvas:\n");
+            canvas_print(canvas);
             break;
 
         default:
@@ -179,8 +179,10 @@ int main() {
     // - parse request
     // - handle request
     // - return response
-    canvas = make_canvas(3, 3);
-    load_string(canvas, "X X X X X");
+    canvas = canvas_new(3, 3);
+    canvas_load_str(canvas, "X X X X X");
+    printf("Current canvas:\n");
+    canvas_print(canvas);
     listenandloop("8080");
     return 0;
 }

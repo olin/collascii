@@ -7,14 +7,17 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <netdb.h>
 
 #include "canvas.c"
 
 #include "network.h"
+#include "canvas.h"
 
 /* Wrapper for send() that sends the entire buffer
  *
@@ -72,11 +75,13 @@ int request_canvas(int sockfd) {
     char* msg = "GET\n\n";
     sendall(sockfd, msg, sizeof(msg));
 }
+    return 0;
+}
 
 int send_canvas(int sockfd, Canvas* canvas) {
     int buffsize = canvas->num_cols*canvas->num_rows;
     char buffer[buffsize];
-    int numbytes = serialize_canvas(canvas, buffer);
+    int numbytes = canvas_serialize(canvas, buffer);
     if (numbytes != buffsize) {
         fprintf(stderr, "send_canvas: expected %d bytes but got %d\n", buffsize, numbytes);
         return -1;
@@ -105,7 +110,7 @@ int read_canvas(int sockfd, Canvas* canvas) {
         return -1;
     }
     buffer[buffsize] = '\0';
-    deserialize_canvas(buffer, canvas);
+    canvas_deserialize(buffer, canvas);
     return 0;
 }
 
@@ -131,6 +136,7 @@ int readline(int sockfd, char* buffer, int bufsize) {
 
 int handle_message(int sockfd) {
     // TODO: fill this in
+    return 0;
 }
 
 /* Get the first available socket from the addrinfo linked list.
