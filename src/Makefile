@@ -20,8 +20,7 @@ endif
 
 # Recipe doesn't work, using explicit rule instead
 # frontend.out: state.h mode_id.h cursor.o fe_modes.o
-frontend.out: frontend.c frontend.h state.h mode_id.h cursor.o fe_modes.o
-	$(CC) frontend.c cursor.o fe_modes.o $(CFLAGS) $(LDLIBS) -o frontend.out
+frontend.out: cursor.o fe_modes.o
 frontend.out: LDLIBS +=-lncurses
 
 ## PATTERNS
