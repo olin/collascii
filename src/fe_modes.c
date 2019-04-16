@@ -81,7 +81,7 @@ int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win)
   if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
       (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN))
   {
-    cursor_key_to_move(state->ch_in, state->cursor);
+    cursor_key_to_move(state->ch_in, state->cursor, state->view);
     state->last_arrow_direction = state->ch_in;
   }
   else
@@ -90,12 +90,12 @@ int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win)
         state->ch_in <= '~')
     { // check if ch is printable
       front_scharcursor(state->ch_in);
-      cursor_key_to_move(state->last_arrow_direction, state->cursor);
+      cursor_key_to_move(state->last_arrow_direction, state->cursor, state->view);
     }
     else if (state->ch_in == KEY_BACKSPACE)
     {
       cursor_key_to_move(cursor_opposite_dir(state->last_arrow_direction),
-                         state->cursor);
+                         state->cursor, state->view);
       front_scharcursor(' ');
     }
     else if (state->ch_in == KEY_DC)
