@@ -1,3 +1,8 @@
+#include "fe_modes.h"
+
+#include "frontend.h"
+#include "mode_id.h"
+
 /* Frontend Modes
  *
  * This file contains the functions for different modes. 
@@ -6,28 +11,30 @@
  * All functions must have the same signature to fit in mode_functions.
  * 
  */
-#include "fe_modes.h"
 
 int (*mode_functions[]) (State*, WINDOW*, WINDOW*) = {
     mode_picker,
-    mode_arrow_input,
+    mode_insert,
 };
 
-  //////////////////////
- // HELPER FUNCTIONS //
-//////////////////////
+  //////////////////////////////
+ // GENERAL HELPER FUNCTIONS //
+//////////////////////////////
 
 /* exit_to_status
  *
  * Helper function to exit from a drawing mode to status mode.
  */
 Mode_ID return_to_canvas(int input_ch) { // State?
+    if (input_ch == KEY_ENTER) {
+        return LAST;
+    }
     /* if Enter 
      *      return proper canvas mode
      * else
      *      return null equivalent
      */
-    return;
+    return LAST;
 }
 
 
@@ -41,18 +48,30 @@ Mode_ID return_to_canvas(int input_ch) { // State?
  */
 int mode_picker(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     // Mode Switch - Enter to canvas, 
+    if (state->ch_in == KEY_ENTER) {
+        state->current_mode = state->last_canvas_mode;
+    }
     
     // LR Arrows navigation
     
     return 0;
 }
 
-/* mode_arrow_input
+/* mode_insert
  *
  * Move with arrows and insert character with keyboard.
  */
-int mode_arrow_input(State *state, WINDOW *canvas_win, WINDOW *status_win) {
+int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win) {
+    // handle mode changing
+    if (state->ch_in == KEY_TAB) {
+        // Clean up code
+        state->last_canvas_mode = MODE_INSERT;
 
+        state->current_mode = MODE_PICKER;
+        return 0;
+    }
+
+    // insert mode behavior
     if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) || (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
             cursor_key_to_move(state->ch_in, state->cursor);
             state->last_arrow_direction = state->ch_in;
@@ -75,3 +94,8 @@ int mode_arrow_input(State *state, WINDOW *canvas_win, WINDOW *status_win) {
         
     return 0;
 }
+
+
+  ////////////////////////////
+ // SPECIFC MODE FUNCTIONS //
+////////////////////////////

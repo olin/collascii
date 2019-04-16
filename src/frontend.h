@@ -1,23 +1,21 @@
 #ifndef frontend_h
 #define frontend_h
 
-#include "cursor.h"
 #include <ncurses.h>
 
+/////
+// typedef enum {
+//     MODE_PICKER,
+//     MODE_INSERT,
 
-/* State keeps track of changing variables for mode functions.
- * If you add something, don't forget to also add an init before the main loop.
- * 
- * TODO: replace last_arrow with linked list of previous inputs?
- * Make sure its length is capped.
- */
-typedef struct {
-    int ch_in;
-    Cursor *cursor;
-    
-    int last_arrow_direction;
-} State;
+//     // ^ add your mode above
+//     LAST, // used to get number of elements
+// } Mode_ID;
+// /////
 
+#define KEY_TAB '\t'
+#define KEY_SHIFT_TAB KEY_BTAB
+// #define KEY_ENTER '\r'
 
 void finish(int sig);
 void setup_colors();

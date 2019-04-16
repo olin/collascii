@@ -1,7 +1,12 @@
 #include <stdlib.h>
 #include <signal.h>
+
+#include "cursor.h"
+#include "state.h"
+#include "mode_id.h"
 #include "fe_modes.h"
 #include "frontend.h"
+
 
 /* Layout
  * ___________________________________________ 
@@ -61,7 +66,10 @@ int main(int argc, char *argv[]) {
     State new_state = {
                         .ch_in = 0,
                         .cursor = cursor,
+                        .current_mode = MODE_INSERT,
+
                         .last_arrow_direction = KEY_RIGHT,
+                        .last_canvas_mode = MODE_INSERT,
                       };
     State *state = &new_state;
 
@@ -71,7 +79,7 @@ int main(int argc, char *argv[]) {
         // TAB          '\t'
         // Shift+TAB    KEY_BTAB
         // Enter        '\r' (Maybe platform dependent?)
-        mode_functions[INSERT](state, canvas_win, status_win);
+        mode_functions[state->current_mode](state, canvas_win, status_win);
         
         wrefresh(status_win);
         wrefresh(canvas_win); // Refresh Canvas last so it gets the cursor
