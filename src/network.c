@@ -70,7 +70,7 @@ int get_addrinfo_ip(struct addrinfo *p, char *s, int slen)
 }
 
 int request_canvas(int sockfd) {
-    char* msg = "GET\n\n";
+    char* msg = "GET /\n\n";
     int numsent = sendall(sockfd, msg, strlen(msg));
     if (numsent != strlen(msg)) {
         return -1;

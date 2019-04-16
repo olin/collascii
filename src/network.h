@@ -15,6 +15,8 @@ typedef enum {
 int sendall(int sockfd, char* buffer, int bufflen);
 void *get_in_addr(struct sockaddr *sa);
 int get_addrinfo_ip(struct addrinfo *p, char *s, int slen);
+
+int request_canvas(int sockfd);
 int send_canvas(int sockfd, Canvas* canvas);
 int push_canvas(int sockfd, Canvas* canvas);
 int read_canvas(int sockfd, Canvas* canvas);
