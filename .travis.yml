@@ -1,6 +1,18 @@
 language: c
 compiler: gcc
-
+env:
+- PRODUCTION=1  # turn on strict errors for builds
 before_script: cd src
-
-script: make test
+script:
+- make test  # run tests
+- make  # make executable
+deploy:
+  provider: releases
+  skip_cleanup: true  # don't remove files
+  file: collascii  # upload this file
+  api_key:
+    secure: A3IZutdvZovr1s7efh66o96sGdY49b4tPg57usx/YyTGgF2LqIUY5M5wfrKRmCuey69v++8WFuODH9djr3y9JI0CI6pem/alFByp9AoL9gdZVeTWcl1k5PCSxux15xMcvd7PSO8UGhVCHq1A6XcBWjyHWDlE1zLAI+tVI6NrWd5clIPe3L+HyREkpK4tXQROD+dQ+htsAdr+6uY5ajcFdfqBM6ORHy4JB78/FO3cTj7Z702EWSwPfuUCSvWt2eEbbIyx8MH1XXczfqKKoSf7fGD60Ykr0hhOJXqbgeXBoHw/nooqxLTepI/nCWpfXU2ThzZV2Qmc86X2rTnja404mKzFxtIL+zJEj243PsCjbIXImiJNVyVP/J3rI0zYcr34pEwWd2cC+2AMf2NK50uh1GpRDtKmb5EmgD6nhnKKoU76mcmAuOJqzwaGLBazEWMjN/7K9Ny1iLb2PYDWPPRjLW06KO+vuZYthJtwH80DZ0JMZR5pbEe1he0kUciBGECLQPoJ+EDMS2eje5m2aOrfMJbd8ItEP4jjXzHd2WWsnbo8QYxU6Mf+yJp5EJzBu/dAmh0wTiI12JgPhKviIYrCmcYV8s+eW107uvj9QBd0J9JXJa5xdSUySdEl5dffIat5k5lJcmUh1X6/dgSfVR5mEiWqajQFXtk0vMMEFWIWhas=
+  on:
+    repo: olin/SoftSysCollascii
+    tags: true  # build on tagged releases only
+    branch: travis-updates
