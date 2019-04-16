@@ -55,6 +55,10 @@ int main(int argc, char *argv[])
 
     freeaddrinfo(servinfo); // all done with this structure
 
+    printf("Connected, getting canvas");
+
+    
+
     sendall(sockfd, "foo", 3);
 
     if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {

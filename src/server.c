@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
 #include <unistd.h>
@@ -27,30 +26,31 @@ int handlerequest(int sockfd) {
     printf("handle_message: Read %d bytes\n", numread);
     printf("'%s'", startlinebuffer);
     if (numread == sizeof(startlinebuffer)) {
-        fprintf(stderr, "handle_message: startline buffer filled");
+        fprintf(stderr, "handle_message: startline buffer filled\n");
         return -1;
     }
     printf("handle_message: startline: '%s'\n", startlinebuffer);
     // read startline
     requesttype rtype;
     char* method;
-    if ((method = strtok(startlinebuffer, ' ')) == NULL) {
-        fprintf(stderr, "handle_message: unable to parse method");
+    if ((method = strtok(startlinebuffer, " ")) == NULL) {
+        fprintf(stderr, "handle_message: unable to parse method\n");
+        send_response(sockfd, 300, "unknown method");
         return -1;
     }
 
     if (strcmp(method, "GET") == 0) {
         rtype = GET;
-        readline(sockfd);
-
     } else if (strcmp(method, "PUT") == 0) {
         rtype = PUT;
-        readline(sockfd);
     }
 
+    // read expected empty line
     char buf[2];
-    if (readline(sockfd, buf, sizeof(buf)) != 1) {
-        fprintf(stderr, "handle_message: unexpected request headers");
+    if ((numread = readline(sockfd, buf, sizeof(buf))) != 0) {
+        fprintf(stderr, "handle_message: unexpected request info, %d bytes\n", numread);
+        send_response(sockfd, 300, "unexpected request info");
+        return -1;
     }
 
     switch (rtype)
@@ -59,14 +59,14 @@ int handlerequest(int sockfd) {
             // return canvas data
             send_response(sockfd, 100, "3x3");
             send_canvas(sockfd, canvas);
-            printf("Canvas requested.");
+            printf("Canvas requested.\n");
             break;
 
         case PUT:
             // read and load canvas
             if (read_canvas(sockfd, canvas) != 0) {
-                fprintf(stderr, "read_canvas returned nonzero");
-                send_response(sockfd, 300, "");
+                fprintf(stderr, "read_canvas returned nonzero\n");
+                send_response(sockfd, 300, "read_canvas returned nonzero");
                 return -1;
             }
             send_response(sockfd, 200, "");
@@ -76,8 +76,8 @@ int handlerequest(int sockfd) {
 
         default:
             // else return error
-            send_response(sockfd, 300, "");
-            printf("Unknown request");
+            send_response(sockfd, 300, "Unknown method");
+            printf("Unknown request\n");
             return -1;
     }
     return 0;

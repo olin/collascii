@@ -14,8 +14,6 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#include "canvas.c"
-
 #include "network.h"
 #include "canvas.h"
 
@@ -73,8 +71,10 @@ int get_addrinfo_ip(struct addrinfo *p, char *s, int slen)
 
 int request_canvas(int sockfd) {
     char* msg = "GET\n\n";
-    sendall(sockfd, msg, sizeof(msg));
-}
+    int numsent = sendall(sockfd, msg, strlen(msg));
+    if (numsent != strlen(msg)) {
+        return -1;
+    }
     return 0;
 }
 
@@ -91,7 +91,7 @@ int send_canvas(int sockfd, Canvas* canvas) {
 
 int push_canvas(int sockfd, Canvas* canvas) {
     char startline[32];
-    int ret = snprintf(startline, sizeof(startline), "%dx%d\n\n", canvas->num_cols, canvas->num_rows);
+    int ret = snprintf(startline, sizeof(startline), "PUT %dx%d\n\n", canvas->num_cols, canvas->num_rows);
     if (!(ret >=0 && ret < sizeof(startline))) {
         fprintf(stderr, "send_canvas: snprintf returned %d\n", ret);
         return -1;
@@ -106,7 +106,7 @@ int read_canvas(int sockfd, Canvas* canvas) {
     char buffer[buffsize + 1];
     int numbytes = recv(sockfd, buffer, buffsize, 0);
     if (numbytes != buffsize) {
-        fprintf(stderr, "read_canvas: expected %d bytes but got %d\n", buffsize, numbytes);
+        fprintf(stderr, "read_canvas: expected %d bytes but read %d\n", buffsize, numbytes);
         return -1;
     }
     buffer[buffsize] = '\0';
@@ -116,17 +116,18 @@ int read_canvas(int sockfd, Canvas* canvas) {
 
 /* read from socket until newline "\n", buffer is full, or socket is empty
  *
- * Adds null character at end of bytes read.
+ * Adds null character at end of line read.
  *
- * Returns: number of bytes read
+ * Returns: number of bytes read, not including line ending
  */
 int readline(int sockfd, char* buffer, int bufsize) {
     size_t buf_idx = 0;
 
     while (buf_idx < bufsize - 1 && 1 == read(sockfd, &buffer[buf_idx], 1)) {
+        // printf("readline char: %c\n", buffer[buf_idx]);
         if ('\n' == buffer[buf_idx])
         {
-            buffer[buf_idx + 1] = '\0';
+            buffer[buf_idx] = '\0';
             break;
         }
         buf_idx++;
