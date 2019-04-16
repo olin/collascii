@@ -51,12 +51,7 @@ int main(int argc, char *argv[])
   status_win = create_status_win();
 
   cursor = cursor_new();
-
-  Canvas *canvas = canvas_new(1000, 1000);
-  for (int i = 0; i < 1000000; i++)
-  {
-    canvas_schari(canvas, i, ' ');
-  }
+  Canvas *canvas = canvas_new_blank(1000, 1000);
 
   view = view_new(canvas);
 
