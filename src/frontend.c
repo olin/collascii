@@ -86,9 +86,7 @@ int main(int argc, char *argv[]) {
 
     update_screen_size(canvas_win, status_win, cursor);
 
-
-    wrefresh(status_win);
-    wrefresh(canvas_win);  // Refresh Canvas last so it gets the cursor
+    refresh_screen();
   }
 
   // Cleanup
@@ -112,9 +110,8 @@ void setup_colors() {
   init_pair(7, COLOR_BLACK, COLOR_WHITE);
 }
 
-void frontend_set_char(char ch){
+void front_scharcursor(char ch){
     canvas_scharyx(canvas, cursor_y_to_canvas(cursor)-1, cursor_x_to_canvas(cursor)-1, ch);
-    mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor), ch);
 }
 
 void redraw_canvas_win(){
@@ -123,6 +120,15 @@ void redraw_canvas_win(){
             mvwaddch(canvas_win, y+1, x+1, canvas_gcharyx(canvas, y, x));
         }
     }
+}
+
+void refresh_screen(){
+    update_screen_size();
+    redraw_canvas_win();
+    wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
+
+    wrefresh(status_win);
+    wrefresh(canvas_win); // Refresh Canvas last so it gets the cursor
 }
 
 void update_screen_size(){
@@ -151,10 +157,6 @@ void update_screen_size(){
         wborder(canvas_win, ACS_VLINE, ACS_VLINE, ACS_HLINE, ACS_HLINE,      // Sides:   ls,  rs,  ts,  bs,
                        ACS_ULCORNER, ACS_URCORNER, ACS_LTEE, ACS_RTEE); // Corners: tl,  tr,  bl,  br
     
-        // TODO: redraw canvas and status windows
-        print_status("resized", status_win);
-        redraw_canvas_win();
-
         // Move cursor inside the canvas
         if(cursor->x >= canvas_max_x){
             cursor->x = canvas_max_x;
