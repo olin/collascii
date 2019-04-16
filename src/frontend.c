@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
   cursor = cursor_new();
   Canvas *canvas = canvas_new_blank(1000, 1000);
 
-  view = view_new(canvas);
+  view = view_new_startpos(canvas, 300, 300);
 
   // Enable keyboard mapping
   keypad(canvas_win, TRUE);

@@ -9,6 +9,14 @@ View *view_new(Canvas *canvas)
     return view;
 }
 
+View *view_new_startpos(Canvas *canvas, int x, int y)
+{
+    View *view = view_new(canvas);
+    view->x = x;
+    view->y = y;
+    return view;
+}
+
 void view_move_up(View *view)
 {
     if (view->y == 0)
