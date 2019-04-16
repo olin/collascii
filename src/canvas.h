@@ -23,3 +23,4 @@ void canvas_deserialize(char *bytes, Canvas *canvas);
 int canvas_eq(Canvas *a, Canvas *b);
 
 #endif
+
