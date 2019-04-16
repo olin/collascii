@@ -10,6 +10,7 @@
 
 WINDOW *canvas_win, *status_win;
 Cursor *cursor;
+View *view;
 
 Canvas *canvas;
 
@@ -50,6 +51,10 @@ int main(int argc, char *argv[]) {
     
     canvas_win = create_canvas_win();
     status_win = create_status_win();
+
+    cursor = cursor_new();
+
+    view = view_new();
 
     canvas = canvas_new(1000,1000);
     for(int i=0; i<1000000; i++){
@@ -117,7 +122,7 @@ void front_scharcursor(char ch){
 void redraw_canvas_win(){
     for(int x=0; x<canvas_max_x; x++){
         for(int y=0; y<canvas_max_y; y++){
-            mvwaddch(canvas_win, y+1, x+1, canvas_gcharyx(canvas, y, x));
+            mvwaddch(canvas_win, y+1+view->row, x+1+view->col, canvas_gcharyx(canvas, y, x));
         }
     }
 }
@@ -216,12 +221,20 @@ WINDOW *create_status_win() {
   return local_win;
 }
 
-void destroy_win(WINDOW *local_win) {
-  // Clear borders explicitly
-  wborder(local_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
+View *view_new(){
+    View *view = malloc(sizeof(View));
+    view->col = 0;
+    view->row = 0;
+    return view;
+}
 
-  wrefresh(local_win);
-  delwin(local_win);
+void destroy_win(WINDOW *local_win)
+{	
+	// Clear borders explicitly
+    wborder(local_win, ' ', ' ', ' ',' ',' ',' ',' ',' ');
+	
+	wrefresh(local_win);
+	delwin(local_win);
 }
 
 int print_status(char* str, WINDOW* window) {
