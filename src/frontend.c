@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
         // Shift+TAB    KEY_BTAB
         // Enter        '\r' (Maybe platform dependent?)
         mode_functions[INSERT](state, canvas_win, status_win);
-
+        
         wrefresh(status_win);
         wrefresh(canvas_win); // Refresh Canvas last so it gets the cursor
     }

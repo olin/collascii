@@ -21,7 +21,12 @@ int (*mode_functions[]) (State*, WINDOW*, WINDOW*) = {
  *
  * Helper function to exit from a drawing mode to status mode.
  */
-void exit_to_status(State *state) {
+Mode_ID return_to_canvas(int input_ch) { // State?
+    /* if Enter 
+     *      return proper canvas mode
+     * else
+     *      return null equivalent
+     */
     return;
 }
 
@@ -35,6 +40,10 @@ void exit_to_status(State *state) {
  * Default mode. Used to choose other modes.
  */
 int mode_picker(State *state, WINDOW *canvas_win, WINDOW *status_win) {
+    // Mode Switch - Enter to canvas, 
+    
+    // LR Arrows navigation
+    
     return 0;
 }
 
