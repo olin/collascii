@@ -1,9 +1,12 @@
 #include <stdlib.h>
 #include <signal.h>
-#include "frontend.h"
-#include "cursor.h"
 
-int STATUS_HEIGHT = 1;  // not including borders
+#include "cursor.h"
+#include "state.h"
+#include "mode_id.h"
+#include "fe_modes.h"
+#include "frontend.h"
+
 
 /* Layout
  * ___________________________________________ 
@@ -19,7 +22,10 @@ int STATUS_HEIGHT = 1;  // not including borders
  * |________________________________________|  
  * |                                        |  command window
  * |________________________________________|
- * */
+ * 
+ */
+
+int STATUS_HEIGHT = 1;  // not including borders
 
 int main(int argc, char *argv[]) {
     /* initialize your non-curses data structures here */
@@ -57,30 +63,21 @@ int main(int argc, char *argv[]) {
     
 
     //// Main loop
-    int last_arrow_direction = KEY_RIGHT;
-    int ch;
-    while ((ch = wgetch(canvas_win)))
-    {
-        if ((ch == KEY_LEFT) || (ch == KEY_RIGHT) || (ch == KEY_UP) || (ch == KEY_DOWN)) {
-            cursor_key_to_move(ch, cursor);
-            last_arrow_direction = ch;
-        } else {
-            if (' ' <= ch && ch <= '~') {  // check if ch is printable
-                mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor), ch);
-                cursor_key_to_move(last_arrow_direction, cursor);
-            } else if (ch == KEY_BACKSPACE){
-                cursor_key_to_move(cursor_opposite_dir(last_arrow_direction), cursor);
-                mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor), ' ');
-            } else if (ch == KEY_DC){
-                mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor), ' ');
-            } else {
-                // Print non-print characters to bottom left in status_win bar
-                mvwaddch(status_win, 0, COLS-3, ch);
-            }
-        }
-        // Move UI cursor to the right place
-        wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
+    State new_state = {
+                        .ch_in = 0,
+                        .cursor = cursor,
+                        .current_mode = MODE_INSERT,
 
+                        .last_arrow_direction = KEY_RIGHT,
+                        .last_canvas_mode = MODE_INSERT,
+                      };
+    State *state = &new_state;
+
+    while ((state->ch_in = wgetch(canvas_win))) {
+        // fprintf(stderr, "(%c, %i)    ", (char)state->ch_in, state->ch_in);
+
+        mode_functions[state->current_mode](state, canvas_win, status_win);
+        
         wrefresh(status_win);
         wrefresh(canvas_win); // Refresh Canvas last so it gets the cursor
     }
@@ -92,7 +89,7 @@ int main(int argc, char *argv[]) {
     finish(0);
 }
 
-static void setup_colors() {
+void setup_colors() {
     start_color();
 
     // TODO: Use #define to get colors for standard uses
@@ -162,7 +159,7 @@ int print_status(char* str, WINDOW* window) {
     return mvwprintw(window, 1, 1, str);
 }
 
-static void finish(int sig) {
+void finish(int sig) {
     endwin();
 
     /* do your non-curses wrapup here */

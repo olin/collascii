@@ -18,8 +18,9 @@ endif
 
 ## FILE-SPECIFIC MODIFICATIONS
 
+# Recipe doesn't work, using explicit rule instead
+frontend.out: cursor.o fe_modes.o
 frontend.out: LDLIBS +=-lncurses
-frontend.out: cursor.o
 
 ## PATTERNS
 
