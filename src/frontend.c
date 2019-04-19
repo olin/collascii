@@ -27,6 +27,7 @@
 int STATUS_HEIGHT = 1;  // not including borders
 
 int main(int argc, char *argv[]) {
+  int z = 0;
   /* initialize your non-curses data structures here */
 
   (void)signal(SIGINT, finish); /* arrange interrupts to terminate */
