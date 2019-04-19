@@ -26,7 +26,10 @@ endif
 
 ## FILE-SPECIFIC MODIFICATIONS
 
-# Recipe doesn't work, using explicit rule instead
+# the main executable
+collascii: frontend.out
+	mv frontend.out collascii
+
 frontend.out: cursor.o fe_modes.o
 frontend.out: LDLIBS +=-lncurses
 
