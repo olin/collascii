@@ -15,4 +15,4 @@ deploy:
   on:
     repo: olin/SoftSysCollascii
     tags: true  # build on tagged releases only
-    branch: master
+    branch: release-test
