@@ -15,4 +15,4 @@ deploy:
   on:
     repo: olin/SoftSysCollascii
     tags: true  # build on tagged releases only
-    branch: travis-updates
+    branch: master
