@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
   (void)noecho();       /* don't print on getch() */
   curs_set(2);
 
-  define_key("\r", KEY_ENTER); // Bind the <Enter> key properly
+  define_key("\r", KEY_ENTER);  // Bind the <Enter> key properly
 
   if (has_colors()) {
     setup_colors();
@@ -72,6 +72,7 @@ int main(int argc, char *argv[]) {
       .ch_in = 0,
       .cursor = cursor,
       .current_mode = MODE_INSERT,
+
       .last_arrow_direction = KEY_RIGHT,
       .last_canvas_mode = MODE_INSERT,
       .view = view,
