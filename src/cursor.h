@@ -7,10 +7,8 @@
 
 #include "view.h"
 
-#include <stdlib.h>
 #include <ncurses.h>
-// #include "frontend.h"
-#include "view.h"
+#include <stdlib.h>
 
 typedef struct CURSOR
 {

@@ -183,7 +183,7 @@ WINDOW *create_canvas_win()
 
   //                                        + 1 due to bottom border
   local_win = newwin(LINES - (STATUS_HEIGHT + 1), COLS, 0,
-                     0); // height, width, starty, startx
+                     0);
 
   wborder(local_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
           ACS_HLINE, // Sides:   ls,  rs,  ts,  bs,

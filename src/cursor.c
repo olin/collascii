@@ -28,7 +28,7 @@ void cursor_move_up(Cursor *cursor, View *view)
 void cursor_move_down(Cursor *cursor, View *view)
 {
   if (cursor->y == view_max_y)
-  { // Take box lines into account
+  {
     view_move_down(view);
     return;
   }
@@ -48,7 +48,7 @@ void cursor_move_left(Cursor *cursor, View *view)
 void cursor_move_right(Cursor *cursor, View *view)
 {
   if (cursor->x == view_max_x)
-  { // Take box lines into account
+  {
     view_move_right(view);
     return;
   }

@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <ncurses.h>
 #include "canvas.h"
-// #include "frontend.h"
 
 #define STATUS_HEIGHT 2 // not including borders
 #define view_max_x (COLS - 3)
