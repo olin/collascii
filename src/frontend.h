@@ -21,7 +21,4 @@ void destroy_win();
 
 int print_status(char *str, WINDOW *window);
 
-WINDOW *create_newwin(int height, int width, int starty, int startx,
-                      int should_draw_box);
-
 #endif

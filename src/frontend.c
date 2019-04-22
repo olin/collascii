@@ -177,25 +177,6 @@ void update_screen_size()
   }
 }
 
-WINDOW *create_newwin(int height, int width, int starty, int startx, int should_draw_box)
-{
-  WINDOW *local_win;
-
-  local_win = newwin(height, width, starty, startx);
-
-  local_win = newwin(height, width, starty, startx);
-
-  if (should_draw_box)
-  {
-    box(local_win, 0, 0); /* 0, 0 gives default characters
-                           * for the vertical and horizontal
-                           * lines			*/
-    wrefresh(local_win);  /* Show that box 		*/
-  }
-
-  return local_win;
-}
-
 WINDOW *create_canvas_win()
 {
   WINDOW *local_win;

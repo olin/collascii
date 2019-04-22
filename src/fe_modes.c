@@ -54,6 +54,7 @@ int mode_picker(State *state, WINDOW *canvas_win, WINDOW *status_win)
   if (state->ch_in == KEY_ENTER)
   {
     state->current_mode = state->last_canvas_mode;
+    return 0;
   }
 
   // LR Arrows navigation
