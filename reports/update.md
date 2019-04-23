@@ -1,49 +1,3 @@
-### Done
-
-(backend)
-
-The frontend of the application uses [ncurses](https://www.gnu.org/software/ncurses/) to draw to the terminal. This allows us to print any character anywhere in the terminal with abstracted windows. For Collasciii, we have a _canvas_ window in which the user draws, and a _status_ window for switching modes and changing options. When drawing, the input is written to our own canvas struct, which is then written to the ncurses canvas window. This gives us more flexibility in to handle changes from another user on the network.
-
-A _mode_ is represented by its function (written in `fe_modes.h`), as well as an entry in the `MODE_ID` enum. They are stored in a function array such that the `MODE_ID` enum indexes into the array with the associated mode function, effectively mapping the enum to functions. This way, instead of running a big ugly switch statement in the main loop, we can keep track of the current mode and call the function through the function array.
-
-_Function array_
-```C
-int (*mode_functions[])(State *, WINDOW *, WINDOW *) = {
-    mode_picker,
-    mode_insert,
-    mode_free_line,
-};
-```
-
-_Mode enum in the same order_
-```C
-typedef enum {
-  MODE_PICKER,
-  MODE_INSERT,
-  MODE_FREE_LINE,
-
-  // ^ add your mode above
-  LAST,  // used to get number of elements
-} Mode_ID;
-```
-
-_Call the correct function through the array_
-```C
-(main while loop)
-    (other stuff)
-    mode_functions[state->current_mode](state, canvas_win, status_win); // Mode function call
-(end)
-```
-
-
-The frontend has a state struct to neatly keep track of variables during the main while loop. This includes the input character, previous input, cursor position and mode. This state is then passed into the mode function.
-
-
-### Doing
-
-On the frontend, we’re currently working on the UI for changing modes. After that, we’ll add a few modes such as free line (already mostly implemented), shapes (straight line, box, circle, etc.), fill, etc.
-
-
 _prompt:_
 ```
 Your project update should answer the following questions (note that some are the same as in the proposal):
@@ -107,7 +61,42 @@ backend: servers clients and canvases (adam), oh my
 
 - panning across larger canvases
 
-frontend: ncurses, oh my (matt)
+The frontend of the application uses [ncurses](https://www.gnu.org/software/ncurses/) to draw to the terminal. This allows us to print any character anywhere in the terminal with abstracted windows. For Collasciii, we have a _canvas_ window in which the user draws, and a _status_ window for switching modes and changing options. When drawing, the input is written to our own canvas struct, which is then written to the ncurses canvas window. This gives us more flexibility in to handle changes from another user on the network.
+
+A _mode_ is represented by its function (written in `fe_modes.h`), as well as an entry in the `MODE_ID` enum. They are stored in a function array such that the `MODE_ID` enum indexes into the array with the associated mode function, effectively mapping the enum to functions. This way, instead of running a big ugly switch statement in the main loop, we can keep track of the current mode and call the function through the function array.
+
+_Function array_
+```C
+int (*mode_functions[])(State *, WINDOW *, WINDOW *) = {
+    mode_picker,
+    mode_insert,
+    mode_free_line,
+};
+```
+
+_Mode enum in the same order_
+```C
+typedef enum {
+  MODE_PICKER,
+  MODE_INSERT,
+  MODE_FREE_LINE,
+
+  // ^ add your mode above
+  LAST,  // used to get number of elements
+} Mode_ID;
+```
+
+_Call the correct function through the array_
+```C
+(main while loop)
+    (other stuff)
+    mode_functions[state->current_mode](state, canvas_win, status_win); // Mode function call
+(end)
+```
+
+
+The frontend has a state struct to neatly keep track of variables during the main while loop. This includes the input character, previous input, cursor position and mode. This state is then passed into the mode function.
+
 
 
 
@@ -118,7 +107,7 @@ Integrating networking with frontend: Evan
 
 File reading/writing: Evan
 
-Frontend mode switching, free line mode (matt)
+On the frontend, we’re currently working on the UI for changing modes. After that, we’ll add a few modes such as free line (already mostly implemented), shapes (straight line, box, circle, etc.), fill, etc.
 
 
 ## Additional Features (ordered by priority)
