@@ -1,11 +1,19 @@
 CC=gcc
 CFLAGS+=-Wall -std=gnu99
 
+version = $(shell git describe --always --tags --dirty)
+CFLAGS+="-DVERSION=version"
+
 # add debug annotations, turn off optimizations, and #define DEBUG
 # use in bash with `DEBUG=1 make <foo>`
 # use in fish with `env DEBUG=1 make <foo>`
 ifdef DEBUG
 CFLAGS+=-g -O0 -DDEBUG
+endif
+
+ifdef PRODUCTION
+# set warnings as errors
+CFLAGS+=-Werror
 endif
 
 ## EXAMPLES
@@ -18,9 +26,12 @@ endif
 
 ## FILE-SPECIFIC MODIFICATIONS
 
-# Recipe doesn't work, using explicit rule instead
-frontend.out: cursor.o fe_modes.o canvas.o view.o
+# the main executable
+collascii: frontend.out
+	mv frontend.out collascii
+
 frontend.out: LDLIBS +=-lncurses
+frontend.out: cursor.o fe_modes.o canvas.o view.o
 
 ## PATTERNS
 
