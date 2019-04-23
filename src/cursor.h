@@ -10,8 +10,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
-typedef struct CURSOR
-{
+typedef struct CURSOR {
   int x;
   int y;
 } Cursor;

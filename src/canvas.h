@@ -3,8 +3,7 @@
 
 #include <stdio.h>
 
-typedef struct
-{
+typedef struct {
   int num_cols, num_rows;
   char **rows;
 } Canvas;

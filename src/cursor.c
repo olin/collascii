@@ -7,48 +7,39 @@
  * It also maps the drawing area to the canvas nicely.
  */
 
-Cursor *cursor_new()
-{
+Cursor *cursor_new() {
   Cursor *cursor = malloc(sizeof(Cursor));
   cursor->x = 0;
   cursor->y = 0;
   return cursor;
 }
 
-void cursor_move_up(Cursor *cursor, View *view)
-{
-  if (cursor->y == 0)
-  {
+void cursor_move_up(Cursor *cursor, View *view) {
+  if (cursor->y == 0) {
     view_move_up(view);
     return;
   }
   cursor->y--;
 }
 
-void cursor_move_down(Cursor *cursor, View *view)
-{
-  if (cursor->y == view_max_y)
-  {
+void cursor_move_down(Cursor *cursor, View *view) {
+  if (cursor->y == view_max_y) {
     view_move_down(view);
     return;
   }
   cursor->y++;
 }
 
-void cursor_move_left(Cursor *cursor, View *view)
-{
-  if (cursor->x == 0)
-  {
+void cursor_move_left(Cursor *cursor, View *view) {
+  if (cursor->x == 0) {
     view_move_left(view);
     return;
   }
   cursor->x--;
 }
 
-void cursor_move_right(Cursor *cursor, View *view)
-{
-  if (cursor->x == view_max_x)
-  {
+void cursor_move_right(Cursor *cursor, View *view) {
+  if (cursor->x == view_max_x) {
     view_move_right(view);
     return;
   }
@@ -59,37 +50,33 @@ int cursor_x_to_canvas(Cursor *cursor) { return cursor->x + 1; }
 
 int cursor_y_to_canvas(Cursor *cursor) { return cursor->y + 1; }
 
-void cursor_key_to_move(int arrow, Cursor *cursor, View *view)
-{
-  switch (arrow)
-  {
-  case KEY_LEFT:
-    cursor_move_left(cursor, view);
-    break;
-  case KEY_RIGHT:
-    cursor_move_right(cursor, view);
-    break;
-  case KEY_UP:
-    cursor_move_up(cursor, view);
-    break;
-  case KEY_DOWN:
-    cursor_move_down(cursor, view);
-    break;
+void cursor_key_to_move(int arrow, Cursor *cursor, View *view) {
+  switch (arrow) {
+    case KEY_LEFT:
+      cursor_move_left(cursor, view);
+      break;
+    case KEY_RIGHT:
+      cursor_move_right(cursor, view);
+      break;
+    case KEY_UP:
+      cursor_move_up(cursor, view);
+      break;
+    case KEY_DOWN:
+      cursor_move_down(cursor, view);
+      break;
   }
 }
 
-int cursor_opposite_dir(int arrow)
-{
-  switch (arrow)
-  {
-  case KEY_LEFT:
-    return KEY_RIGHT;
-  case KEY_RIGHT:
-    return KEY_LEFT;
-  case KEY_UP:
-    return KEY_DOWN;
-  case KEY_DOWN:
-    return KEY_UP;
+int cursor_opposite_dir(int arrow) {
+  switch (arrow) {
+    case KEY_LEFT:
+      return KEY_RIGHT;
+    case KEY_RIGHT:
+      return KEY_LEFT;
+    case KEY_UP:
+      return KEY_DOWN;
+    case KEY_DOWN:
+      return KEY_UP;
   }
   return -1;
 }

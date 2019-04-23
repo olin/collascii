@@ -26,10 +26,8 @@ int (*mode_functions[])(State *, WINDOW *, WINDOW *) = {
  *
  * Helper function to exit from a drawing mode to status mode.
  */
-Mode_ID return_to_canvas(int input_ch)
-{ // State?
-  if (input_ch == KEY_ENTER)
-  {
+Mode_ID return_to_canvas(int input_ch) {  // State?
+  if (input_ch == KEY_ENTER) {
     return LAST;
   }
   /* if Enter
@@ -48,11 +46,9 @@ Mode_ID return_to_canvas(int input_ch)
  *
  * Default mode. Used to choose other modes.
  */
-int mode_picker(State *state, WINDOW *canvas_win, WINDOW *status_win)
-{
+int mode_picker(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   // Mode Switch - Enter to canvas,
-  if (state->ch_in == KEY_ENTER)
-  {
+  if (state->ch_in == KEY_ENTER) {
     state->current_mode = state->last_canvas_mode;
     return 0;
   }
@@ -66,11 +62,9 @@ int mode_picker(State *state, WINDOW *canvas_win, WINDOW *status_win)
  *
  * Move with arrows and insert character with keyboard.
  */
-int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win)
-{
+int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   // handle mode changing
-  if (state->ch_in == KEY_TAB)
-  {
+  if (state->ch_in == KEY_TAB) {
     // Clean up code
     state->last_canvas_mode = MODE_INSERT;
 
@@ -80,31 +74,22 @@ int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win)
 
   // insert mode behavior
   if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
-      (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN))
-  {
+      (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
     cursor_key_to_move(state->ch_in, state->cursor, state->view);
     state->last_arrow_direction = state->ch_in;
-  }
-  else
-  {
+  } else {
     if (' ' <= state->ch_in &&
-        state->ch_in <= '~')
-    { // check if ch is printable
+        state->ch_in <= '~') {  // check if ch is printable
       front_scharcursor(state->ch_in);
-      cursor_key_to_move(state->last_arrow_direction, state->cursor, state->view);
-    }
-    else if (state->ch_in == KEY_BACKSPACE)
-    {
+      cursor_key_to_move(state->last_arrow_direction, state->cursor,
+                         state->view);
+    } else if (state->ch_in == KEY_BACKSPACE) {
       cursor_key_to_move(cursor_opposite_dir(state->last_arrow_direction),
                          state->cursor, state->view);
       front_scharcursor(' ');
-    }
-    else if (state->ch_in == KEY_DC)
-    {
+    } else if (state->ch_in == KEY_DC) {
       front_scharcursor(' ');
-    }
-    else
-    {
+    } else {
       // Print non-print characters to bottom left in status_win bar
       mvwaddch(status_win, 1, COLS - 3, state->ch_in);
     }
@@ -120,11 +105,9 @@ int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win)
 
  * Pans the View with arrow keys
  */
-int mode_pan(State *state, WINDOW *canvas_win, WINDOW *status_win)
-{
+int mode_pan(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   // handle mode changing
-  if (state->ch_in == KEY_TAB)
-  {
+  if (state->ch_in == KEY_TAB) {
     // Clean up code
     state->last_canvas_mode = MODE_PAN;
 
@@ -132,8 +115,8 @@ int mode_pan(State *state, WINDOW *canvas_win, WINDOW *status_win)
     return 0;
   }
 
-  if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) || (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN))
-  {
+  if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
+      (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
     view_pan_ch(state->ch_in, state->view);
   }
 
