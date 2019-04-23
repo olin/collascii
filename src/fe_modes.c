@@ -39,6 +39,51 @@ Mode_ID return_to_canvas(int input_ch) {  // State?
   return LAST;
 }
 
+////////////////////////////
+// SPECIFC MODE FUNCTIONS //
+////////////////////////////
+
+/* free_line_arrows_to_char
+ *
+ * Takes the current and previous arrow directions, and returns the
+ * appropriate character, including diagonals.
+ *
+ * NOTE: Assumes that the input character is an arrow key
+ *
+ * Reference table:
+ *       ^ v > <  (current)
+ *
+ *   ^   | | / \
+ *   v   | | \ /
+ *   >   \ / - -
+ *   <   / \ - -
+ * (last)
+ */
+int free_line_arrows_to_char(int last_arrow, int current_arrow,
+                             bool *erase_last_position) {
+  char horizontal = '-';
+  char vertical = '|';
+  char diag_up = '/';
+  char diag_down = '\\';
+
+  if ((last_arrow == KEY_UP || current_arrow == KEY_DOWN) &&
+      (last_arrow == KEY_DOWN || current_arrow == KEY_UP)) {
+    // arrows are vertically parallel (top left quarter of truth table)
+    return vertical;
+  } else if ((last_arrow == KEY_LEFT || current_arrow == KEY_RIGHT) &&
+             (last_arrow == KEY_RIGHT || current_arrow == KEY_LEFT)) {
+    // arrows are horizontally parallel (bottom right quarter of truth table)
+    return horizontal;
+  } else if ((last_arrow == KEY_UP && current_arrow == KEY_RIGHT) ||
+             (last_arrow == KEY_DOWN && current_arrow == KEY_LEFT) ||
+             (last_arrow == KEY_LEFT && current_arrow == KEY_DOWN) ||
+             (last_arrow == KEY_RIGHT && current_arrow == KEY_UP)) {
+    return diag_up;
+  } else {
+    return diag_down;
+  }
+}
+
 ////////////////////
 // MODE FUNCTIONS //
 ////////////////////
@@ -144,9 +189,16 @@ int mode_free_line(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     int current_arrow = state->ch_in;
     int last_arrow = state->last_arrow_direction;
 
+    bool should_erase_last_position = FALSE;
     mvwaddch(canvas_win, cursor_y_to_canvas(state->cursor),
              cursor_x_to_canvas(state->cursor),
-             free_line_arrows_to_char(last_arrow, current_arrow));
+             free_line_arrows_to_char(last_arrow, current_arrow,
+                                      &should_erase_last_position));
+
+    if (should_erase_last_position) {
+      mvwaddch(canvas_win, cursor_y_to_canvas(state->last_cursor),
+               cursor_x_to_canvas(state->last_cursor), ' ');
+    }
 
     cursor_key_to_move(current_arrow, state->cursor, state->view);
     state->last_arrow_direction = state->ch_in;
@@ -203,47 +255,4 @@ int mode_free_line(State *state, WINDOW *canvas_win, WINDOW *status_win) {
         cursor_x_to_canvas(state->cursor));
 
   return 0;
-}
-////////////////////////////
-// SPECIFC MODE FUNCTIONS //
-////////////////////////////
-
-/* free_line_arrows_to_char
- *
- * Takes the current and previous arrow directions, and returns the
- * appropriate character, including diagonals.
- *
- * NOTE: Assumes that the input character is an arrow key
- *
- * Reference table:
- *       ^ v > <  (current)
- *
- *   ^   | | / \
- *   v   | | \ /
- *   >   \ / - -
- *   <   / \ - -
- * (last)
- */
-int free_line_arrows_to_char(int last_arrow, int current_arrow) {
-  char horizontal = '-';
-  char vertical = '|';
-  char diag_up = '/';
-  char diag_down = '\\';
-
-  if ((last_arrow == KEY_UP || current_arrow == KEY_DOWN) &&
-      (last_arrow == KEY_DOWN || current_arrow == KEY_UP)) {
-    // arrows are vertically parallel (top left quarter of truth table)
-    return vertical;
-  } else if ((last_arrow == KEY_LEFT || current_arrow == KEY_RIGHT) &&
-             (last_arrow == KEY_RIGHT || current_arrow == KEY_LEFT)) {
-    // arrows are horizontally parallel (bottom right quarter of truth table)
-    return horizontal;
-  } else if ((last_arrow == KEY_UP && current_arrow == KEY_RIGHT) ||
-             (last_arrow == KEY_DOWN && current_arrow == KEY_LEFT) ||
-             (last_arrow == KEY_LEFT && current_arrow == KEY_DOWN) ||
-             (last_arrow == KEY_RIGHT && current_arrow == KEY_UP)) {
-    return diag_up;
-  } else {
-    return diag_down;
-  }
 }
