@@ -3,14 +3,10 @@
  * TODO: add save/read from file options
  * TODO: assert get/set positions are within canvas sizes?
  */
+#include "canvas.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-typedef struct {
-  int num_cols, num_rows;
-  char **rows;
-} Canvas;
 
 /* Create a canvas object
  *
@@ -23,6 +19,14 @@ Canvas *canvas_new(int rows, int cols) {
   canvas->rows = malloc(rows * sizeof(char *));
   for (int i = 0; i < rows; i++) {
     canvas->rows[i] = calloc(cols, sizeof(char));
+  }
+  return canvas;
+}
+
+Canvas *canvas_new_blank(int rows, int cols) {
+  Canvas *canvas = canvas_new(rows, cols);
+  for (int i = 0; i < (rows * cols); i++) {
+    canvas_schari(canvas, i, ' ');
   }
   return canvas;
 }

@@ -30,8 +30,8 @@ endif
 collascii: frontend.out
 	mv frontend.out collascii
 
-frontend.out: cursor.o fe_modes.o
 frontend.out: LDLIBS +=-lncurses
+frontend.out: cursor.o fe_modes.o canvas.o view.o
 
 ## PATTERNS
 

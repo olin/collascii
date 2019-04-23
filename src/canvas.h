@@ -9,6 +9,8 @@ typedef struct {
 } Canvas;
 
 Canvas *canvas_new(int rows, int cols);
+Canvas *canvas_new_blank(int rows, int cols);
+
 Canvas *canvas_cpy(Canvas *orig);
 void canvas_free(Canvas *canvas);
 void canvas_scharyx(Canvas *canvas, int y, int x, char c);

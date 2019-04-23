@@ -3,6 +3,7 @@
 
 #include "cursor.h"
 #include "mode_id.h"
+#include "view.h"
 
 /* State keeps track of changing variables for mode functions.
  * If you add something, don't forget to also add an init before the main loop.
@@ -17,6 +18,7 @@ typedef struct {
 
   Mode_ID last_canvas_mode;
   int last_arrow_direction;
+  View *view;
 } State;
 
 #endif

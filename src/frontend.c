@@ -1,11 +1,16 @@
 #include <signal.h>
 #include <stdlib.h>
 
+#include "canvas.h"
 #include "cursor.h"
 #include "fe_modes.h"
 #include "frontend.h"
 #include "mode_id.h"
 #include "state.h"
+
+WINDOW *canvas_win, *status_win;
+Cursor *cursor;
+View *view;
 
 /* Layout
  * ___________________________________________
@@ -24,8 +29,6 @@
  *
  */
 
-int STATUS_HEIGHT = 1;  // not including borders
-
 int main(int argc, char *argv[]) {
   /* initialize your non-curses data structures here */
 
@@ -38,18 +41,23 @@ int main(int argc, char *argv[]) {
   (void)noecho();       /* don't print on getch() */
   curs_set(2);
 
+  define_key("\r", KEY_ENTER); // Bind the <Enter> key properly
+
   if (has_colors()) {
     setup_colors();
   }
 
-  WINDOW *canvas_win = create_canvas_win();
-  WINDOW *status_win = create_status_win();
+  canvas_win = create_canvas_win();
+  status_win = create_status_win();
+
+  cursor = cursor_new();
+  Canvas *canvas = canvas_new_blank(1000, 1000);
+
+  view = view_new_startpos(canvas, 300, 300);
 
   // Enable keyboard mapping
   keypad(canvas_win, TRUE);
   keypad(status_win, TRUE);
-
-  Cursor *cursor = cursor_new();
 
   char test_msg[] = "Test mode";
   print_status(test_msg, status_win);
@@ -64,9 +72,9 @@ int main(int argc, char *argv[]) {
       .ch_in = 0,
       .cursor = cursor,
       .current_mode = MODE_INSERT,
-
       .last_arrow_direction = KEY_RIGHT,
       .last_canvas_mode = MODE_INSERT,
+      .view = view,
   };
   State *state = &new_state;
 
@@ -75,8 +83,9 @@ int main(int argc, char *argv[]) {
 
     mode_functions[state->current_mode](state, canvas_win, status_win);
 
-    wrefresh(status_win);
-    wrefresh(canvas_win);  // Refresh Canvas last so it gets the cursor
+    update_screen_size(canvas_win, status_win, cursor);
+
+    refresh_screen();
   }
 
   // Cleanup
@@ -100,28 +109,74 @@ void setup_colors() {
   init_pair(7, COLOR_BLACK, COLOR_WHITE);
 }
 
-WINDOW *create_newwin(int height, int width, int starty, int startx,
-                      int should_draw_box) {
-  WINDOW *local_win;
+void front_setcharcursor(char ch) {
+  canvas_scharyx(view->canvas, cursor_y_to_canvas(cursor) - 1 + view->y,
+                 cursor_x_to_canvas(cursor) - 1 + view->x, ch);
+}
 
-  local_win = newwin(height, width, starty, startx);
-
-  if (should_draw_box) {
-    box(local_win, 0, 0); /* 0, 0 gives default characters
-                           * for the vertical and horizontal
-                           * lines			*/
-    wrefresh(local_win);  /* Show that box 		*/
+void redraw_canvas_win() {
+  for (int x = 0; x < view_max_x; x++) {
+    for (int y = 0; y < view_max_y; y++) {
+      mvwaddch(canvas_win, y + 1, x + 1,
+               canvas_gcharyx(view->canvas, y + view->y, x + view->x));
+    }
   }
+}
 
-  return local_win;
+void refresh_screen() {
+  update_screen_size();
+  redraw_canvas_win();
+  wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
+
+  wrefresh(status_win);
+  wrefresh(canvas_win);  // Refresh Canvas last so it gets the cursor
+}
+
+void update_screen_size() {
+  static int window_h_old, window_w_old;
+
+  int window_h_new, window_w_new;
+
+  getmaxyx(stdscr, window_h_new, window_w_new);
+
+  if (window_h_new != window_h_old || window_w_new != window_w_old) {
+    window_h_old = window_h_new;
+    window_w_old = window_w_new;
+
+    wresize(canvas_win, window_h_new - (STATUS_HEIGHT + 1), window_w_new);
+    wresize(status_win, STATUS_HEIGHT + 2, window_w_new);
+
+    mvwin(status_win, window_h_new - (STATUS_HEIGHT + 2), 0);
+
+    wclear(stdscr);
+    wclear(canvas_win);
+    wclear(status_win);
+
+    // Redraw borders
+    wborder(status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
+            ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
+            ACS_LTEE, ACS_RTEE, ACS_LLCORNER,
+            ACS_LRCORNER);  // Corners: tl,  tr,  bl,  br
+    wborder(canvas_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
+            ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
+            ACS_ULCORNER, ACS_URCORNER, ACS_LTEE,
+            ACS_RTEE);  // Corners: tl,  tr,  bl,  br
+
+    // Move cursor inside the canvas
+    if (cursor->x >= view_max_x) {
+      cursor->x = view_max_x;
+    }
+    if (cursor->y >= view_max_y) {
+      cursor->y = view_max_y;
+    }
+  }
 }
 
 WINDOW *create_canvas_win() {
   WINDOW *local_win;
 
   //                                        + 1 due to bottom border
-  local_win = newwin(LINES - (STATUS_HEIGHT + 1), COLS, 0,
-                     0);  // height, width, starty, startx
+  local_win = newwin(LINES - (STATUS_HEIGHT + 1), COLS, 0, 0);
 
   wborder(local_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
           ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
@@ -155,7 +210,7 @@ void destroy_win(WINDOW *local_win) {
 }
 
 int print_status(char *str, WINDOW *window) {
-  wattrset(window, COLOR_PAIR(7));
+  // wattrset(window, COLOR_PAIR(7));
   return mvwprintw(window, 1, 1, str);
 }
 
