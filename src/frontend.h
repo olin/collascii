@@ -7,7 +7,6 @@
 
 #define KEY_TAB '\t'
 #define KEY_SHIFT_TAB KEY_BTAB
-// #define KEY_ENTER '\r' // May be wrong in ncurses
 
 void finish(int sig);
 void setup_colors();
