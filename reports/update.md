@@ -1,3 +1,49 @@
+### Done
+
+(backend)
+
+The frontend of the application uses [ncurses](https://www.gnu.org/software/ncurses/) to draw to the terminal. This allows us to print any character anywhere in the terminal with abstracted windows. For Collasciii, we have a _canvas_ window in which the user draws, and a _status_ window for switching modes and changing options. When drawing, the input is written to our own canvas struct, which is then written to the ncurses canvas window. This gives us more flexibility in to handle changes from another user on the network.
+
+A _mode_ is represented by its function (written in `fe_modes.h`), as well as an entry in the `MODE_ID` enum. They are stored in a function array such that the `MODE_ID` enum indexes into the array with the associated mode function, effectively mapping the enum to functions. This way, instead of running a big ugly switch statement in the main loop, we can keep track of the current mode and call the function through the function array.
+
+_Function array_
+```C
+int (*mode_functions[])(State *, WINDOW *, WINDOW *) = {
+    mode_picker,
+    mode_insert,
+    mode_free_line,
+};
+```
+
+_Mode enum in the same order_
+```C
+typedef enum {
+  MODE_PICKER,
+  MODE_INSERT,
+  MODE_FREE_LINE,
+
+  // ^ add your mode above
+  LAST,  // used to get number of elements
+} Mode_ID;
+```
+
+_Call the correct function through the array_
+```C
+(main while loop)
+    (other stuff)
+    mode_functions[state->current_mode](state, canvas_win, status_win); // Mode function call
+(end)
+```
+
+
+The frontend has a state struct to neatly keep track of variables during the main while loop. This includes the input character, previous input, cursor position and mode. This state is then passed into the mode function.
+
+
+### Doing
+
+On the frontend, we’re currently working on the UI for changing modes. After that, we’ll add a few modes such as free line (already mostly implemented), shapes (straight line, box, circle, etc.), fill, etc.
+
+
 _prompt:_
 ```
 Your project update should answer the following questions (note that some are the same as in the proposal):
@@ -13,13 +59,13 @@ Your project update should answer the following questions (note that some are th
 
 Audience: Think of your update as a rough draft of your final report.  Target an external audience that wants to know what you did and why.  More specifically, think about students in future versions of SoftSys who might want to work on a related project.  Also think about people who might look at your online portfolio to see what you know, what you can do, and how well you can communicate.
 
- 
+
 
 Submission Mechanics
 
 1) In your project report, you should already have a folder called "reports" that contains a Markdown document called "proposal.md".  Make a copy of "proposal.md" called "update.md"
 
-2) At the top of this document, give your project a meaningful name that at least suggests the topic of the project.  Do not call it "Software Systems Project 2".  List the complete names of all members of the team. 
+2) At the top of this document, give your project a meaningful name that at least suggests the topic of the project.  Do not call it "Software Systems Project 2".  List the complete names of all members of the team.
 
 3) Answer the questions in the Content section, above. Use typesetting features to indicate the organization of the document.  Do not include the questions as part of your document.
 
@@ -46,7 +92,7 @@ Why? Because it's funny, questionable, and a little bit artsy. Oh and a great le
 
 We have reached some of our MVP vision:
 
-The MVP is designed to be a relatively low bar to ensure we get to a good place. 
+The MVP is designed to be a relatively low bar to ensure we get to a good place.
 - An editor where you move with arrow keys and press a character to change a cell.
   _We have a working interface that you can edit an ASCII canvas with._
 - Featuring a status bar a la vim.
