@@ -51,6 +51,7 @@ int main(int argc, char *argv[]) {
   status_win = create_status_win();
 
   cursor = cursor_new();
+  Cursor *last_cursor = cursor_new();
   Canvas *canvas = canvas_new_blank(1000, 1000);
 
   view = view_new_startpos(canvas, 300, 300);
@@ -76,6 +77,7 @@ int main(int argc, char *argv[]) {
       .last_arrow_direction = KEY_RIGHT,
       .last_canvas_mode = MODE_INSERT,
       .view = view,
+      .last_cursor = last_cursor,
   };
   State *state = &new_state;
 
@@ -84,8 +86,9 @@ int main(int argc, char *argv[]) {
 
     mode_functions[state->current_mode](state, canvas_win, status_win);
 
-    update_screen_size(canvas_win, status_win, cursor);
+    *(state->last_cursor) = *(state->cursor);
 
+    update_screen_size(canvas_win, status_win, cursor);
     refresh_screen();
   }
 
