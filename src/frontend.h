@@ -13,7 +13,7 @@ void setup_colors();
 void update_screen_size();
 void refresh_screen();
 void redraw_canvas_win();
-void front_scharcursor(char ch);
+void front_setcharcursor(char ch);
 WINDOW *create_canvas_win();
 WINDOW *create_status_win();
 void destroy_win();

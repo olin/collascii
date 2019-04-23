@@ -109,7 +109,7 @@ void setup_colors() {
   init_pair(7, COLOR_BLACK, COLOR_WHITE);
 }
 
-void front_scharcursor(char ch) {
+void front_setcharcursor(char ch) {
   canvas_scharyx(view->canvas, cursor_y_to_canvas(cursor) - 1 + view->y,
                  cursor_x_to_canvas(cursor) - 1 + view->x, ch);
 }
