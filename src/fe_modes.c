@@ -59,8 +59,7 @@ Mode_ID return_to_canvas(int input_ch) {  // State?
  *   <   / \ - -
  * (last)
  */
-int free_line_arrows_to_char(int last_arrow, int current_arrow,
-                             bool *erase_last_position) {
+int free_line_arrows_to_char(int last_arrow, int current_arrow) {
   char horizontal = '-';
   char vertical = '|';
   char diag_up = '/';
@@ -190,67 +189,17 @@ int mode_free_line(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     int last_arrow = state->last_arrow_direction;
 
     bool should_erase_last_position = FALSE;
-    mvwaddch(canvas_win, cursor_y_to_canvas(state->cursor),
-             cursor_x_to_canvas(state->cursor),
-             free_line_arrows_to_char(last_arrow, current_arrow,
-                                      &should_erase_last_position));
+    front_setcharcursor(free_line_arrows_to_char(last_arrow, current_arrow));
 
-    if (should_erase_last_position) {
-      mvwaddch(canvas_win, cursor_y_to_canvas(state->last_cursor),
-               cursor_x_to_canvas(state->last_cursor), ' ');
-    }
+    // *(state->last_cursor) = *(state->cursor);
+    state->last_cursor->x = state->cursor->x;
+    state->last_cursor->y = state->cursor->y;
 
     cursor_key_to_move(current_arrow, state->cursor, state->view);
+
     state->last_arrow_direction = state->ch_in;
   }
 
-  // if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
-  //     (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
-  //   switch (state->ch_in) {
-  //     case KEY_LEFT:
-  //       cursor_move_left(state->cursor);
-  //       mvwaddch(canvas_win, cursor_y_to_canvas(state->cursor),
-  //                cursor_x_to_canvas(state->cursor), horizontal);
-  //       break;
-  //     case KEY_RIGHT:
-  //       cursor_move_right(state->cursor);
-  //       mvwaddch(canvas_win, cursor_y_to_canvas(state->cursor),
-  //                cursor_x_to_canvas(state->cursor), horizontal);
-  //       break;
-  //     case KEY_UP:
-  //       cursor_move_up(state->cursor);
-  //       mvwaddch(canvas_win, cursor_y_to_canvas(state->cursor),
-  //                cursor_x_to_canvas(state->cursor), vertical);
-  //       break;
-  //     case KEY_DOWN:
-  //       cursor_move_down(state->cursor);
-  //       mvwaddch(canvas_win, cursor_y_to_canvas(state->cursor),
-  //                cursor_x_to_canvas(state->cursor), vertical);
-  //       break;
-  //   }
-
-  // cursor_key_to_move(state->ch_in, state->cursor);
-  // state->last_arrow_direction = state->ch_in;
-  // } else {
-  //   if (' ' <= state->ch_in &&
-  //       state->ch_in <= '~') {  // check if ch is printable
-  //     mvwaddch(canvas_win, cursor_y_to_canvas(state->cursor),
-  //              cursor_x_to_canvas(state->cursor), state->ch_in);
-  //     cursor_key_to_move(state->last_arrow_direction, state->cursor);
-  //   } else if (state->ch_in == KEY_BACKSPACE) {
-  //     cursor_key_to_move(cursor_opposite_dir(state->last_arrow_direction),
-  //                        state->cursor);
-  //     mvwaddch(canvas_win, cursor_y_to_canvas(state->cursor),
-  //              cursor_x_to_canvas(state->cursor), ' ');
-  //   } else if (state->ch_in == KEY_DC) {
-  //     mvwaddch(canvas_win, cursor_y_to_canvas(state->cursor),
-  //              cursor_x_to_canvas(state->cursor), ' ');
-  //   } else {
-  //     // Print non-print characters to bottom left in status_win bar
-  //     mvwaddch(status_win, 1, COLS - 3, state->ch_in);
-  //   }
-  // }
-  // Move UI cursor to the right place
   wmove(canvas_win, cursor_y_to_canvas(state->cursor),
         cursor_x_to_canvas(state->cursor));
 
