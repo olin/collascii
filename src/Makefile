@@ -33,6 +33,10 @@ collascii: frontend.out
 frontend.out: LDLIBS +=-lncurses
 frontend.out: cursor.o fe_modes.o canvas.o view.o
 
+# server
+server.out: LDLIBS +=-lpthread
+server.out: canvas.o
+
 ## PATTERNS
 
 # Generate .out files for easier .gitignore. Based on the builtin make rule
