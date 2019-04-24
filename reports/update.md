@@ -100,8 +100,7 @@ Finally the file `frontend.c` wraps up all of these features and presents them i
 
 - **Integrating networking with the frontend** (Evan). I made an HTTP-esque protocol to send and request canvases between instances. Integration with the front end has been more complex than I thought, and we've talked about some better protocols for collaborating. With the most-recent pull request the frontend and network code use the same data structure to store the canvas, so the final steps for integrating the current protocol are to add a mutex for reads/writes, run the server as a separate thread, and run the client in the same thread as the frontend interface. _This will be done when [pull request #4](https://github.com/olin/SoftSysCollascii/pull/4) is merged in, and if we decide to use another protocol that will be another task._
 - **File reading/writing** (Evan). I wrote some extensions of the canvas API for reading from and writing to files, but it needs to be integrated with the new interface framework and decisions need to be made regarding how canvases are used in the frontend. Currently there is one large canvas that you start in the center of, but a reasonable txt export/save should probably crop to the artwork. _Done when [pull request #23](https://github.com/olin/SoftSysCollascii/pull/4) is merged in._
-
-On the frontend, we’re currently working on the UI for changing modes. After that, we’ll add a few modes such as free line (already mostly implemented), shapes (straight line, box, circle, etc.), fill, etc.
+- **UI for changing modes** (Matt). Right now there's a framework for different modes to be implemented, but there isn't an interface for the user to select them. After that, we’ll add a few modes such as free line (already mostly implemented), shapes (straight line, box, circle, etc.), fill, etc. _Done when a pull request is merged in implementing an interface for mode selection._
 
 
 ## Additional Features (ordered by priority)
