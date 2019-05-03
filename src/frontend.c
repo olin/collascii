@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
   (void)noecho();       /* don't print on getch() */
   curs_set(2);
 
-  define_key("\r", KEY_ENTER); // Bind the <Enter> key properly
+  define_key("\r", KEY_ENTER);  // Bind the <Enter> key properly
 
   if (has_colors()) {
     setup_colors();
@@ -51,6 +51,7 @@ int main(int argc, char *argv[]) {
   status_win = create_status_win();
 
   cursor = cursor_new();
+  Cursor *last_cursor = cursor_new();
   Canvas *canvas = canvas_new_blank(1000, 1000);
 
   view = view_new_startpos(canvas, 300, 300);
@@ -72,9 +73,12 @@ int main(int argc, char *argv[]) {
       .ch_in = 0,
       .cursor = cursor,
       .current_mode = MODE_INSERT,
+      // .current_mode = MODE_FREE_LINE,
+
       .last_arrow_direction = KEY_RIGHT,
       .last_canvas_mode = MODE_INSERT,
       .view = view,
+      .last_cursor = last_cursor,
   };
   State *state = &new_state;
 
@@ -83,8 +87,9 @@ int main(int argc, char *argv[]) {
 
     mode_functions[state->current_mode](state, canvas_win, status_win);
 
-    update_screen_size(canvas_win, status_win, cursor);
+    // *(state->last_cursor) = *(state->cursor);
 
+    update_screen_size(canvas_win, status_win, cursor);
     refresh_screen();
   }
 

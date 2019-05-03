@@ -7,6 +7,7 @@
 
 #define KEY_TAB '\t'
 #define KEY_SHIFT_TAB KEY_BTAB
+// TODO: Understand delete/backspace on mac
 
 void finish(int sig);
 void setup_colors();

@@ -19,6 +19,7 @@ typedef struct {
   Mode_ID last_canvas_mode;
   int last_arrow_direction;
   View *view;
+  Cursor *last_cursor;
 } State;
 
 #endif
