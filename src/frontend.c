@@ -118,10 +118,10 @@ void redraw_canvas_win() {
   int max_x = view_max_x;
   int max_y = view_max_y;
 
-  if (max_x > view->canvas->num_cols - view->x)
-    (max_x = view->canvas->num_cols - view->x);
-  if (max_y > view->canvas->num_rows - view->y)
-    (max_y = view->canvas->num_rows - view->y);
+  if (max_x >= view->canvas->num_cols - view->x)
+    (max_x = view->canvas->num_cols - view->x - 1);
+  if (max_y >= view->canvas->num_rows - view->y)
+    (max_y = view->canvas->num_rows - view->y - 1);
 
   for (int x = 0; x <= max_x; x++) {
     for (int y = 0; y <= max_y; y++) {
@@ -132,6 +132,11 @@ void redraw_canvas_win() {
 
   for (int x = max_x; x < view_max_x; x++) {
     for (int y = 0; y < view_max_y; y++) {
+      mvwaddch(canvas_win, y + 1, x + 1, 'X');
+    }
+  }
+  for (int y = max_y; y < view_max_y; y++) {
+    for (int x = 0; x < view_max_x; x++) {
       mvwaddch(canvas_win, y + 1, x + 1, 'X');
     }
   }
