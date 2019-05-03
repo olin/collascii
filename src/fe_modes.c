@@ -181,23 +181,24 @@ int mode_free_line(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     return 0;
   }
 
-  // insert mode behavior
-
+  // free line behavior
   if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
       (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
     int current_arrow = state->ch_in;
     int last_arrow = state->last_arrow_direction;
 
-    bool should_erase_last_position = FALSE;
     front_setcharcursor(free_line_arrows_to_char(last_arrow, current_arrow));
 
-    // *(state->last_cursor) = *(state->cursor);
     state->last_cursor->x = state->cursor->x;
     state->last_cursor->y = state->cursor->y;
 
     cursor_key_to_move(current_arrow, state->cursor, state->view);
 
     state->last_arrow_direction = state->ch_in;
+  } else if (state->ch_in == KEY_BACKSPACE) {
+    cursor_key_to_move(cursor_opposite_dir(state->last_arrow_direction),
+                       state->cursor, state->view);
+    front_setcharcursor(' ');
   }
 
   wmove(canvas_win, cursor_y_to_canvas(state->cursor),

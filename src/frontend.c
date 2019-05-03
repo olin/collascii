@@ -72,7 +72,8 @@ int main(int argc, char *argv[]) {
   State new_state = {
       .ch_in = 0,
       .cursor = cursor,
-      .current_mode = MODE_FREE_LINE,
+      .current_mode = MODE_INSERT,
+      // .current_mode = MODE_FREE_LINE,
 
       .last_arrow_direction = KEY_RIGHT,
       .last_canvas_mode = MODE_INSERT,
