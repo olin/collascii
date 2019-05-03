@@ -90,9 +90,6 @@ int main(int argc, char *argv[]) {
 
     mode_functions[state->current_mode](state, canvas_win, status_win);
 
-    // *(state->last_cursor) = *(state->cursor);
-
-    update_screen_size(canvas_win, status_win, cursor);
     refresh_screen();
   }
 
