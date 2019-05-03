@@ -64,9 +64,7 @@ int main(int argc, char *argv[]) {
   print_status(test_msg, status_win);
 
   // Move cursor to starting location and redraw
-  wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
-  wrefresh(status_win);
-  wrefresh(canvas_win);  // Refresh Canvas last so it gets the cursor
+  refresh_screen();
 
   //// Main loop
   State new_state = {
