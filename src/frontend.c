@@ -7,6 +7,7 @@
 #include "frontend.h"
 #include "mode_id.h"
 #include "state.h"
+#include "util.h"
 
 #include <stdio.h>
 #include <unistd.h>
@@ -15,8 +16,14 @@ WINDOW *canvas_win, *status_win;
 Cursor *cursor;
 View *view;
 
+#ifdef DEBUG
+#define LOG_TO_FILE
+#endif
+
+#ifdef LOG_TO_FILE
 char *logfile_path = "out.txt";
 FILE *logfile = NULL;
+#endif
 
 /* Layout
  * ___________________________________________
@@ -36,6 +43,7 @@ FILE *logfile = NULL;
  */
 
 int main(int argc, char *argv[]) {
+#ifdef LOG_TO_FILE
   logfile = fopen(logfile_path, "a");
   if (logfile == NULL) {
     perror("logfile fopen:");
@@ -45,7 +53,8 @@ int main(int argc, char *argv[]) {
     perror("stderr dup2:");
     exit(1);
   }
-  fprintf(stderr, "Starting\n");
+#endif
+  logd("Starting frontend\n");
 
   /* initialize your non-curses data structures here */
 
@@ -262,9 +271,10 @@ void finish(int sig) {
   endwin();
 
   /* do your non-curses wrapup here */
-
+#ifdef LOG_TO_FILE
   if (logfile != NULL) {
     fclose(logfile);
   }
+#endif
   exit(0);
 }
