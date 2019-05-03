@@ -60,10 +60,15 @@ int main(int argc, char *argv[]) {
   keypad(canvas_win, TRUE);
   keypad(status_win, TRUE);
 
+  // update the screen size first. This clears the status window on any changes
+  // (including the first time it's run), so refreshing after updating the
+  // status will clear it otherwise
+  update_screen_size();
+
   char test_msg[] = "Test mode";
   print_status(test_msg, status_win);
 
-  // Move cursor to starting location and redraw
+  // Move cursor to starting location and redraw canvases
   refresh_screen();
 
   //// Main loop
