@@ -4,6 +4,7 @@
  * TODO: assert get/set positions are within canvas sizes?
  */
 #include "canvas.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -81,7 +82,11 @@ void canvas_schari(Canvas *canvas, int i, char c) {
 /* Get the character at position (x, y)
  *
  */
-char canvas_gcharyx(Canvas *canvas, int y, int x) { return canvas->rows[y][x]; }
+char canvas_gcharyx(Canvas *canvas, int y, int x) {
+  assert(x <= canvas->num_cols);
+  assert(y <= canvas->num_rows);
+  return canvas->rows[y][x];
+}
 
 /* Get the character at index i
  *

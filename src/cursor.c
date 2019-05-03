@@ -23,7 +23,11 @@ void cursor_move_up(Cursor *cursor, View *view) {
 }
 
 void cursor_move_down(Cursor *cursor, View *view) {
-  if (cursor->y == view_max_y) {
+  if (cursor->y + 1 >= view->canvas->num_rows - view->y) {
+    cursor->y = view->canvas->num_rows - view->y - 1;
+    return;
+  }
+  if (cursor->y + 1 >= view_max_y) {
     view_move_down(view);
     return;
   }
@@ -39,7 +43,11 @@ void cursor_move_left(Cursor *cursor, View *view) {
 }
 
 void cursor_move_right(Cursor *cursor, View *view) {
-  if (cursor->x == view_max_x) {
+  if (cursor->x >= view->canvas->num_cols - view->x - 1) {
+    cursor->x = view->canvas->num_cols - view->x - 1;
+    return;
+  }
+  if (cursor->x + 1 >= view_max_x) {
     view_move_right(view);
     return;
   }

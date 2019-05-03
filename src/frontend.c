@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
   (void)noecho();       /* don't print on getch() */
   curs_set(2);
 
-  define_key("\r", KEY_ENTER); // Bind the <Enter> key properly
+  define_key("\r", KEY_ENTER);  // Bind the <Enter> key properly
 
   if (has_colors()) {
     setup_colors();
@@ -63,9 +63,7 @@ int main(int argc, char *argv[]) {
   print_status(test_msg, status_win);
 
   // Move cursor to starting location and redraw
-  wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
-  wrefresh(status_win);
-  wrefresh(canvas_win);  // Refresh Canvas last so it gets the cursor
+  refresh_screen();
 
   //// Main loop
   State new_state = {
@@ -115,10 +113,30 @@ void front_setcharcursor(char ch) {
 }
 
 void redraw_canvas_win() {
-  for (int x = 0; x < view_max_x; x++) {
-    for (int y = 0; y < view_max_y; y++) {
+  int max_x = view_max_x;
+  int max_y = view_max_y;
+
+  if (max_x >= view->canvas->num_cols - view->x)
+    (max_x = view->canvas->num_cols - view->x);
+  if (max_y >= view->canvas->num_rows - view->y)
+    (max_y = view->canvas->num_rows - view->y);
+
+  // draw canvas onto window
+  for (int x = 0; x < max_x; x++) {
+    for (int y = 0; y < max_y; y++) {
       mvwaddch(canvas_win, y + 1, x + 1,
                canvas_gcharyx(view->canvas, y + view->y, x + view->x));
+    }
+  }
+
+  for (int x = max_x; x < view_max_x; x++) {
+    for (int y = 0; y < view_max_y; y++) {
+      mvwaddch(canvas_win, y + 1, x + 1, 'X');
+    }
+  }
+  for (int y = max_y; y < view_max_y; y++) {
+    for (int x = 0; x < view_max_x; x++) {
+      mvwaddch(canvas_win, y + 1, x + 1, 'X');
     }
   }
 }
