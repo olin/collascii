@@ -8,9 +8,15 @@
 #include "mode_id.h"
 #include "state.h"
 
+#include <stdio.h>
+#include <unistd.h>
+
 WINDOW *canvas_win, *status_win;
 Cursor *cursor;
 View *view;
+
+char *logfile_path = "out.txt";
+FILE *logfile = NULL;
 
 /* Layout
  * ___________________________________________
@@ -30,6 +36,17 @@ View *view;
  */
 
 int main(int argc, char *argv[]) {
+  logfile = fopen(logfile_path, "a");
+  if (logfile == NULL) {
+    perror("logfile fopen:");
+    exit(1);
+  }
+  if (-1 == dup2(fileno(logfile), fileno(stderr))) {
+    perror("stderr dup2:");
+    exit(1);
+  }
+  fprintf(stderr, "Starting\n");
+
   /* initialize your non-curses data structures here */
 
   (void)signal(SIGINT, finish); /* arrange interrupts to terminate */
@@ -224,5 +241,8 @@ void finish(int sig) {
 
   /* do your non-curses wrapup here */
 
+  if (logfile != NULL) {
+    fclose(logfile);
+  }
   exit(0);
 }
