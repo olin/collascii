@@ -6,8 +6,8 @@
 #include "canvas.h"
 
 #define STATUS_HEIGHT 2  // not including borders
-#define view_max_x (COLS - 3)
-#define view_max_y (LINES - 4 - STATUS_HEIGHT)
+#define view_max_x (COLS - 2)
+#define view_max_y (LINES - 3 - STATUS_HEIGHT)
 
 typedef struct {
   int x, y;
