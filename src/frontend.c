@@ -136,12 +136,20 @@ void redraw_canvas_win() {
   /// draw fill in rest of window
   for (int x = max_x + 1; x <= view_max_x + 1; x++) {
     for (int y = 1; y <= view_max_y + 1; y++) {
-      mvwaddch(canvas_win, y, x, 'X');
+      if ((x % 2 != y % 2) != (abs(view->x % 2) != abs(view->y % 2))) {
+        mvwaddch(canvas_win, y, x, 'X');
+      } else {
+        mvwaddch(canvas_win, y, x, ' ');
+      }
     }
   }
   for (int y = max_y + 1; y <= view_max_y + 1; y++) {
     for (int x = 1; x <= view_max_x + 1; x++) {
-      mvwaddch(canvas_win, y, x, 'X');
+      if ((x % 2 != y % 2) != (abs(view->x % 2) != abs(view->y % 2))) {
+        mvwaddch(canvas_win, y, x, 'X');
+      } else {
+        mvwaddch(canvas_win, y, x, ' ');
+      }
     }
   }
 }
