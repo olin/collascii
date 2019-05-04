@@ -8,6 +8,23 @@
 #define KEY_TAB '\t'
 #define KEY_SHIFT_TAB KEY_BTAB
 
+// min/max macros
+// from https://stackoverflow.com/questions/3437404/min-and-max-in-c
+
+#define max(a, b)           \
+  ({                        \
+    __typeof__(a) _a = (a); \
+    __typeof__(b) _b = (b); \
+    _a > _b ? _a : _b;      \
+  })
+
+#define min(a, b)           \
+  ({                        \
+    __typeof__(a) _a = (a); \
+    __typeof__(b) _b = (b); \
+    _a < _b ? _a : _b;      \
+  })
+
 void finish(int sig);
 void setup_colors();
 void update_screen_size();

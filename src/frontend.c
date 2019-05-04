@@ -115,32 +115,33 @@ void front_setcharcursor(char ch) {
 }
 
 void redraw_canvas_win() {
-  // find max ranges to draw canvas
-  int max_x = view_max_x;
-  int max_y = view_max_y;
+  /// find max ranges to draw canvas
+  // calculate visible dimensions of canvas
+  int canvas_visible_width = max(0, view->canvas->num_cols - view->x);
+  int canvas_visible_height = max(0, view->canvas->num_rows - view->y);
 
-  if (max_x > view->canvas->num_cols - view->x)
-    (max_x = view->canvas->num_cols - view->x);
-  if (max_y > view->canvas->num_rows - view->y)
-    (max_y = view->canvas->num_rows - view->y);
+  // calculate max x and y location to draw canvas (in window coordinates)
+  int max_x = min(canvas_visible_width, view_max_x + 1);
+  int max_y = min(canvas_visible_height, view_max_y + 1);
 
-  // draw canvas onto window
-  for (int x = 0; x <= max_x - 1; x++) {
-    for (int y = 0; y <= max_y - 1; y++) {
-      mvwaddch(canvas_win, y + 1, x + 1,
-               canvas_gcharyx(view->canvas, y + view->y, x + view->x));
+  /// draw canvas onto window
+  // use window coordinates
+  for (int x = 1; x <= max_x; x++) {
+    for (int y = 1; y <= max_y; y++) {
+      mvwaddch(canvas_win, y, x,
+               canvas_gcharyx(view->canvas, y + view->y - 1, x + view->x - 1));
     }
   }
 
-  // draw fill in rest of window
-  for (int x = max_x; x < view_max_x; x++) {
-    for (int y = 0; y < view_max_y; y++) {
-      mvwaddch(canvas_win, y + 1, x + 1, 'X');
+  /// draw fill in rest of window
+  for (int x = max_x + 1; x <= view_max_x + 1; x++) {
+    for (int y = 1; y <= view_max_y + 1; y++) {
+      mvwaddch(canvas_win, y, x, 'X');
     }
   }
-  for (int y = max_y; y < view_max_y; y++) {
-    for (int x = 0; x < view_max_x; x++) {
-      mvwaddch(canvas_win, y + 1, x + 1, 'X');
+  for (int y = max_y + 1; y <= view_max_y + 1; y++) {
+    for (int x = 1; x <= view_max_x + 1; x++) {
+      mvwaddch(canvas_win, y, x, 'X');
     }
   }
 }
