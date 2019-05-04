@@ -119,14 +119,14 @@ void redraw_canvas_win() {
   int max_x = view_max_x;
   int max_y = view_max_y;
 
-  if (max_x >= view->canvas->num_cols - view->x)
-    (max_x = view->canvas->num_cols - view->x - 1);
-  if (max_y >= view->canvas->num_rows - view->y)
-    (max_y = view->canvas->num_rows - view->y - 1);
+  if (max_x > view->canvas->num_cols - view->x)
+    (max_x = view->canvas->num_cols - view->x);
+  if (max_y > view->canvas->num_rows - view->y)
+    (max_y = view->canvas->num_rows - view->y);
 
   // draw canvas onto window
-  for (int x = 0; x <= max_x; x++) {
-    for (int y = 0; y <= max_y; y++) {
+  for (int x = 0; x <= max_x - 1; x++) {
+    for (int y = 0; y <= max_y - 1; y++) {
       mvwaddch(canvas_win, y + 1, x + 1,
                canvas_gcharyx(view->canvas, y + view->y, x + view->x));
     }
