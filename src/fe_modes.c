@@ -39,9 +39,9 @@ Mode_ID return_to_canvas(int input_ch) {  // State?
   return LAST;
 }
 
-////////////////////////////
-// SPECIFC MODE FUNCTIONS //
-////////////////////////////
+/////////////////////////////
+// SPECIFIC MODE FUNCTIONS //
+/////////////////////////////
 
 /* free_line_arrows_to_char
  *
@@ -146,7 +146,7 @@ int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   return 0;
 }
 
-/* Mode Pan
+/* mode_pan
 
  * Pans the View with arrow keys
  */
