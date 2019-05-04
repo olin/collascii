@@ -63,9 +63,7 @@ int main(int argc, char *argv[]) {
   print_status(test_msg, status_win);
 
   // Move cursor to starting location and redraw
-  wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
-  wrefresh(status_win);
-  wrefresh(canvas_win);  // Refresh Canvas last so it gets the cursor
+  refresh_screen();
 
   //// Main loop
   State new_state = {
@@ -120,13 +118,13 @@ void redraw_canvas_win() {
   int max_y = view_max_y;
 
   if (max_x >= view->canvas->num_cols - view->x)
-    (max_x = view->canvas->num_cols - view->x - 1);
+    (max_x = view->canvas->num_cols - view->x);
   if (max_y >= view->canvas->num_rows - view->y)
-    (max_y = view->canvas->num_rows - view->y - 1);
+    (max_y = view->canvas->num_rows - view->y);
 
   // draw canvas onto window
-  for (int x = 0; x <= max_x; x++) {
-    for (int y = 0; y <= max_y; y++) {
+  for (int x = 0; x < max_x; x++) {
+    for (int y = 0; y < max_y; y++) {
       mvwaddch(canvas_win, y + 1, x + 1,
                canvas_gcharyx(view->canvas, y + view->y, x + view->x));
     }
