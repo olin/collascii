@@ -1,5 +1,3 @@
-#define DEBUG
-
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -130,13 +128,15 @@ int main(int argc, char *argv[]) {
         if (FD_ISSET(fd, &testfds)) {
           if (fd == net_fd->sockfd) { /*Accept data from open socket */
             logd("getting network");
+            net_recieve_char(view);
+            refresh_screen();
           } else if (fd == 0) { /*process keyboard activity*/
             state->ch_in = wgetch(canvas_win);
             mode_functions[state->current_mode](state, canvas_win, status_win);
+            refresh_screen();
           }
         }
       }
-      refresh_screen();
     }
   } else { /* If local */
     while ((state->ch_in = wgetch(canvas_win))) {

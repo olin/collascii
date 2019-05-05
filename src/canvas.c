@@ -107,11 +107,19 @@ char canvas_gchari(Canvas *canvas, int i) {
  *
  * Returns: the number of characters written
  */
-int canvas_load_str(Canvas *canvas, char *str) {
+int canvas_load_str(Canvas *canvas, char *str, int num_char) {
+  static int last_i = 0;
   int i;
-  for (i = 0; str[i] != '\0' && i < canvas->num_cols * canvas->num_rows; i++) {
-    canvas_schari(canvas, i, str[i]);
+  assert(last_i + num_char <= canvas->num_cols * canvas->num_rows);
+  for (i = 0; i < num_char; i++) {
+    if (str[i] == '\0' || i + last_i >= canvas->num_cols * canvas->num_rows) {
+      last_i = 0;
+      return i;
+    }
+    canvas_schari(canvas, i + last_i, str[i]);
   }
+
+  last_i += num_char;
   return i;
 }
 
@@ -175,8 +183,8 @@ int canvas_serialize(Canvas *canvas, char *buf) {
  *
  * TODO: get size of buffer?
  */
-void canvas_deserialize(char *bytes, Canvas *canvas) {
-  canvas_load_str(canvas, bytes);
+void canvas_deserialize(char *bytes, Canvas *canvas, int num_char) {
+  canvas_load_str(canvas, bytes, num_char);
 }
 
 /* Check if two canvases are the same

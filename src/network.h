@@ -24,5 +24,6 @@ Canvas *net_setup(int argc, char **argv);
 char net_checksocket(View *view);
 Net_fd *net_getfd();
 void net_send_char(int x, int y, char ch);
+void net_recieve_char(View *view);
 
 #endif

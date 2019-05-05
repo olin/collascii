@@ -31,7 +31,7 @@ collascii: frontend.out
 	mv frontend.out collascii
 
 frontend.out: LDLIBS +=-lncurses
-frontend.out: cursor.o fe_modes.o canvas.o view.o
+frontend.out: cursor.o fe_modes.o canvas.o view.o network.o
 
 client.out: LDLIBS +=-lncurses
 client.out: cursor.o fe_modes.o canvas.o view.o

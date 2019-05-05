@@ -10,11 +10,23 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#define DEBUG
+
 #include "canvas.h"
 #include "network.h"
+#include "util.h"
 #include "view.h"
 
 #define DEFAULT_PORT 5000
+
+#ifdef DEBUG
+#define LOG_TO_FILE
+#endif
+
+#ifdef LOG_TO_FILE
+char *logfile_path = "out_net.txt";
+FILE *logfile = NULL;
+#endif
 
 /* Network Client Variables */
 fd_set testfds, clientfds;
@@ -30,6 +42,18 @@ struct sockaddr_in address;
 int networking_enabled;
 
 Canvas *net_setup(int argc, char **argv) {
+#ifdef LOG_TO_FILE
+  logfile = fopen(logfile_path, "a");
+  if (logfile == NULL) {
+    perror("logfile fopen:");
+    exit(1);
+  }
+  if (-1 == dup2(fileno(logfile), fileno(stderr))) {
+    perror("stderr dup2:");
+    exit(1);
+  }
+#endif
+
   Canvas *canvas;
   networking_enabled = 1;
 
@@ -71,7 +95,7 @@ Canvas *net_setup(int argc, char **argv) {
   FD_SET(sockfd, &clientfds);
   FD_SET(0, &clientfds);  // stdin
 
-  msg_size = 100;
+  msg_size = 1000;
   msg_buf = malloc(sizeof(char) * msg_size);
   result = read(sockfd, msg_buf, msg_size);
   msg_buf[result] = '\0'; /* Terminate string with null */
@@ -81,17 +105,33 @@ Canvas *net_setup(int argc, char **argv) {
     int row = atoi(strtok(NULL, " "));
 
     canvas = canvas_new_blank(col, row);
-
-    msg_size = sizeof(char) * ((row * col) + 20);
-    free(msg_buf);
-    msg_buf = malloc(msg_size);
   } else {
     printf("failed to get canvas size\n");
     exit(1);
   }
 
-  result = read(sockfd, msg_buf, msg_size);
-  canvas_deserialize(msg_buf, canvas);
+  logd("reading\n");
+
+  // char *canvas_buf[(canvas->num_rows * canvas->num_cols) + 20];
+  // while (read(sockfd, msg_buf, msg_size) > 0) {
+  //   strcat(canvas_buf, msg_buf);
+  // }
+  // canvas_deserialize(canvas_buf, canvas);
+
+  while ((result = read(sockfd, msg_buf, msg_size)) > 0) {
+    logd("read: %d, %s\n", result, msg_buf);
+    canvas_deserialize(msg_buf, canvas, result);
+  }
+  logd("done reading\n");
+
+  // canvas_deserialize("aaa", canvas, 3);
+  // canvas_deserialize("bbb\0", canvas, 4);
+  // canvas_deserialize("ccc", canvas, 3);
+
+  // result = read(sockfd, msg_buf, msg_size);
+  // canvas_deserialize(msg_buf, canvas, result);
+
+  // logd("%d %s\n", result, msg_buf);
 
   return canvas;
 }
@@ -124,6 +164,18 @@ char net_checksocket(View *view) {
   return 0;
 }
 
+void net_recieve_char(View *view) {
+  result = read(sockfd, msg_buf, msg_size);
+  msg_buf[result] = '\0'; /* Terminate string with null */
+  char ch = msg_buf[result - 1];
+  char *command = strtok(msg_buf, " ");
+  if (!strcmp(command, "/set")) {
+    int x = atoi(strtok(NULL, " "));
+    int y = atoi(strtok(NULL, " "));
+
+    canvas_scharyx(view->canvas, y, x, ch);
+  }
+}
 /* Returns new Net_fd object with current clientfds and sockfd */
 Net_fd *net_getfd() {
   Net_fd *new_fd = malloc(sizeof(Net_fd));
