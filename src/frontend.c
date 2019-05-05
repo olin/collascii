@@ -7,10 +7,23 @@
 #include "frontend.h"
 #include "mode_id.h"
 #include "state.h"
+#include "util.h"
+
+#include <stdio.h>
+#include <unistd.h>
 
 WINDOW *canvas_win, *status_win;
 Cursor *cursor;
 View *view;
+
+#ifdef DEBUG
+#define LOG_TO_FILE
+#endif
+
+#ifdef LOG_TO_FILE
+char *logfile_path = "out.txt";
+FILE *logfile = NULL;
+#endif
 
 /* Layout
  * ___________________________________________
@@ -30,6 +43,19 @@ View *view;
  */
 
 int main(int argc, char *argv[]) {
+#ifdef LOG_TO_FILE
+  logfile = fopen(logfile_path, "a");
+  if (logfile == NULL) {
+    perror("logfile fopen:");
+    exit(1);
+  }
+  if (-1 == dup2(fileno(logfile), fileno(stderr))) {
+    perror("stderr dup2:");
+    exit(1);
+  }
+#endif
+  logd("Starting frontend\n");
+
   /* initialize your non-curses data structures here */
 
   (void)signal(SIGINT, finish); /* arrange interrupts to terminate */
@@ -51,18 +77,24 @@ int main(int argc, char *argv[]) {
   status_win = create_status_win();
 
   cursor = cursor_new();
-  Canvas *canvas = canvas_new_blank(1000, 1000);
+  Cursor *last_cursor = cursor_new();
+  Canvas *canvas = canvas_new_blank(30, 30);
 
-  view = view_new_startpos(canvas, 300, 300);
+  view = view_new_startpos(canvas, 3, 3);
 
   // Enable keyboard mapping
   keypad(canvas_win, TRUE);
   keypad(status_win, TRUE);
 
+  // update the screen size first. This clears the status window on any changes
+  // (including the first time it's run), so refreshing after updating the
+  // status will clear it otherwise
+  update_screen_size();
+
   char test_msg[] = "Test mode";
   print_status(test_msg, status_win);
 
-  // Move cursor to starting location and redraw
+  // Move cursor to starting location and redraw canvases
   refresh_screen();
 
   //// Main loop
@@ -70,9 +102,12 @@ int main(int argc, char *argv[]) {
       .ch_in = 0,
       .cursor = cursor,
       .current_mode = MODE_INSERT,
+      // .current_mode = MODE_FREE_LINE,
+
       .last_arrow_direction = KEY_RIGHT,
       .last_canvas_mode = MODE_INSERT,
       .view = view,
+      .last_cursor = last_cursor,
   };
   State *state = &new_state;
 
@@ -80,8 +115,6 @@ int main(int argc, char *argv[]) {
     // fprintf(stderr, "(%c, %i)    ", (char)state->ch_in, state->ch_in);
 
     mode_functions[state->current_mode](state, canvas_win, status_win);
-
-    update_screen_size(canvas_win, status_win, cursor);
 
     refresh_screen();
   }
@@ -238,6 +271,10 @@ void finish(int sig) {
   endwin();
 
   /* do your non-curses wrapup here */
-
+#ifdef LOG_TO_FILE
+  if (logfile != NULL) {
+    fclose(logfile);
+  }
+#endif
   exit(0);
 }

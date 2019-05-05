@@ -9,6 +9,7 @@ typedef enum {
   MODE_PICKER,
   MODE_INSERT,
   MODE_PAN,
+  MODE_FREE_LINE,
 
   // ^ add your mode above
   LAST,  // used to get number of elements
