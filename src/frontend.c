@@ -7,10 +7,23 @@
 #include "frontend.h"
 #include "mode_id.h"
 #include "state.h"
+#include "util.h"
+
+#include <stdio.h>
+#include <unistd.h>
 
 WINDOW *canvas_win, *status_win;
 Cursor *cursor;
 View *view;
+
+#ifdef DEBUG
+#define LOG_TO_FILE
+#endif
+
+#ifdef LOG_TO_FILE
+char *logfile_path = "out.txt";
+FILE *logfile = NULL;
+#endif
 
 /* Layout
  * ___________________________________________
@@ -30,6 +43,19 @@ View *view;
  */
 
 int main(int argc, char *argv[]) {
+#ifdef LOG_TO_FILE
+  logfile = fopen(logfile_path, "a");
+  if (logfile == NULL) {
+    perror("logfile fopen:");
+    exit(1);
+  }
+  if (-1 == dup2(fileno(logfile), fileno(stderr))) {
+    perror("stderr dup2:");
+    exit(1);
+  }
+#endif
+  logd("Starting frontend\n");
+
   /* initialize your non-curses data structures here */
 
   (void)signal(SIGINT, finish); /* arrange interrupts to terminate */
@@ -60,13 +86,16 @@ int main(int argc, char *argv[]) {
   keypad(canvas_win, TRUE);
   keypad(status_win, TRUE);
 
+  // update the screen size first. This clears the status window on any changes
+  // (including the first time it's run), so refreshing after updating the
+  // status will clear it otherwise
+  update_screen_size();
+
   char test_msg[] = "Test mode";
   print_status(test_msg, status_win);
 
-  // Move cursor to starting location and redraw
-  wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
-  wrefresh(status_win);
-  wrefresh(canvas_win);  // Refresh Canvas last so it gets the cursor
+  // Move cursor to starting location and redraw canvases
+  refresh_screen();
 
   //// Main loop
   State new_state = {
@@ -87,9 +116,6 @@ int main(int argc, char *argv[]) {
 
     mode_functions[state->current_mode](state, canvas_win, status_win);
 
-    // *(state->last_cursor) = *(state->cursor);
-
-    update_screen_size(canvas_win, status_win, cursor);
     refresh_screen();
   }
 
@@ -223,6 +249,10 @@ void finish(int sig) {
   endwin();
 
   /* do your non-curses wrapup here */
-
+#ifdef LOG_TO_FILE
+  if (logfile != NULL) {
+    fclose(logfile);
+  }
+#endif
   exit(0);
 }
