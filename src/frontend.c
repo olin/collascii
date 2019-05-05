@@ -1,4 +1,5 @@
 #include <signal.h>
+#include <stdarg.h>
 #include <stdlib.h>
 
 #include "canvas.h"
@@ -92,7 +93,7 @@ int main(int argc, char *argv[]) {
   update_screen_size();
 
   char test_msg[] = "Test mode";
-  print_status(test_msg, status_win);
+  print_status(test_msg);
 
   // Move cursor to starting location and redraw canvases
   refresh_screen();
@@ -265,9 +266,36 @@ void destroy_win(WINDOW *local_win) {
   delwin(local_win);
 }
 
-int print_status(char *str, WINDOW *window) {
+/* va_list version of mvwprintwf
+ */
+int vmvwprintwf(WINDOW *window, int y, int x, char *format, va_list argp) {
+  char buffer[64];
+  vsnprintf(buffer, sizeof(buffer) / sizeof(char), format, argp);
+  return mvwprintw(window, y, x, buffer);
+}
+
+/* A variation of mvwprintw that accepts format strings like printf
+ *
+ * Note that buffer is currently 32 chars long.
+ */
+int mvwprintwf(WINDOW *window, int y, int x, char *format, ...) {
+  va_list argp;
+  va_start(argp, format);
+  int res = vmvwprintwf(window, y, x, format, argp);
+  va_end(argp);
+  return res;
+}
+
+/* Prints to status_win
+ *
+ */
+int print_status(char *format, ...) {
   // wattrset(window, COLOR_PAIR(7));
-  return mvwprintw(window, 1, 1, str);
+  va_list argp;
+  va_start(argp, format);
+  int res = vmvwprintwf(status_win, 1, 1, format, argp);
+  va_end(argp);
+  return res;
 }
 
 void finish(int sig) {
