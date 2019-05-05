@@ -103,6 +103,7 @@ int main(int argc, char *argv[]) {
       .cursor = cursor,
       .current_mode = MODE_INSERT,
       // .current_mode = MODE_FREE_LINE,
+      // .current_mode = MODE_BRUSH,
 
       .last_arrow_direction = KEY_RIGHT,
       .last_canvas_mode = MODE_INSERT,
@@ -140,6 +141,8 @@ void setup_colors() {
   init_pair(7, COLOR_BLACK, COLOR_WHITE);
 }
 
+/* Update canvas with character at cursor current position.
+ */
 void front_setcharcursor(char ch) {
   canvas_scharyx(view->canvas, cursor_y_to_canvas(cursor) - 1 + view->y,
                  cursor_x_to_canvas(cursor) - 1 + view->x, ch);

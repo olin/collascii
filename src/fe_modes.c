@@ -12,11 +12,24 @@
  *
  */
 
+// clang-format off
 int (*mode_functions[])(State *, WINDOW *, WINDOW *) = {
     mode_picker,
     mode_insert,
     mode_pan,
     mode_free_line,
+    mode_brush,
+};
+// clang-format on
+
+typedef struct {
+  char pattern;
+  enum { PAINT_ON, PAINT_OFF } state;
+} mode_brush_config_t;
+
+mode_brush_config_t mode_brush_config = {
+    .pattern = 'B',
+    .state = PAINT_OFF,
 };
 
 //////////////////////////////
@@ -203,6 +216,53 @@ int mode_free_line(State *state, WINDOW *canvas_win, WINDOW *status_win) {
 
   wmove(canvas_win, cursor_y_to_canvas(state->cursor),
         cursor_x_to_canvas(state->cursor));
+
+  return 0;
+}
+
+/* mode_brush
+ *
+ * Continuous painting of characters.
+ *
+ * Toggle on/off with ENTER, change characters by pressing them
+ */
+int mode_brush(State *state, WINDOW *canvas_win, WINDOW *status_win) {
+  // handle mode changing
+  if (state->ch_in == KEY_TAB) {
+    // Clean up code
+    state->last_canvas_mode = MODE_BRUSH;
+
+    state->current_mode = MODE_PICKER;
+    return 0;
+  }
+
+  // brush mode behavior
+
+  mode_brush_config_t *mode_cfg = &mode_brush_config;
+
+  if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
+      (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
+    // arrow keys - move cursor
+    cursor_key_to_move(state->ch_in, state->cursor, state->view);
+  } else if (' ' <= state->ch_in && state->ch_in <= '~') {
+    // printable characters - change brush
+    mode_cfg->pattern = state->ch_in;
+  } else if (KEY_ENTER == state->ch_in) {
+    // ENTER - toggle on/off
+    if (mode_cfg->state == PAINT_ON) {
+      mode_cfg->state = PAINT_OFF;
+    } else if (mode_cfg->state == PAINT_OFF) {
+      mode_cfg->state = PAINT_ON;
+    }
+  } else {
+    // Print non-print characters to bottom left in status_win bar
+    mvwaddch(status_win, 1, COLS - 3, state->ch_in);
+  }
+
+  // if painting, change character
+  if (mode_cfg->state == PAINT_ON) {
+    front_setcharcursor(mode_cfg->pattern);
+  }
 
   return 0;
 }
