@@ -266,34 +266,15 @@ void destroy_win(WINDOW *local_win) {
   delwin(local_win);
 }
 
-/* va_list version of mvwprintwf
- */
-int vmvwprintwf(WINDOW *window, int y, int x, char *format, va_list argp) {
-  char buffer[64];
-  vsnprintf(buffer, sizeof(buffer) / sizeof(char), format, argp);
-  return mvwprintw(window, y, x, buffer);
-}
-
-/* A variation of mvwprintw that accepts format strings like printf
- *
- * Note that buffer is currently 32 chars long.
- */
-int mvwprintwf(WINDOW *window, int y, int x, char *format, ...) {
-  va_list argp;
-  va_start(argp, format);
-  int res = vmvwprintwf(window, y, x, format, argp);
-  va_end(argp);
-  return res;
-}
-
-/* Prints to status_win
- *
+/* Prints to status_win, similar to printf
  */
 int print_status(char *format, ...) {
-  // wattrset(window, COLOR_PAIR(7));
+  // there isn't a va_list version of mvwprintw, so move to status_win first and
+  // then use vwprintw
+  wmove(status_win, 1, 1);
   va_list argp;
   va_start(argp, format);
-  int res = vmvwprintwf(status_win, 1, 1, format, argp);
+  int res = vwprintw(status_win, format, argp);
   va_end(argp);
   return res;
 }
