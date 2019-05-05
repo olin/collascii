@@ -1,16 +1,19 @@
+#define DEBUG
+
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "canvas.h"
 #include "cursor.h"
 #include "fe_modes.h"
 #include "frontend.h"
 #include "mode_id.h"
+#include "network.h"
 #include "state.h"
 #include "util.h"
-
-#include <stdio.h>
-#include <unistd.h>
 
 WINDOW *canvas_win, *status_win;
 Cursor *cursor;
@@ -78,9 +81,15 @@ int main(int argc, char *argv[]) {
 
   cursor = cursor_new();
   Cursor *last_cursor = cursor_new();
-  Canvas *canvas = canvas_new_blank(30, 30);
+  Canvas *canvas = net_setup(argc, argv);
+  Net_fd *net_fd = net_getfd();
 
-  view = view_new_startpos(canvas, 3, 3);
+  fd_set testfds;
+  int fd;
+
+  view = view_new_startpos(canvas, 0, 0);
+
+  logd("canvas (%d, %d)\n", canvas->num_cols, canvas->num_rows);
 
   // Enable keyboard mapping
   keypad(canvas_win, TRUE);
@@ -111,12 +120,29 @@ int main(int argc, char *argv[]) {
   };
   State *state = &new_state;
 
-  while ((state->ch_in = wgetch(canvas_win))) {
-    // fprintf(stderr, "(%c, %i)    ", (char)state->ch_in, state->ch_in);
+  // If networked
+  if (net_fd->sockfd) {
+    while (1) {
+      testfds = net_fd->clientfds;
+      select(FD_SETSIZE, &testfds, NULL, NULL, NULL);
 
-    mode_functions[state->current_mode](state, canvas_win, status_win);
-
-    refresh_screen();
+      for (fd = 0; fd < FD_SETSIZE; fd++) {
+        if (FD_ISSET(fd, &testfds)) {
+          if (fd == net_fd->sockfd) { /*Accept data from open socket */
+            logd("getting network");
+          } else if (fd == 0) { /*process keyboard activity*/
+            state->ch_in = wgetch(canvas_win);
+            mode_functions[state->current_mode](state, canvas_win, status_win);
+          }
+        }
+      }
+      refresh_screen();
+    }
+  } else { /* If local */
+    while ((state->ch_in = wgetch(canvas_win))) {
+      mode_functions[state->current_mode](state, canvas_win, status_win);
+      refresh_screen();
+    }
   }
 
   // Cleanup
@@ -141,8 +167,11 @@ void setup_colors() {
 }
 
 void front_setcharcursor(char ch) {
-  canvas_scharyx(view->canvas, cursor_y_to_canvas(cursor) - 1 + view->y,
-                 cursor_x_to_canvas(cursor) - 1 + view->x, ch);
+  int y = cursor_y_to_canvas(cursor) - 1 + view->y;
+  int x = cursor_x_to_canvas(cursor) - 1 + view->x;
+  canvas_scharyx(view->canvas, y, x, ch);
+
+  net_send_char(x, y, ch);
 }
 
 void redraw_canvas_win() {
