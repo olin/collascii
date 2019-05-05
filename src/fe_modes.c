@@ -264,5 +264,10 @@ int mode_brush(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     front_setcharcursor(mode_cfg->pattern);
   }
 
+  // display brush info
+  print_status("state: %s\tbrush: '%c' (Press ENTER to toggle)",
+               ((mode_cfg->state == PAINT_OFF) ? "OFF" : "ON"),
+               mode_cfg->pattern);
+
   return 0;
 }
