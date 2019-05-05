@@ -163,6 +163,7 @@ void *handle_client(void *arg) {
 
     /* Special options */
     if (buff_in[0] == '/') {
+      char c = buff_in[strlen(buff_in) - 1];
       char *command;
       command = strtok(buff_in, " ");
       if (!strcmp(command, "/quit") || !strcmp(command, "/q")) {
@@ -171,7 +172,6 @@ void *handle_client(void *arg) {
       if (!strcmp(command, "/set")) {
         int x = atoi(strtok(NULL, " "));
         int y = atoi(strtok(NULL, " "));
-        char c = strtok(NULL, " ")[0];
 
         if (x > canvas->num_cols || y > canvas->num_rows) {
           printf("set out of bounds: (%d,%d)\n", x, y);
@@ -320,20 +320,23 @@ int main() {
   struct sockaddr_in cli_addr;
   pthread_t tid;
 
+  int port = 5000;
+
   /* Socket settings */
   listenfd = socket(AF_INET, SOCK_STREAM, 0);
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  serv_addr.sin_port = htons(5000);
+  serv_addr.sin_port = htons(port);
 
   /* Ignore pipe signals */
   signal(SIGPIPE, SIG_IGN);
 
   /* Bind */
-  if (bind(listenfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+  while (bind(listenfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
     perror("Socket binding failed");
-    return EXIT_FAILURE;
+    serv_addr.sin_port = htons(++port);
   }
+  printf("connected to port %d", port);
 
   /* Listen */
   if (listen(listenfd, 10) < 0) {
