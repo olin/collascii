@@ -74,6 +74,13 @@ int main(int argc, char *argv[]) {
     setup_colors();
   }
 
+  // enable mouse input
+  mmask_t return_mask =
+      mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON1_PRESSED |
+                    BUTTON1_RELEASED | BUTTON1_CLICKED,
+                NULL);
+  logd("Returned mouse mask: %li\n", return_mask);
+
   canvas_win = create_canvas_win();
   status_win = create_status_win();
 
@@ -102,9 +109,9 @@ int main(int argc, char *argv[]) {
   State new_state = {
       .ch_in = 0,
       .cursor = cursor,
-      .current_mode = MODE_INSERT,
+      // .current_mode = MODE_INSERT,
       // .current_mode = MODE_FREE_LINE,
-      // .current_mode = MODE_BRUSH,
+      .current_mode = MODE_BRUSH,
 
       .last_arrow_direction = KEY_RIGHT,
       .last_canvas_mode = MODE_INSERT,

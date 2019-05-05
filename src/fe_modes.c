@@ -2,6 +2,7 @@
 
 #include "frontend.h"
 #include "mode_id.h"
+#include "util.h"
 
 /* Frontend Modes
  *
@@ -253,6 +254,20 @@ int mode_brush(State *state, WINDOW *canvas_win, WINDOW *status_win) {
       mode_cfg->state = PAINT_OFF;
     } else if (mode_cfg->state == PAINT_OFF) {
       mode_cfg->state = PAINT_ON;
+    }
+  } else if (KEY_MOUSE == state->ch_in) {
+    // handle mouse events
+    MEVENT event;
+    if (getmouse(&event) == OK) {
+      logd("New mouse event: (%i, %i), %li\n", event.x, event.y, event.bstate);
+      if (event.bstate & BUTTON1_PRESSED) {
+        mode_cfg->state = PAINT_ON;
+      } else if (event.bstate & BUTTON1_RELEASED) {
+        mode_cfg->state = PAINT_OFF;
+      }
+      // move cursor to mouse position
+      state->cursor->x = event.x;
+      state->cursor->y = event.y;
     }
   } else {
     // Print non-print characters to bottom left in status_win bar
