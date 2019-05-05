@@ -21,6 +21,7 @@ typedef struct {
   View *view;
 
   int socket;
+  Cursor *last_cursor;
 } State;
 
 #endif

@@ -16,6 +16,7 @@ int (*mode_functions[])(State *, WINDOW *, WINDOW *) = {
     mode_picker,
     mode_insert,
     mode_pan,
+    mode_free_line,
 };
 
 //////////////////////////////
@@ -36,6 +37,50 @@ Mode_ID return_to_canvas(int input_ch) {  // State?
    *      return null equivalent
    */
   return LAST;
+}
+
+////////////////////////////
+// SPECIFC MODE FUNCTIONS //
+////////////////////////////
+
+/* free_line_arrows_to_char
+ *
+ * Takes the current and previous arrow directions, and returns the
+ * appropriate character, including diagonals.
+ *
+ * NOTE: Assumes that the input character is an arrow key
+ *
+ * Reference table:
+ *       ^ v > <  (current)
+ *
+ *   ^   | | / \
+ *   v   | | \ /
+ *   >   \ / - -
+ *   <   / \ - -
+ * (last)
+ */
+int free_line_arrows_to_char(int last_arrow, int current_arrow) {
+  char horizontal = '-';
+  char vertical = '|';
+  char diag_up = '/';
+  char diag_down = '\\';
+
+  if ((last_arrow == KEY_UP || current_arrow == KEY_DOWN) &&
+      (last_arrow == KEY_DOWN || current_arrow == KEY_UP)) {
+    // arrows are vertically parallel (top left quarter of truth table)
+    return vertical;
+  } else if ((last_arrow == KEY_LEFT || current_arrow == KEY_RIGHT) &&
+             (last_arrow == KEY_RIGHT || current_arrow == KEY_LEFT)) {
+    // arrows are horizontally parallel (bottom right quarter of truth table)
+    return horizontal;
+  } else if ((last_arrow == KEY_UP && current_arrow == KEY_RIGHT) ||
+             (last_arrow == KEY_DOWN && current_arrow == KEY_LEFT) ||
+             (last_arrow == KEY_LEFT && current_arrow == KEY_DOWN) ||
+             (last_arrow == KEY_RIGHT && current_arrow == KEY_UP)) {
+    return diag_up;
+  } else {
+    return diag_down;
+  }
 }
 
 ////////////////////
@@ -114,7 +159,6 @@ int mode_pan(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     state->current_mode = MODE_PICKER;
     return 0;
   }
-
   if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
       (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
     view_pan_ch(state->ch_in, state->view);
@@ -123,6 +167,42 @@ int mode_pan(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   return 0;
 }
 
-////////////////////////////
-// SPECIFC MODE FUNCTIONS //
-////////////////////////////
+/* mode_free_line
+ *
+ * Move with arrows and insert character with keyboard.
+ */
+int mode_free_line(State *state, WINDOW *canvas_win, WINDOW *status_win) {
+  // handle mode changing
+  if (state->ch_in == KEY_TAB) {
+    // Clean up code
+    state->last_canvas_mode = MODE_INSERT;
+
+    state->current_mode = MODE_PICKER;
+    return 0;
+  }
+
+  // free line behavior
+  if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
+      (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
+    int current_arrow = state->ch_in;
+    int last_arrow = state->last_arrow_direction;
+
+    front_setcharcursor(free_line_arrows_to_char(last_arrow, current_arrow));
+
+    state->last_cursor->x = state->cursor->x;
+    state->last_cursor->y = state->cursor->y;
+
+    cursor_key_to_move(current_arrow, state->cursor, state->view);
+
+    state->last_arrow_direction = state->ch_in;
+  } else if (state->ch_in == KEY_BACKSPACE) {
+    cursor_key_to_move(cursor_opposite_dir(state->last_arrow_direction),
+                       state->cursor, state->view);
+    front_setcharcursor(' ');
+  }
+
+  wmove(canvas_win, cursor_y_to_canvas(state->cursor),
+        cursor_x_to_canvas(state->cursor));
+
+  return 0;
+}
