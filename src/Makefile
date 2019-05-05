@@ -33,6 +33,9 @@ collascii: frontend.out
 frontend.out: LDLIBS +=-lncurses
 frontend.out: cursor.o fe_modes.o canvas.o view.o
 
+client.out: LDLIBS +=-lncurses
+client.out: cursor.o fe_modes.o canvas.o view.o
+
 # server
 server.out: LDLIBS +=-lpthread
 server.out: canvas.o
