@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 #include <arpa/inet.h>
+#include <assert.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <pthread.h>
@@ -43,6 +44,7 @@ client_t *clients[MAX_CLIENTS];
 pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 Canvas *canvas;
+char *canvas_buf;
 
 /* Add client to queue */
 void queue_add(client_t *cl) {
@@ -141,7 +143,12 @@ void *handle_client(void *arg) {
   print_client_addr(cli->addr);
   printf(" referenced by %d\n", cli->uid);
 
-  send_message_self("1000 1000\n", cli->connfd);
+  sprintf(buff_out, "/canvas_size %d %d\n", canvas->num_cols, canvas->num_rows);
+  send_message_self(buff_out, cli->connfd);
+  printf("sent canvas size\n");
+  canvas_serialize(canvas, canvas_buf);
+  send_message_self(canvas_buf, cli->connfd);
+  printf("sent serialized canvas\n");
 
   /* Receive input from client */
   while ((rlen = read(cli->connfd, buff_in, sizeof(buff_in) - 1)) > 0) {
@@ -158,8 +165,23 @@ void *handle_client(void *arg) {
     if (buff_in[0] == '/') {
       char *command;
       command = strtok(buff_in, " ");
-      if (!strcmp(command, "/quit")) {
+      if (!strcmp(command, "/quit") || !strcmp(command, "/q")) {
         break;
+      }
+      if (!strcmp(command, "/set")) {
+        int x = atoi(strtok(NULL, " "));
+        int y = atoi(strtok(NULL, " "));
+        char c = strtok(NULL, " ")[0];
+
+        if (x > canvas->num_cols || y > canvas->num_rows) {
+          printf("set out of bounds: (%d,%d)\n", x, y);
+        } else {
+          printf("setting (%d,%d) to '%c'\n", x, y, c);
+          canvas_scharyx(canvas, x, y, c);
+        }
+      } else if (!strcmp(command, "/canvas")) {
+        canvas_serialize(canvas, canvas_buf);
+        send_message_self(canvas_buf, cli->connfd);
       }
     } else {
       /* Send message */
@@ -288,7 +310,10 @@ int listenandloop(char *port)
 */
 
 int main() {
-  canvas = canvas_new_blank(1000, 1000);
+  canvas = canvas_new_blank(20, 20);
+  canvas_buf = malloc((sizeof(char) * canvas->num_cols * canvas->num_rows) + 1);
+  canvas_serialize(canvas, canvas_buf);
+  canvas_buf[(canvas->num_cols * canvas->num_rows) + 1] = 0;
 
   int listenfd = 0, connfd = 0;
   struct sockaddr_in serv_addr;
