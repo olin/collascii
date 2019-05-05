@@ -178,6 +178,9 @@ void *handle_client(void *arg) {
         } else {
           printf("setting (%d,%d) to '%c'\n", x, y, c);
           canvas_scharyx(canvas, x, y, c);
+
+          sprintf(buff_out, "/set %d %d %c", x, y, c);
+          send_message(buff_out, cli->uid);
         }
       } else if (!strcmp(command, "/canvas")) {
         canvas_serialize(canvas, canvas_buf);
@@ -320,9 +323,8 @@ int main() {
   struct sockaddr_in cli_addr;
   pthread_t tid;
 
-  int port = 5000;
-
   /* Socket settings */
+  int port = 5000;
   listenfd = socket(AF_INET, SOCK_STREAM, 0);
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);

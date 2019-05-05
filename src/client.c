@@ -21,9 +21,20 @@
 #include "frontend.h"
 #include "mode_id.h"
 #include "state.h"
+#include "util.h"
 
 #define DEFAULT_PORT 5000
 #define MSG_SIZE 1000 * 1000
+#define DEBUG
+
+#ifdef DEBUG
+#define LOG_TO_FILE
+#endif
+
+#ifdef LOG_TO_FILE
+char *logfile_path = "out.txt";
+FILE *logfile = NULL;
+#endif
 
 WINDOW *canvas_win, *status_win;
 Cursor *cursor;
@@ -48,6 +59,17 @@ State *state;
  */
 
 int main(int argc, char *argv[]) {
+#ifdef LOG_TO_FILE
+  logfile = fopen(logfile_path, "a");
+  if (logfile == NULL) {
+    perror("logfile fopen:");
+    exit(1);
+  }
+  if (-1 == dup2(fileno(logfile), fileno(stderr))) {
+    perror("stderr dup2:");
+    exit(1);
+  }
+#endif
   /* initialize your non-curses data structures here */
 
   (void)signal(SIGINT, finish); /* arrange interrupts to terminate */
@@ -122,7 +144,7 @@ int main(int argc, char *argv[]) {
     canvas = canvas_new_blank(col, row);
     view = view_new_startpos(canvas, 0, 0);
   } else {
-    printf("failed to get canvas size\n");
+    logd("failed to get canvas size\n");
     exit(1);
   }
 
@@ -165,16 +187,13 @@ int main(int argc, char *argv[]) {
           // read data from open socket
           result = read(sockfd, msg_buf, MSG_SIZE);
           msg_buf[result] = '\0'; /* Terminate string with null */
+          char ch = msg_buf[result - 1];
           char *command = strtok(msg_buf, " ");
           if (!strcmp(command, "/set")) {
             int x = atoi(strtok(NULL, " "));
-            char *y_loc = strtok(NULL, " ");
-            int y = atoi(y_loc);
-            while (y_loc != 0) {
-              y_loc++;
-            }
-            char ch = y_loc[1];
-            printf("c: %c %c", *y_loc, y_loc[1]);
+            int y = atoi(strtok(NULL, " "));
+
+            logd("c: %c %c", *y_loc, y_loc[1]);
             canvas_scharyx(view->canvas, y, x, ch);
           }
 
