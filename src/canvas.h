@@ -23,7 +23,7 @@ int canvas_ldcanvasyx(Canvas *dest, Canvas *source, int y, int x);
 int canvas_ldcanvasyxc(Canvas *dest, Canvas *source, int y, int x,
                        char transparent);
 
-void canvas_resize(Canvas **orig, int newrows, int newcols);
+int canvas_resize(Canvas **orig, int newrows, int newcols);
 void canvas_scharyx(Canvas *canvas, int y, int x, char c);
 void canvas_schari(Canvas *canvas, int i, char c);
 char canvas_gcharyx(Canvas *canvas, int y, int x);

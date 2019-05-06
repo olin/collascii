@@ -105,21 +105,6 @@ void canvas_free(Canvas *canvas) {
   free(canvas);
 }
 
-void canvas_resize(Canvas **canvas, int newrows, int newcols) {
-  Canvas *orig = *canvas;
-  assert(orig->num_rows <= newrows);
-  assert(orig->num_cols <= newcols);
-  Canvas *new = canvas_new(newrows, newcols);
-  // copy over
-  for (int r = 0; r < orig->num_rows; r++) {
-    for (int c = 0; c < orig->num_cols; c++) {
-      new->rows[r][c] = orig->rows[r][c];
-    }
-  }
-  *canvas = new;
-  canvas_free(orig);
-}
-
 /* Test if location y is inside canvas.
  */
 int canvas_isin_y(Canvas *canvas, int y) {
@@ -210,6 +195,28 @@ int canvas_ldcanvasyxc(Canvas *dest, Canvas *source, int y, int x,
   } else {
     return 0;
   }
+}
+
+/* Change the size of a canvas.
+ *
+ * Creates a new canvas, copies the content over, and frees the old canvas. Any
+ * data falling outside the bounds of the new canvas is dropped.
+ *
+ * Requires a pointer to a canvas pointer.
+ *
+ * Returns 1 if the canvas was truncated, 0 otherwise.
+ */
+int canvas_resize(Canvas **canvas_pointer, int newrows, int newcols) {
+  Canvas *orig = *canvas_pointer;
+  Canvas *new = canvas_new(newrows, newcols);
+
+  // copy over
+  int res = canvas_ldcanvasyx(new, orig, 0, 0);
+
+  // update and free
+  *canvas_pointer = new;
+  canvas_free(orig);
+  return res;
 }
 
 /* Set a single character at position (x, y)
