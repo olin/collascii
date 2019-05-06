@@ -37,4 +37,21 @@ static inline void _log_unused(const int dummy, ...) { (void)dummy; }
 #define logd(...) _LOG_UNUSED(__VA_ARGS__)
 #endif
 
+// min/max macros
+// from https://stackoverflow.com/questions/3437404/min-and-max-in-c
+
+#define max(a, b)           \
+  ({                        \
+    __typeof__(a) _a = (a); \
+    __typeof__(b) _b = (b); \
+    _a > _b ? _a : _b;      \
+  })
+
+#define min(a, b)           \
+  ({                        \
+    __typeof__(a) _a = (a); \
+    __typeof__(b) _b = (b); \
+    _a < _b ? _a : _b;      \
+  })
+
 #endif
