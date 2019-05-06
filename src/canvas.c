@@ -381,7 +381,7 @@ int canvas_fprint_trim(FILE *stream, Canvas *canvas) {
   int res1, res2;
   int total = 0;
   int num_trailing_space = 0;
-  // int num_trailing_lines = 0;
+  int num_trailing_lines = 0;
   for (int i = 0; i < canvas->num_rows; i++) {
     // print row char by char
     row = canvas->rows[i];
@@ -405,10 +405,17 @@ int canvas_fprint_trim(FILE *stream, Canvas *canvas) {
       }
       total += res1 + res2;
     }
+    res1 = 0;
+    if (num_trailing_space == canvas->num_cols) {
+      // if entire row was blank
+      num_trailing_lines++;
+    } else {
+      // if row wasn't empty, print newline plus any hoarded
+      // reuse res1
+      res1 = fprintcr(stream, '\n', 1 + num_trailing_lines);
+      num_trailing_lines = 0;
+    }
     num_trailing_space = 0;
-    // finish row
-    // reuse res1
-    res1 = fprintf(stream, "\n");
     if (res1 < 0) {
       return res1;
     }
