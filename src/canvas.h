@@ -12,6 +12,7 @@ Canvas *canvas_new(int rows, int cols);
 Canvas *canvas_new_blank(int rows, int cols);
 
 Canvas *canvas_cpy(Canvas *orig);
+Canvas *canvas_cpy_p1p2(Canvas *orig, int y1, int x1, int y2, int x2);
 void canvas_free(Canvas *canvas);
 void canvas_resize(Canvas **orig, int newrows, int newcols);
 void canvas_scharyx(Canvas *canvas, int y, int x, char c);
@@ -25,6 +26,6 @@ int canvas_serialize(Canvas *canvas, char *buf);
 void canvas_deserialize(char *bytes, Canvas *canvas);
 int canvas_eq(Canvas *a, Canvas *b);
 Canvas *canvas_readf(FILE *f);
-int canvas_writef(Canvas* canvas, FILE *f);
+int canvas_writef(Canvas *canvas, FILE *f);
 
 #endif

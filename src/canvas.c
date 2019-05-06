@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "canvas.h"
+#include "util.h"
 
 /* Fill a canvas with char fill
  *
@@ -54,6 +55,37 @@ Canvas *canvas_cpy(Canvas *orig) {
   // copy rows over from orig
   for (int i = 0; i < orig->num_rows; i++) {
     memcpy(copy->rows[i], orig->rows[i], sizeof(char) * orig->num_cols);
+  }
+
+  return copy;
+}
+
+/* Make a copy of a subset of a canvas.
+ *
+ * Copies the rectangle formed by points (x1, y1) and (x2, y2) inclusively. The
+ * relative order and location of the two points does not matter.
+ */
+Canvas *canvas_cpy_p1p2(Canvas *orig, int y1, int x1, int y2, int x2) {
+  // assert that points are within canvas
+  assert(x1 >= 0 && x1 < orig->num_cols);
+  assert(x2 >= 0 && x2 < orig->num_cols);
+  assert(y1 >= 0 && y1 < orig->num_rows);
+  assert(y2 >= 0 && y2 < orig->num_rows);
+
+  // find the top left and bottom right points of the rectangle
+  const int tlx = min(x1, x2);
+  const int tly = min(y1, y2);
+
+  const int brx = max(x1, x2);
+  const int bry = max(y1, y2);
+
+  // make empty canvas
+  const int width = abs(x2 - x1) + 1;
+  const int height = abs(y2 - y1) + 1;
+  Canvas *copy = canvas_new(height, width);
+  // copy relevant data from orig, row-sections at a time
+  for (int y = tly; y <= bry; y++) {
+    memcpy(copy->rows[y], &(orig->rows[y][tlx]), sizeof(char) * width);
   }
 
   return copy;

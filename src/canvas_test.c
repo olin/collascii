@@ -1,9 +1,20 @@
 #include "canvas.h"
 #include "minunit.h"
+#include "util.h"
 
 static int cols = 2;
 static int rows = 3;
 static char load_str[] = "012345";
+
+/*
+ * c1 is normally loaded as a 3x2:
+ *   01
+ *  +---
+ * 0|01
+ * 1|23
+ * 2|45
+ *  |
+ */
 
 static Canvas *c1, *c2;
 
@@ -123,6 +134,23 @@ MU_TEST(test_canvas_cpy) {
   canvas_free(c2);
 }
 
+MU_TEST(test_canvas_cpy_p1p2) {
+  // copy the left column of c1
+  c2 = canvas_cpy_p1p2(c1, 0, 0, 2, 0);
+
+  mu_assert(c1 != c2, "Canvas pointers should not be the same");
+  mu_assert(!canvas_eq(c1, c2), "Canvases should not be equal");
+
+  mu_assert_int_eq(3, c2->num_rows);
+  mu_assert_int_eq(1, c2->num_cols);
+
+  mu_assert_double_eq('0', canvas_gcharyx(c2, 0, 0));
+  mu_assert_double_eq('2', canvas_gcharyx(c2, 1, 0));
+  mu_assert_double_eq('4', canvas_gcharyx(c2, 2, 0));
+
+  canvas_free(c2);
+}
+
 MU_TEST(test_canvas_serialize_deserialize) {
   char buf[c1->num_rows * c1->num_cols];
   int numwritten = canvas_serialize(c1, buf);
@@ -146,6 +174,7 @@ MU_TEST_SUITE(canvas_main) {
   MU_RUN_TEST(test_canvas_schari);
 
   MU_RUN_TEST(test_canvas_cpy);
+  MU_RUN_TEST(test_canvas_cpy_p1p2);
 
   MU_RUN_TEST(test_canvas_serialize_deserialize);
 }
