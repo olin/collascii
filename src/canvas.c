@@ -248,6 +248,17 @@ char canvas_gchari(Canvas *canvas, int i) {
   return canvas->rows[row][col];
 }
 
+/* Load str into canvas as point (x, y), ignoring char transparent.
+ *
+ * Newlines ('\n') cause the canvas to wrap to the beginning of the next line
+ * (like in normal text).
+ *
+ * Stops when the canvas is full or it reaches the null character ('\0').
+ *
+ * Returns: the number of characters written
+ *
+ * TODO: write test_canvas_ldstryxc
+ */
 int canvas_ldstryxc(Canvas *canvas, char *str, int y, int x, char transparent) {
   int col = x;
   int row = y;
@@ -275,38 +286,44 @@ int canvas_ldstryxc(Canvas *canvas, char *str, int y, int x, char transparent) {
   return i;
 }
 
+/* Load str into canvas at (0, 0), ignoring no characters
+ *
+ * Newlines ('\n') cause the canvas to wrap to the beginning of the next line
+ * (like in normal text).
+ *
+ * Stops when the canvas is full or it reaches the null character ('\0').
+ *
+ * Returns: the number of characters written
+ */
 int canvas_ldstryx(Canvas *canvas, char *str, int y, int x) {
   return canvas_ldstryxc(canvas, str, y, x, '\0');
 }
 
+/* Load str into canvas at (0, 0).
+ *
+ * Newlines ('\n') cause the canvas to wrap to the beginning of the next line
+ * (like in normal text).
+ *
+ * Stops when the canvas is full or it reaches the null character ('\0').
+ *
+ * Returns: the number of characters written
+ */
 int canvas_ldstr(Canvas *canvas, char *str) {
   return canvas_ldstryx(canvas, str, 0, 0);
 }
 
-int canvas_load_str(Canvas *canvas, char *str) {
-  return canvas_ldstr(canvas, str);
-}
-
-/* Fill a canvas with characters from string str
+/* Duplicate of canvas_ldstr for backwards compatability.
  *
- * Stops at the null character or when the canvas is full.
+ * Newlines ('\n') cause the canvas to wrap to the beginning of the next line
+ * (like in normal text).
  *
- * String indices are mapped to canvas indices, so with a canvas of size 3x3
- * the first character is placed at (0, 0), the second at (1, 0), and the fourth
- * at (1, 0).
+ * Stops when the canvas is full or it reaches the null character ('\0').
  *
  * Returns: the number of characters written
  */
-// int canvas_load_str(Canvas *canvas, char *str)
-// {
-//     int i;
-//     for (i = 0; str[i] != '\0' && i < canvas->num_cols * canvas->num_rows;
-//     i++)
-//     {
-//         canvas_schari(canvas, i, str[i]);
-//     }
-//     return i;
-// }
+int canvas_load_str(Canvas *canvas, char *str) {
+  return canvas_ldstr(canvas, str);
+}
 
 /* Print a canvas to a file stream
  *
@@ -350,6 +367,16 @@ int canvas_writef(Canvas *canvas, FILE *f) {
   // later: don't print trailing whitespace
 }
 
+/* Create canvas from a text file object.
+ *
+ * Scans file to find dimensions, rewinds, and loads into canvas. Follows the
+ * same behavior as `canvas_ldstr`, because that's what it uses internally.
+ *
+ * Returns a new Canvas.
+ *
+ * TODO: figure out if `rewind` is causing issues with `stdin`, switch to
+ * reallocated buffer.
+ */
 Canvas *canvas_readf(FILE *f) {
   int numlines = 0;
   int llength = 0;
