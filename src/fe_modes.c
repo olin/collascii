@@ -225,7 +225,10 @@ int mode_free_line(State *state, WINDOW *canvas_win, WINDOW *status_win) {
  *
  * Continuous painting of characters.
  *
- * Toggle on/off with ENTER, change characters by pressing them
+ * Toggle on/off with ENTER, change characters by pressing them.
+ *
+ * TODO: allow multi-character patterns
+ * TODO: change "radius" of stroke
  */
 int mode_brush(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   // handle mode changing
