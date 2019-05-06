@@ -10,10 +10,19 @@ typedef struct {
 
 Canvas *canvas_new(int rows, int cols);
 Canvas *canvas_new_blank(int rows, int cols);
-
 Canvas *canvas_cpy(Canvas *orig);
 Canvas *canvas_cpy_p1p2(Canvas *orig, int y1, int x1, int y2, int x2);
 void canvas_free(Canvas *canvas);
+
+int canvas_isin_y(Canvas *canvas, int y);
+int canvas_isin_x(Canvas *canvas, int x);
+int canvas_isin_yx(Canvas *canvas, int y, int x);
+int canvas_isin_i(Canvas *canvas, int i);
+
+int canvas_ldcanvasyx(Canvas *dest, Canvas *source, int y, int x);
+int canvas_ldcanvasyxc(Canvas *dest, Canvas *source, int y, int x,
+                       char transparent);
+
 void canvas_resize(Canvas **orig, int newrows, int newcols);
 void canvas_scharyx(Canvas *canvas, int y, int x, char c);
 void canvas_schari(Canvas *canvas, int i, char c);

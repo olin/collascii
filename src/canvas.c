@@ -120,6 +120,98 @@ void canvas_resize(Canvas **canvas, int newrows, int newcols) {
   canvas_free(orig);
 }
 
+/* Test if location y is inside canvas.
+ */
+int canvas_isin_y(Canvas *canvas, int y) {
+  return (0 <= y && y < canvas->num_rows);
+}
+
+/* Test if location x is inside canvas.
+ */
+int canvas_isin_x(Canvas *canvas, int x) {
+  return (0 <= x && x < canvas->num_cols);
+}
+
+/* Test if location (x, y) is inside canvas.
+ */
+int canvas_isin_yx(Canvas *canvas, int y, int x) {
+  return (canvas_isin_y(canvas, y) && canvas_isin_x(canvas, x));
+}
+
+/* Test if index i is inside canvas.
+ */
+int canvas_isin_i(Canvas *canvas, int i) {
+  return (i >= 0 && i < canvas->num_rows * canvas->num_cols);
+}
+
+/* Load canvas source into dest at point (x, y).
+ *
+ * Any parts of source that fall outside of dest will not be copied.
+ *
+ * Asserts that (y, x) is inside dest.
+ *
+ * Returns 1 if source canvas was truncated, 0 otherwise.
+ */
+int canvas_ldcanvasyx(Canvas *dest, Canvas *source, int y, int x) {
+  assert(canvas_isin_yx(dest, y, x));
+  const int max_height = dest->num_rows - y;
+  const int max_width = dest->num_cols - x;
+
+  // find bounds of destination
+  const int copy_height = min(max_height, source->num_rows);
+  const int copy_width = min(max_width, source->num_cols);
+
+  // copy range over
+  for (int i = 0; i < copy_height; i++) {
+    memcpy(&(dest->rows[y + i][x]), source->rows[i], sizeof(char) * copy_width);
+  }
+
+  // figure out if source canvas was truncated
+  if (max_height < source->num_rows || max_width < source->num_cols) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+/* Load canvas source into dest at point (x, y), ignoring char transparent.
+ *
+ * Any parts of source that fall outside of dest will not be copied.
+ *
+ * Asserts that (y, x) is inside dest.
+ *
+ * Returns 1 if source canvas was truncated, 0 otherwise.
+ */
+int canvas_ldcanvasyxc(Canvas *dest, Canvas *source, int y, int x,
+                       char transparent) {
+  assert(canvas_isin_yx(dest, y, x));
+  const int max_height = dest->num_rows - y;
+  const int max_width = dest->num_cols - x;
+
+  // find bounds of destination
+  const int copy_height = min(max_height, source->num_rows);
+  const int copy_width = min(max_width, source->num_cols);
+
+  // copy range over
+  char c;
+  for (int i = 0; i < copy_height; i++) {
+    for (int j = 0; j < copy_width; j++) {
+      c = source->rows[i][j];
+      if (c != transparent) {
+        // copy only if not transparent
+        dest->rows[y + i][x + j] = c;
+      }
+    }
+  }
+
+  // figure out if source canvas was truncated
+  if (max_height < source->num_rows || max_width < source->num_cols) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 /* Set a single character at position (x, y)
  *
  * Top left of canvas is (0, 0).
