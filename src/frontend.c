@@ -121,26 +121,28 @@ int main(int argc, char *argv[]) {
 
   //// Main loop
   State new_state = {
-      .ch_in = 0,
+      .ch_in = OK,
       .cursor = cursor,
+      .current_mode = MODE_PICKER,
       // .current_mode = MODE_INSERT,
       // .current_mode = MODE_FREE_LINE,
-      .current_mode = MODE_BRUSH,
+      // .current_mode = MODE_BRUSH,
 
       .last_arrow_direction = KEY_RIGHT,
-      .last_canvas_mode = MODE_INSERT,
+      .last_canvas_mode = MODE_PICKER,
       .view = view,
       .last_cursor = last_cursor,
+      .status = START,
   };
   State *state = &new_state;
 
-  while ((state->ch_in = wgetch(canvas_win))) {
+  do {
     // fprintf(stderr, "(%c, %i)    ", (char)state->ch_in, state->ch_in);
 
     modes[state->current_mode].mode_function(state, canvas_win, status_win);
 
     refresh_screen();
-  }
+  } while ((state->ch_in = wgetch(canvas_win)));
 
   // Cleanup
   cursor_free(cursor);
@@ -292,6 +294,11 @@ void destroy_win(WINDOW *local_win) {
 int print_status(char *format, ...) {
   // there isn't a va_list version of mvwprintw, so move to status_win first and
   // then use vwprintw
+  wclear(status_win);
+  wborder(status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
+          ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
+          ACS_LTEE, ACS_RTEE, ACS_LLCORNER,
+          ACS_LRCORNER);  // Corners: tl,  tr,  bl,  br
   wmove(status_win, 1, 1);
   va_list argp;
   va_start(argp, format);

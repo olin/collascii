@@ -4,6 +4,8 @@
 #include "mode_id.h"
 #include "util.h"
 
+#include <string.h>
+
 /* Frontend Modes
  *
  * This file contains the functions for different modes.
@@ -105,9 +107,39 @@ int free_line_arrows_to_char(int last_arrow, int current_arrow) {
  * Default mode. Used to choose other modes.
  */
 int mode_picker(State *state, WINDOW *canvas_win, WINDOW *status_win) {
-  // Mode Switch - Enter to canvas,
-  if (state->ch_in == KEY_ENTER) {
+  int mode_start = MODE_PICKER + 1;
+  int num_modes = LAST;
+
+  // BUILD MESSAGE
+  char msg[128] = "";
+  int num_left = sizeof(msg) / sizeof(char);
+
+  char buffer[16];
+  for (int i = mode_start; i < num_modes; i++) {
+    int num_to_write = snprintf(buffer, sizeof(buffer) / sizeof(char),
+                                "%i: %s|", i - mode_start + 1, modes[i].name);
+    if (num_left - num_to_write < 0) {
+      break;
+    }
+    strncat(msg, buffer, num_to_write);
+    num_left -= num_to_write;
+  }
+
+  // print_status("foo");
+  // wrefresh(status_win);
+  print_status(msg);
+  wrefresh(status_win);
+
+  // INTERPRET KEYS
+  if (state->ch_in == KEY_TAB) {
     state->current_mode = state->last_canvas_mode;
+    print_status("");
+    return 0;
+  } else if (state->ch_in >= '1' &&
+             state->ch_in < '1' + num_modes - mode_start) {
+    state->last_canvas_mode = MODE_PICKER;
+    state->current_mode = mode_start + state->ch_in - '1';
+    print_status("");
     return 0;
   }
 
