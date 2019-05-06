@@ -75,11 +75,13 @@ int main(int argc, char *argv[]) {
   }
 
   // enable mouse input
-  mmask_t return_mask =
-      mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION | BUTTON1_PRESSED |
-                    BUTTON1_RELEASED | BUTTON1_CLICKED,
-                NULL);
+  keypad(stdscr, TRUE);
+  mmask_t return_mask = mousemask(
+      REPORT_MOUSE_POSITION | BUTTON1_PRESSED | BUTTON1_RELEASED, NULL);
   logd("Returned mouse mask: %li\n", return_mask);
+  // get mouse updates faster at expense of 
+  mouseinterval(0);
+  printf("\033[?1002h\n");  // Makes the terminal report mouse movement events
 
   canvas_win = create_canvas_win();
   status_win = create_status_win();

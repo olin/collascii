@@ -272,6 +272,7 @@ int mode_brush(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   } else {
     // Print non-print characters to bottom left in status_win bar
     mvwaddch(status_win, 1, COLS - 3, state->ch_in);
+    logd("Keycode: %i\n", state->ch_in);
   }
 
   // if painting, change character
