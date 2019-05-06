@@ -40,6 +40,34 @@ On Ubuntu, you can install it with `sudo apt install libncurses5` (use `libncurs
 
 `cd` to `src/` and run `make`. A `collascii` executable should be produced.
 
+### Development
+
+#### `DEBUG`
+
+`#ifdef DEBUG` is used throughout the project. It can be enabled by defining
+`DEBUG` in the `Make` environment, in Bash:
+```shell
+DEBUG=1 make collascii
+```
+and Fish:
+```shell
+env DEBUG=1 make collascii
+```
+This will also turn off compiler optimization and add debugging info to the executable.
+
+Because the `ncurses` interface uses the terminal, any printing to `stdout` and
+`stderr` will normally write directly onto the window in an unpleasant manner.
+We've come up with a couple of workarounds: when `DEBUG` or `LOG_TO_FILE` is `#define`d for `frontend.c`, `stderr` is reconnected to the file `out.txt`, so text output can still be read without having to `fprintf` to a custom file.
+
+This output can be read live from another terminal with the command:
+```shell
+tail -f out.txt
+```
+
+There are two macros defined in [`util.h`](`util.h`) to help with getting output to `stderr`, `eprintf` and `logd`.
+- `eprintf` is analogous to `printf` except it prints to `stderr` instead of `stdout`.
+- `logd` behaves like `eprintf` when `DEBUG` is defined, but does nothing if it isn't, so you can easily toggle debug statements without overwriting the screen.
+
 ### Tests
 
 Test files are built with [the `minunit` framework](https://github.com/siu/minunit), placed under `src/`, and named `library_test.c` for the `library` tested.
