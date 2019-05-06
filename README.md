@@ -4,11 +4,11 @@
 
 _A collaborative ascii canvas_
 
+For some examples of what's possible, [check out issue #21](https://github.com/olin/SoftSysCollascii/issues/21#partial-timeline). Add your own creations!
+
 ## Getting Started
 
-_First, a word on organization:_
-
-Source code lives in `src/`, class reports live in `reports/`.
+_First, a word on organization:_ source code lives in `src/`, class reports live in `reports/`.
 
 Collascii currently supports Linux and MacOS, but it should run anywhere that `ncurses` and POSIX threads do.
 
