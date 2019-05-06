@@ -266,8 +266,10 @@ int mode_brush(State *state, WINDOW *canvas_win, WINDOW *status_win) {
         mode_cfg->state = PAINT_OFF;
       }
       // move cursor to mouse position
-      state->cursor->x = event.x;
-      state->cursor->y = event.y;
+      if (wenclose(canvas_win, event.y, event.x)) {
+      }
+      state->cursor->x = event.x - 1;
+      state->cursor->y = event.y - 1;
     }
   } else {
     // Print non-print characters to bottom left in status_win bar
