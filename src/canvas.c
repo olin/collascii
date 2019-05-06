@@ -354,17 +354,78 @@ int canvas_fprint(FILE *stream, Canvas *canvas) {
   return total;
 }
 
-/* Print a canvas to stdout
+/* Print char c num times to stream.
  *
  * Returns: the number of characters printed if successful, or a negative value
  * on output error from fprintf
  */
+int fprintcr(FILE *stream, char c, int num) {
+  int total = 0;
+  int res = 0;
+  for (int i = 0; i < num; i++) {
+    if ((res = fprintf(stream, "%c", c)) < 0) {
+      return res;
+    }
+    total += res;
+  }
+  return total;
+}
+
+/* Print a canvas to a file stream, trimming trailing spaces and newlines
+ *
+ * Returns: the number of characters printed if successful, or a negative value
+ * on output error from fprintf
+ */
+int canvas_fprint_trim(FILE *stream, Canvas *canvas) {
+  char *row;
+  int res1, res2;
+  int total = 0;
+  int num_trailing_space = 0;
+  // int num_trailing_lines = 0;
+  for (int i = 0; i < canvas->num_rows; i++) {
+    // print row char by char
+    row = canvas->rows[i];
+    for (int j = 0; j < canvas->num_cols; j++) {
+      res1 = 0, res2 = 0;
+      if (row[j] == ' ') {
+        num_trailing_space++;
+      } else {
+        if (num_trailing_space > 0) {
+          // print hoarded spaces if a non-whitespace character has appeared.
+          res1 = fprintcr(stream, ' ', num_trailing_space);
+          // reset counter
+          num_trailing_space = 0;
+        }
+        res2 = fprintf(stream, "%c", row[j]);
+      }
+      if (res1 < 0) {
+        return res1;
+      } else if (res2 < 0) {
+        return res2;
+      }
+      total += res1 + res2;
+    }
+    num_trailing_space = 0;
+    // finish row
+    // reuse res1
+    res1 = fprintf(stream, "\n");
+    if (res1 < 0) {
+      return res1;
+    }
+    total += res1;
+  }
+  return total;
+}
+
+/* Print a canvas to stdout
+ *
+ * Returns: the number of characters printed if successful, or a negative
+ * value on output error from fprintf
+ */
 int canvas_print(Canvas *canvas) { return canvas_fprint(stdout, canvas); }
 
 int canvas_writef(Canvas *canvas, FILE *f) {
-  // call canvas_fprint
-  return canvas_fprint(f, canvas);
-  // later: don't print trailing whitespace
+  return canvas_fprint_trim(f, canvas);
 }
 
 /* Create canvas from a text file object.
@@ -427,7 +488,8 @@ Canvas *canvas_readf(FILE *f) {
 
 /* Convert a canvas object into a character buffer
  *
- * A canvas of size n rols, m cols requires a buffer of size n*m bytes (chars).
+ * A canvas of size n rols, m cols requires a buffer of size n*m bytes
+ * (chars).
  *
  * Does NOT null-terminate the buffer.
  *

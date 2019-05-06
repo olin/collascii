@@ -30,6 +30,7 @@ char canvas_gcharyx(Canvas *canvas, int y, int x);
 char canvas_gchari(Canvas *canvas, int i);
 int canvas_load_str(Canvas *canvas, char *str);
 int canvas_fprint(FILE *stream, Canvas *canvas);
+int canvas_fprint_trim(FILE *stream, Canvas *canvas);
 int canvas_print(Canvas *canvas);
 int canvas_serialize(Canvas *canvas, char *buf);
 void canvas_deserialize(char *bytes, Canvas *canvas);
