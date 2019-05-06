@@ -7,11 +7,26 @@
  * It also maps the drawing area to the canvas nicely.
  */
 
-Cursor *cursor_new() {
+/* Make a new cursor.
+ *
+ * Initialized to (0, 0).
+ */
+Cursor *cursor_new() { return cursor_newyx(0, 0); }
+
+/* Make a new cursor at a given position.
+ */
+Cursor *cursor_newyx(int y, int x) {
   Cursor *cursor = malloc(sizeof(Cursor));
-  cursor->x = 0;
-  cursor->y = 0;
+  cursor->x = x;
+  cursor->y = y;
   return cursor;
+}
+
+/* Make a copy of an existing cursor.
+ *
+ */
+Cursor *cursor_copy(Cursor *original) {
+  return cursor_newyx(original->y, original->x);
 }
 
 void cursor_move_up(Cursor *cursor, View *view) {

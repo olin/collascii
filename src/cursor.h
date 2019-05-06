@@ -16,6 +16,8 @@ typedef struct CURSOR {
 } Cursor;
 
 Cursor *cursor_new();
+Cursor *cursor_newyx(int y, int x);
+Cursor *cursor_copy(Cursor *original);
 void cursor_free(Cursor *cursor);
 
 void cursor_move_up(Cursor *cursor, View *view);
