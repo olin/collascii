@@ -11,6 +11,8 @@
 
 /* Create a canvas object
  *
+ * WARNING: Currently only square canvases work!
+ *
  * Returned pointer should be freed with free_canvas
  */
 Canvas *canvas_new(int rows, int cols) {
@@ -74,8 +76,12 @@ void canvas_scharyx(Canvas *canvas, int y, int x, char c) {
  * Index starts at 0 at position (0, 0) and increments first horizontally.
  */
 void canvas_schari(Canvas *canvas, int i, char c) {
-  int row = i % canvas->num_cols;
-  int col = i / canvas->num_cols;
+  int row = i / canvas->num_cols;
+  int col = i % canvas->num_cols;
+
+  assert(row <= canvas->num_rows);
+  assert(col <= canvas->num_cols);
+
   canvas->rows[row][col] = c;
 }
 
@@ -107,19 +113,11 @@ char canvas_gchari(Canvas *canvas, int i) {
  *
  * Returns: the number of characters written
  */
-int canvas_load_str(Canvas *canvas, char *str, int num_char) {
-  static int last_i = 0;
+int canvas_load_str(Canvas *canvas, char *str) {
   int i;
-  assert(last_i + num_char <= canvas->num_cols * canvas->num_rows);
-  for (i = 0; i < num_char; i++) {
-    if (str[i] == '\0' || i + last_i >= canvas->num_cols * canvas->num_rows) {
-      last_i = 0;
-      return i;
-    }
-    canvas_schari(canvas, i + last_i, str[i]);
+  for (i = 0; str[i] != '\0' && i < canvas->num_cols * canvas->num_rows; i++) {
+    canvas_schari(canvas, i, str[i]);
   }
-
-  last_i += num_char;
   return i;
 }
 
@@ -183,8 +181,24 @@ int canvas_serialize(Canvas *canvas, char *buf) {
  *
  * TODO: get size of buffer?
  */
-void canvas_deserialize(char *bytes, Canvas *canvas, int num_char) {
-  canvas_load_str(canvas, bytes, num_char);
+void canvas_deserialize(char *bytes, Canvas *canvas) {
+  canvas_load_str(canvas, bytes);
+}
+
+void canvas_deserialize_partial(char *bytes, Canvas *canvas, int num_bytes) {
+  static int last_i = 0;
+  // if (bytes[0] == '\0') {
+  //   last_i = 0;
+  // };
+  for (int i = 0; i < num_bytes; i++) {
+    // if (bytes[i] == '\0') {
+    //   last_i = 0;
+    // } else {
+    canvas_schari(canvas, i + last_i, bytes[i]);
+    // }
+  }
+
+  last_i += num_bytes;
 }
 
 /* Check if two canvases are the same

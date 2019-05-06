@@ -95,16 +95,16 @@ Canvas *net_setup(int argc, char **argv) {
   FD_SET(sockfd, &clientfds);
   FD_SET(0, &clientfds);  // stdin
 
-  msg_size = 1000;
+  msg_size = 50;
   msg_buf = malloc(sizeof(char) * msg_size);
-  result = read(sockfd, msg_buf, msg_size);
+  result = read(sockfd, msg_buf, msg_size - 1);
   msg_buf[result] = '\0'; /* Terminate string with null */
   char *command = strtok(msg_buf, " ");
   if (!strcmp(command, "/canvas_size")) {
     int col = atoi(strtok(NULL, " "));
     int row = atoi(strtok(NULL, " "));
 
-    canvas = canvas_new_blank(col, row);
+    canvas = canvas_new_blank(row, col);
   } else {
     printf("failed to get canvas size\n");
     exit(1);
@@ -112,26 +112,15 @@ Canvas *net_setup(int argc, char **argv) {
 
   logd("reading\n");
 
-  // char *canvas_buf[(canvas->num_rows * canvas->num_cols) + 20];
-  // while (read(sockfd, msg_buf, msg_size) > 0) {
-  //   strcat(canvas_buf, msg_buf);
-  // }
-  // canvas_deserialize(canvas_buf, canvas);
-
-  while ((result = read(sockfd, msg_buf, msg_size)) > 0) {
+  result = 0;
+  int total = 0;
+  do {
+    result = read(sockfd, msg_buf, msg_size);
+    total += result;
     logd("read: %d, %s\n", result, msg_buf);
-    canvas_deserialize(msg_buf, canvas, result);
-  }
+    canvas_deserialize_partial(msg_buf, canvas, result);
+  } while (total < (canvas->num_rows * canvas->num_cols));
   logd("done reading\n");
-
-  // canvas_deserialize("aaa", canvas, 3);
-  // canvas_deserialize("bbb\0", canvas, 4);
-  // canvas_deserialize("ccc", canvas, 3);
-
-  // result = read(sockfd, msg_buf, msg_size);
-  // canvas_deserialize(msg_buf, canvas, result);
-
-  // logd("%d %s\n", result, msg_buf);
 
   return canvas;
 }

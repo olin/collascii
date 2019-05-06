@@ -17,11 +17,12 @@ void canvas_scharyx(Canvas *canvas, int y, int x, char c);
 void canvas_schari(Canvas *canvas, int i, char c);
 char canvas_gcharyx(Canvas *canvas, int y, int x);
 char canvas_gchari(Canvas *canvas, int i);
-int canvas_load_str(Canvas *canvas, char *str, int num_char);
+int canvas_load_str(Canvas *canvas, char *str);
 int canvas_fprint(FILE *stream, Canvas *canvas);
 int canvas_print(Canvas *canvas);
 int canvas_serialize(Canvas *canvas, char *buf);
-void canvas_deserialize(char *bytes, Canvas *canvas, int num_char);
+void canvas_deserialize(char *bytes, Canvas *canvas);
+void canvas_deserialize_partial(char *bytes, Canvas *canvas, int num_bytes);
 int canvas_eq(Canvas *a, Canvas *b);
 
 #endif
