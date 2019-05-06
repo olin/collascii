@@ -7,7 +7,7 @@
 #define eprintf(...) fprintf(stderr, __VA_ARGS__)
 
 // LOGGING
-// techniques for preventing unused variables/functions based on zf_log:
+// techniques for preventing unused variables/function warnings based on zf_log:
 // https://github.com/wonder-mice/zf_log/
 
 /* Dummy function that does nothing with variadic args.
