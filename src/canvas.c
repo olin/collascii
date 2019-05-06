@@ -74,8 +74,8 @@ void canvas_scharyx(Canvas *canvas, int y, int x, char c) {
  * Index starts at 0 at position (0, 0) and increments first horizontally.
  */
 void canvas_schari(Canvas *canvas, int i, char c) {
-  int row = i / canvas->num_cols;
-  int col = i % canvas->num_cols;
+  int row = i % canvas->num_cols;
+  int col = i / canvas->num_cols;
   canvas->rows[row][col] = c;
 }
 
