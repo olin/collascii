@@ -438,15 +438,12 @@ int canvas_fprint_trim(FILE *stream, Canvas *canvas) {
  */
 int canvas_print(Canvas *canvas) { return canvas_fprint(stdout, canvas); }
 
-/* Create canvas from a text file object.
+/* Create a canvas from a text file object.
  *
  * Scans file to find dimensions, rewinds, and loads into canvas. Follows the
  * same behavior as `canvas_ldstr`, because that's what it uses internally.
  *
  * Returns a new Canvas.
- *
- * TODO: figure out if `rewind` is causing issues with `stdin`, switch to
- * reallocated buffer.
  */
 Canvas *canvas_readf(FILE *f) {
   int numlines = 0;
@@ -493,6 +490,72 @@ Canvas *canvas_readf(FILE *f) {
   Canvas *canvas = canvas_new(numlines, maxllength);
   // load canvas from buffer
   canvas_ldstr(canvas, buffer);
+  return canvas;
+}
+
+/* A variant of canvas_readf that doesn't use `rewind`, useful for streams.
+ *
+ * Rather than rewind, it does a single pass of the file, dynamically
+ * reallocating a buffer and tracking lines/line endings as it reads. Follows
+ * the same behavior as `canvas_ldstr`, because that's what it uses internally.
+ *
+ * Returns a new Canvas.
+ */
+Canvas *canvas_readf_norewind(FILE *f) {
+  int numlines = 0;
+  int llength = 0;
+  int maxllength = 0;
+  size_t numchars = 0;
+
+  size_t BUFFSIZE = 1024;
+  char *buffer;
+  if ((buffer = malloc(BUFFSIZE)) == NULL) {
+    perror("canvas_readf_norewind malloc");
+    exit(1);
+  }
+
+  int c;
+  // read entire file, recording longest line and # lines
+  while (1) {
+    if (numchars >= BUFFSIZE - 1) {
+      // reallocate
+      BUFFSIZE *= 2;
+      if ((buffer = realloc(buffer, BUFFSIZE * sizeof(char))) == NULL) {
+        perror("canvas_readf_norewind realloc");
+        exit(1);
+      }
+      logd("Resized readf buffer to %li\n", BUFFSIZE);
+    }
+    c = getc(f);
+    // stop at EOF
+    if (c == EOF) {
+      buffer[numchars] = '\0';
+      break;
+    }
+
+    // add char to buffer
+    buffer[numchars] = c;
+    numchars++;
+
+    // track lines and line length
+    if (c == '\n') {
+      // check if llength is larger
+      if (llength > maxllength) {
+        maxllength = llength;
+      }
+      // reset and continue
+      llength = 0;
+      numlines++;
+    } else {
+      llength++;
+    }
+  }
+
+  // initialize canvas of a large enough size
+  Canvas *canvas = canvas_new(numlines, maxllength);
+  // load canvas from buffer
+  canvas_ldstr(canvas, buffer);
+  free(buffer);
   return canvas;
 }
 

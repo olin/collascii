@@ -35,6 +35,7 @@ int canvas_ldstr(Canvas *canvas, char *str);
 int canvas_load_str(Canvas *canvas, char *str);
 
 Canvas *canvas_readf(FILE *f);
+Canvas *canvas_readf_norewind(FILE *f);
 int canvas_fprint(FILE *stream, Canvas *canvas);
 int canvas_fprint_trim(FILE *stream, Canvas *canvas);
 int canvas_print(Canvas *canvas);
