@@ -4,6 +4,7 @@
 #include <ncurses.h>
 #include "state.h"
 
+int mode_master(State *state, WINDOW *canvas_win, WINDOW *status_win);
 int mode_picker(State *state, WINDOW *canvas_win, WINDOW *status_win);
 int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win);
 int mode_pan(State *state, WINDOW *canvas_win, WINDOW *status_win);

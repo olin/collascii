@@ -102,6 +102,29 @@ int free_line_arrows_to_char(int last_arrow, int current_arrow) {
 // MODE FUNCTIONS //
 ////////////////////
 
+int mode_master(State *state, WINDOW *canvas_win, WINDOW *status_win) {
+  int c = state->ch_in;
+  if (c == KEY_TAB) {  // switching modes
+    if (state->current_mode == MODE_PICKER &&
+        state->last_canvas_mode != MODE_PICKER) {
+      state->current_mode = state->last_canvas_mode;
+      state->last_canvas_mode = MODE_PICKER;
+      logd("Reverting to last mode\n");
+    } else {
+      state->last_canvas_mode = state->current_mode;
+      state->current_mode = MODE_PICKER;
+      logd("Switching to mode picker\n");
+    }
+    state->ch_in = OK;
+  } else {
+    // pass character on to mode
+  }
+
+  // call mode function
+  modes[state->current_mode].mode_function(state, canvas_win, status_win);
+  return 0;
+}
+
 /* mode_status
  *
  * Default mode. Used to choose other modes.
@@ -140,6 +163,10 @@ int mode_picker(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     state->last_canvas_mode = MODE_PICKER;
     state->current_mode = mode_start + state->ch_in - '1';
     print_status("");
+    state->ch_in = OK;
+    // call mode function
+    modes[state->current_mode].mode_function(state, canvas_win, status_win);
+    logd("Switching to %s", modes[state->current_mode].name);
     return 0;
   }
 
