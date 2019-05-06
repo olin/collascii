@@ -137,7 +137,7 @@ int main(int argc, char *argv[]) {
   while ((state->ch_in = wgetch(canvas_win))) {
     // fprintf(stderr, "(%c, %i)    ", (char)state->ch_in, state->ch_in);
 
-    mode_functions[state->current_mode](state, canvas_win, status_win);
+    modes[state->current_mode].mode_function(state, canvas_win, status_win);
 
     refresh_screen();
   }

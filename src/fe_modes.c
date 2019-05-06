@@ -8,20 +8,11 @@
  *
  * This file contains the functions for different modes.
  *
- * IF YOU ADD A FUNCTION, ADD IT TO THE ENUM AND mode_functions!
- * All functions must have the same signature to fit in mode_functions.
+ * IF YOU ADD A FUNCTION, ADD IT TO THE ENUM in "mode_id.h" AND the `modes`
+ * array below! All functions must have the same signature of `mode_function_t`
+ * to fit in modes.
  *
  */
-
-// clang-format off
-int (*mode_functions[])(State *, WINDOW *, WINDOW *) = {
-    mode_picker,
-    mode_insert,
-    mode_pan,
-    mode_free_line,
-    mode_brush,
-};
-// clang-format on
 
 typedef struct {
   char pattern;
@@ -31,6 +22,14 @@ typedef struct {
 mode_brush_config_t mode_brush_config = {
     .pattern = 'B',
     .state = PAINT_OFF,
+};
+
+editor_mode_t modes[] = {
+    {"Mode Selector", "", mode_picker},
+    {"Insert", "", mode_insert},
+    {"Pan", "", mode_pan},
+    {"Free-Line", "", mode_free_line},
+    {"Brush", "", mode_brush},
 };
 
 //////////////////////////////

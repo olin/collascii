@@ -10,6 +10,14 @@ int mode_pan(State *state, WINDOW *canvas_win, WINDOW *status_win);
 int mode_free_line(State *state, WINDOW *canvas_win, WINDOW *status_win);
 int mode_brush(State *state, WINDOW *canvas_win, WINDOW *status_win);
 
-extern int (*mode_functions[])(State *, WINDOW *, WINDOW *);
+typedef int (*mode_function_t)(State *, WINDOW *, WINDOW *);
+
+typedef struct {
+  char *name;
+  char *description;
+  mode_function_t mode_function;
+} editor_mode_t;
+
+extern editor_mode_t modes[];
 
 #endif
