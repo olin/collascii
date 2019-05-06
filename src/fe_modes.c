@@ -279,6 +279,9 @@ int mode_insert(reason_t reason, State *state) {
     mode_cfg->last_dir_change = cursor_copy(state->cursor);
   }
 
+  // watch for view shifts
+  const int vx = state->view->x;
+  const int vy = state->view->y;
   // insert mode behavior
   if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
       (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
@@ -308,16 +311,25 @@ int mode_insert(reason_t reason, State *state) {
           state->last_arrow_direction == KEY_LEFT) {
         // return down if left/right
         state->cursor->x = mode_cfg->last_dir_change->x;
-        state->cursor->y++;
+        cursor_move_down(state->cursor, state->view);
         mode_cfg->last_dir_change->y = state->cursor->y;
       } else if (state->last_arrow_direction == KEY_UP ||
                  state->last_arrow_direction == KEY_DOWN) {
         // return right if up/down
         state->cursor->y = mode_cfg->last_dir_change->y;
-        state->cursor->x++;
+        cursor_move_right(state->cursor, state->view);
         mode_cfg->last_dir_change->x = state->cursor->x;
       }
     }
+  }
+  // update last_dir_change with view diffs
+  const int dx = vx - state->view->x;
+  const int dy = vy - state->view->y;
+  if (dx != 0) {
+    mode_cfg->last_dir_change->x += dx;
+  }
+  if (dy != 0) {
+    mode_cfg->last_dir_change->y += dy;
   }
   return 0;
 }
