@@ -431,10 +431,6 @@ int canvas_fprint_trim(FILE *stream, Canvas *canvas) {
  */
 int canvas_print(Canvas *canvas) { return canvas_fprint(stdout, canvas); }
 
-int canvas_writef(Canvas *canvas, FILE *f) {
-  return canvas_fprint_trim(f, canvas);
-}
-
 /* Create canvas from a text file object.
  *
  * Scans file to find dimensions, rewinds, and loads into canvas. Follows the

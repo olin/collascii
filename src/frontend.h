@@ -19,6 +19,11 @@ WINDOW *create_canvas_win();
 WINDOW *create_status_win();
 void destroy_win();
 
+int global_handler(WINDOW *win);
+void read_from_file(char *fname);
+void write_to_file(char *fname);
+void write_to_file_trim(char *fname);
+
 int print_status(char *format, ...);
 
 #endif

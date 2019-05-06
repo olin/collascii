@@ -36,6 +36,5 @@ int canvas_serialize(Canvas *canvas, char *buf);
 void canvas_deserialize(char *bytes, Canvas *canvas);
 int canvas_eq(Canvas *a, Canvas *b);
 Canvas *canvas_readf(FILE *f);
-int canvas_writef(Canvas *canvas, FILE *f);
 
 #endif
