@@ -1,4 +1,5 @@
 #include <signal.h>
+#include <stdarg.h>
 #include <stdlib.h>
 
 #include "canvas.h"
@@ -73,6 +74,27 @@ int main(int argc, char *argv[]) {
     setup_colors();
   }
 
+  // ENABLE MOUSE INPUT
+  // grab only mouse movement and left mouse press/release
+  mmask_t return_mask = mousemask(
+      REPORT_MOUSE_POSITION | BUTTON1_PRESSED | BUTTON1_RELEASED, NULL);
+  logd("Returned mouse mask: %li\n", return_mask);
+  // get mouse updates faster at the expense of not registering "clicks"
+  mouseinterval(0);
+  // Make the terminal report mouse movement events, in a not-great way.
+  // Printing the escape code should bump it into `1003` mode, where an update
+  // is sent whenever the mouse moves between cells. Also of note: `1002` only
+  // sends movement updates when a mouse button is held down. Supposedly you can
+  // configure this in xterm, but I couldn't get it working.
+  // The $TERM variable should show some info about what mode is emulated.
+  // Running `cat -v` in a shell will show the escaped character codes that are
+  // sent and reveal if your shell is configured to send mouse input.
+  // https://gist.github.com/sylt/93d3f7b77e7f3a881603
+  // https://stackoverflow.com/q/29020638
+  // https://stackoverflow.com/q/7462850
+  printf("\033[?1003h\n");  // enable events
+  // printf("\033[?1003l\n");  // disable events
+
   canvas_win = create_canvas_win();
   status_win = create_status_win();
 
@@ -92,7 +114,7 @@ int main(int argc, char *argv[]) {
   update_screen_size();
 
   char test_msg[] = "Test mode";
-  print_status(test_msg, status_win);
+  print_status(test_msg);
 
   // Move cursor to starting location and redraw canvases
   refresh_screen();
@@ -101,8 +123,9 @@ int main(int argc, char *argv[]) {
   State new_state = {
       .ch_in = 0,
       .cursor = cursor,
-      .current_mode = MODE_INSERT,
+      // .current_mode = MODE_INSERT,
       // .current_mode = MODE_FREE_LINE,
+      .current_mode = MODE_BRUSH,
 
       .last_arrow_direction = KEY_RIGHT,
       .last_canvas_mode = MODE_INSERT,
@@ -140,6 +163,8 @@ void setup_colors() {
   init_pair(7, COLOR_BLACK, COLOR_WHITE);
 }
 
+/* Update canvas with character at cursor current position.
+ */
 void front_setcharcursor(char ch) {
   canvas_scharyx(view->canvas, cursor_y_to_canvas(cursor) - 1 + view->y,
                  cursor_x_to_canvas(cursor) - 1 + view->x, ch);
@@ -262,9 +287,17 @@ void destroy_win(WINDOW *local_win) {
   delwin(local_win);
 }
 
-int print_status(char *str, WINDOW *window) {
-  // wattrset(window, COLOR_PAIR(7));
-  return mvwprintw(window, 1, 1, str);
+/* Prints to status_win, similar to printf
+ */
+int print_status(char *format, ...) {
+  // there isn't a va_list version of mvwprintw, so move to status_win first and
+  // then use vwprintw
+  wmove(status_win, 1, 1);
+  va_list argp;
+  va_start(argp, format);
+  int res = vwprintw(status_win, format, argp);
+  va_end(argp);
+  return res;
 }
 
 void finish(int sig) {
