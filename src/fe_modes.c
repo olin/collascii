@@ -2,7 +2,6 @@
 
 #include "frontend.h"
 #include "mode_id.h"
-#include "util.h"
 
 /* Frontend Modes
  *
@@ -13,24 +12,11 @@
  *
  */
 
-// clang-format off
 int (*mode_functions[])(State *, WINDOW *, WINDOW *) = {
     mode_picker,
     mode_insert,
     mode_pan,
     mode_free_line,
-    mode_brush,
-};
-// clang-format on
-
-typedef struct {
-  char pattern;
-  enum { PAINT_ON, PAINT_OFF } state;
-} mode_brush_config_t;
-
-mode_brush_config_t mode_brush_config = {
-    .pattern = 'B',
-    .state = PAINT_OFF,
 };
 
 //////////////////////////////
@@ -53,9 +39,9 @@ Mode_ID return_to_canvas(int input_ch) {  // State?
   return LAST;
 }
 
-/////////////////////////////
-// SPECIFIC MODE FUNCTIONS //
-/////////////////////////////
+////////////////////////////
+// SPECIFC MODE FUNCTIONS //
+////////////////////////////
 
 /* free_line_arrows_to_char
  *
@@ -160,7 +146,7 @@ int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   return 0;
 }
 
-/* mode_pan
+/* Mode Pan
 
  * Pans the View with arrow keys
  */
@@ -217,78 +203,6 @@ int mode_free_line(State *state, WINDOW *canvas_win, WINDOW *status_win) {
 
   wmove(canvas_win, cursor_y_to_canvas(state->cursor),
         cursor_x_to_canvas(state->cursor));
-
-  return 0;
-}
-
-/* mode_brush
- *
- * Continuous painting of characters.
- *
- * Toggle on/off with ENTER, change characters by pressing them.
- *
- * TODO: allow multi-character patterns
- * TODO: change "radius" of stroke
- */
-int mode_brush(State *state, WINDOW *canvas_win, WINDOW *status_win) {
-  // handle mode changing
-  if (state->ch_in == KEY_TAB) {
-    // Clean up code
-    state->last_canvas_mode = MODE_BRUSH;
-
-    state->current_mode = MODE_PICKER;
-    return 0;
-  }
-
-  // brush mode behavior
-
-  mode_brush_config_t *mode_cfg = &mode_brush_config;
-
-  if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
-      (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
-    // arrow keys - move cursor
-    cursor_key_to_move(state->ch_in, state->cursor, state->view);
-  } else if (' ' <= state->ch_in && state->ch_in <= '~') {
-    // printable characters - change brush
-    mode_cfg->pattern = state->ch_in;
-  } else if (KEY_ENTER == state->ch_in) {
-    // ENTER - toggle on/off
-    if (mode_cfg->state == PAINT_ON) {
-      mode_cfg->state = PAINT_OFF;
-    } else if (mode_cfg->state == PAINT_OFF) {
-      mode_cfg->state = PAINT_ON;
-    }
-  } else if (KEY_MOUSE == state->ch_in) {
-    // handle mouse events
-    MEVENT event;
-    if (getmouse(&event) == OK) {
-      logd("New mouse event: (%i, %i), %li\n", event.x, event.y, event.bstate);
-      if (event.bstate & BUTTON1_PRESSED) {
-        mode_cfg->state = PAINT_ON;
-      } else if (event.bstate & BUTTON1_RELEASED) {
-        mode_cfg->state = PAINT_OFF;
-      }
-      // move cursor to mouse position
-      if (wenclose(canvas_win, event.y, event.x)) {
-      }
-      state->cursor->x = event.x - 1;
-      state->cursor->y = event.y - 1;
-    }
-  } else {
-    // Print non-print characters to bottom left in status_win bar
-    mvwaddch(status_win, 1, COLS - 3, state->ch_in);
-    logd("Keycode: %i\n", state->ch_in);
-  }
-
-  // if painting, change character
-  if (mode_cfg->state == PAINT_ON) {
-    front_setcharcursor(mode_cfg->pattern);
-  }
-
-  // display brush info
-  print_status("state: %s\tbrush: '%c' (Press ENTER to toggle)",
-               ((mode_cfg->state == PAINT_OFF) ? "OFF" : "ON"),
-               mode_cfg->pattern);
 
   return 0;
 }
