@@ -82,16 +82,18 @@ int main(int argc, char *argv[]) {
   // get mouse updates faster at the expense of not registering "clicks"
   mouseinterval(0);
   // Make the terminal report mouse movement events, in a not-great way.
-  // Printing the escape code should bump it into `1002` mode, where an update
-  // is sent whenever the mouse moves between cells with a button held down.
-  // Supposedly you can configure this in xterm, but I couldn't get it working.
-  // Running `cat -v` in a shell will reveal if your shell is configured to send
-  // mouse input.
+  // Printing the escape code should bump it into `1003` mode, where an update
+  // is sent whenever the mouse moves between cells. Also of note: `1002` only
+  // sends movement updates when a mouse button is held down. Supposedly you can
+  // configure this in xterm, but I couldn't get it working.
+  // The $TERM variable should show some info about what mode is emulated.
+  // Running `cat -v` in a shell will show the escaped character codes that are
+  // sent and reveal if your shell is configured to send mouse input.
   // https://gist.github.com/sylt/93d3f7b77e7f3a881603
   // https://stackoverflow.com/q/29020638
   // https://stackoverflow.com/q/7462850
-  printf("\033[?1002h\n");  // enable events
-  // printf("\033[?1002l\n");  // disable events
+  printf("\033[?1003h\n");  // enable events
+  // printf("\033[?1003l\n");  // disable events
 
   canvas_win = create_canvas_win();
   status_win = create_status_win();
