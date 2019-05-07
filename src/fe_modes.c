@@ -173,7 +173,7 @@ int free_line_arrows_to_char(int last_arrow, int current_arrow) {
 // MODE FUNCTIONS //
 ////////////////////
 
-/* mode_picker
+/* mode_status
  *
  * Mode to switch between other modes using number keys.
  */
