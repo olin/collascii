@@ -19,6 +19,6 @@ WINDOW *create_canvas_win();
 WINDOW *create_status_win();
 void destroy_win();
 
-int print_status(char *format, ...);
+int print_status(char *str, WINDOW *window);
 
 #endif
