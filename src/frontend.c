@@ -108,17 +108,6 @@ int main(int argc, char *argv[]) {
   keypad(canvas_win, TRUE);
   keypad(status_win, TRUE);
 
-  // update the screen size first. This clears the status window on any changes
-  // (including the first time it's run), so refreshing after updating the
-  // status will clear it otherwise
-  update_screen_size();
-
-  char test_msg[] = "Test mode";
-  print_status(test_msg);
-
-  // Move cursor to starting location and redraw canvases
-  refresh_screen();
-
   //// Main loop
   State new_state = {
       .ch_in = OK,
@@ -129,20 +118,30 @@ int main(int argc, char *argv[]) {
       // .current_mode = MODE_BRUSH,
 
       .last_arrow_direction = KEY_RIGHT,
-      .last_canvas_mode = MODE_PICKER,
+      .last_canvas_mode = MODE_INSERT,
       .view = view,
       .last_cursor = last_cursor,
-      .status = START,
   };
   State *state = &new_state;
 
-  do {
-    // fprintf(stderr, "(%c, %i)    ", (char)state->ch_in, state->ch_in);
+  // update the screen size first. This clears the status window on any changes
+  // (including the first time it's run), so refreshing after updating the
+  // status will clear it otherwise
+  update_screen_size();
 
-    mode_master(state, canvas_win, status_win);
+  char test_msg[] = "Test mode";
+  print_status(test_msg);
 
+  // bootstrap initial UI
+  call_mode(state->current_mode, START, state);
+
+  // Move cursor to starting location and redraw canvases
+  refresh_screen();
+
+  while (1) {
+    master_handler(state, canvas_win, status_win);
     refresh_screen();
-  } while ((state->ch_in = wgetch(canvas_win)));
+  }
 
   // Cleanup
   cursor_free(cursor);

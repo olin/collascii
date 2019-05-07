@@ -1,20 +1,40 @@
-#include "fe_modes.h"
-
-#include "frontend.h"
-#include "mode_id.h"
-#include "util.h"
-
-#include <string.h>
-
 /* Frontend Modes
  *
  * This file contains the functions for different modes.
  *
  * IF YOU ADD A FUNCTION, ADD IT TO THE ENUM in "mode_id.h" AND the `modes`
- * array below! All functions must have the same signature of `mode_function_t`
- * to fit in modes.
+ * array below, in the same order! All functions must have the same prototype of
+ * `mode_function_t` to fit in modes.
  *
+ * Mode functions are called with a `reason` enum and the current `state` state.
+ * `reason` is the reason the function is being called:
+ * - `START` is given after the mode has just been selected but before any
+ *   keypresses have come in. This is a good time to update any relevant UI and
+ *   initialize/reset any custom variables/states.
+ * - `END` is given after the mode has been deselected, but before the new mode
+ *   is initialized.
+ * - `NEW_KEY` is given when a new keypress is ready for the mode to interpret.
+ *   The keypress is stored in `state->ch_in` as an int of the ncurses character
+ *   variety. https://invisible-island.net/ncurses/man/curs_getch.3x.html
  */
+
+#include "fe_modes.h"
+
+#include <string.h>
+
+#include <ncurses.h>
+
+#include "frontend.h"
+#include "mode_id.h"
+#include "util.h"
+
+editor_mode_t modes[] = {
+    {"Mode Selector", "", mode_picker},
+    {"Insert", "", mode_insert},
+    {"Pan", "", mode_pan},
+    {"Free-Line", "", mode_free_line},
+    {"Brush", "", mode_brush},
+};
 
 typedef struct {
   char pattern;
@@ -26,32 +46,48 @@ mode_brush_config_t mode_brush_config = {
     .state = PAINT_OFF,
 };
 
-editor_mode_t modes[] = {
-    {"Mode Selector", "", mode_picker},
-    {"Insert", "", mode_insert},
-    {"Pan", "", mode_pan},
-    {"Free-Line", "", mode_free_line},
-    {"Brush", "", mode_brush},
-};
+///////////////////////
+// GENERAL FUNCTIONS //
+///////////////////////
 
-//////////////////////////////
-// GENERAL HELPER FUNCTIONS //
-//////////////////////////////
+int call_mode(Mode_ID mode, reason_t reason, State *state) {
+  return modes[mode].mode_function(reason, state);
+}
 
-/* exit_to_status
+void switch_mode(Mode_ID new_mode, State *state) {
+  logd("Switching to %s\n", modes[new_mode].name);
+  call_mode(state->current_mode, END, state);
+  state->last_canvas_mode = state->current_mode;
+  state->current_mode = new_mode;
+  print_status("");  // clear status window;
+  call_mode(new_mode, START, state);
+}
+
+/* Runs before each update to catch global keys and manage transitions
  *
- * Helper function to exit from a drawing mode to status mode.
  */
-Mode_ID return_to_canvas(int input_ch) {  // State?
-  if (input_ch == KEY_ENTER) {
-    return LAST;
+int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
+  // catching keypresses
+  int c = wgetch(canvas_win);  // grab from window
+  logd("New key: '%c' (%d)\n", c, c);
+  if (c == KEY_TAB) {  // switching modes
+    if (state->current_mode == MODE_PICKER &&
+        state->last_canvas_mode != MODE_PICKER) {
+      logd("Reverting to last mode\n");
+      switch_mode(state->last_canvas_mode, state);
+    } else {
+      switch_mode(MODE_PICKER, state);
+    }
+    return 0;
+  } else {
+    // pass character on to mode
+    state->ch_in = c;
+    call_mode(state->current_mode, NEW_KEY, state);
   }
-  /* if Enter
-   *      return proper canvas mode
-   * else
-   *      return null equivalent
-   */
-  return LAST;
+  // Move UI cursor to the right place
+  wmove(canvas_win, cursor_y_to_canvas(state->cursor),
+        cursor_x_to_canvas(state->cursor));
+  return 0;
 }
 
 ////////////////////////////
@@ -102,34 +138,15 @@ int free_line_arrows_to_char(int last_arrow, int current_arrow) {
 // MODE FUNCTIONS //
 ////////////////////
 
-int mode_master(State *state, WINDOW *canvas_win, WINDOW *status_win) {
-  int c = state->ch_in;
-  if (c == KEY_TAB) {  // switching modes
-    if (state->current_mode == MODE_PICKER &&
-        state->last_canvas_mode != MODE_PICKER) {
-      state->current_mode = state->last_canvas_mode;
-      state->last_canvas_mode = MODE_PICKER;
-      logd("Reverting to last mode\n");
-    } else {
-      state->last_canvas_mode = state->current_mode;
-      state->current_mode = MODE_PICKER;
-      logd("Switching to mode picker\n");
-    }
-    state->ch_in = OK;
-  } else {
-    // pass character on to mode
-  }
-
-  // call mode function
-  modes[state->current_mode].mode_function(state, canvas_win, status_win);
-  return 0;
-}
-
 /* mode_status
  *
  * Default mode. Used to choose other modes.
  */
-int mode_picker(State *state, WINDOW *canvas_win, WINDOW *status_win) {
+int mode_picker(reason_t reason, State *state) {
+  if (reason == END) {
+    return 0;
+  }
+
   int mode_start = MODE_PICKER + 1;
   int num_modes = LAST;
 
@@ -151,27 +168,16 @@ int mode_picker(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   // print_status("foo");
   // wrefresh(status_win);
   print_status(msg);
-  wrefresh(status_win);
+  // wrefresh(status_win);
 
   // INTERPRET KEYS
-  if (state->ch_in == KEY_TAB) {
-    state->current_mode = state->last_canvas_mode;
-    print_status("");
-    return 0;
-  } else if (state->ch_in >= '1' &&
-             state->ch_in < '1' + num_modes - mode_start) {
-    state->last_canvas_mode = MODE_PICKER;
-    state->current_mode = mode_start + state->ch_in - '1';
-    print_status("");
-    state->ch_in = OK;
-    // call mode function
-    modes[state->current_mode].mode_function(state, canvas_win, status_win);
-    logd("Switching to %s", modes[state->current_mode].name);
-    return 0;
+  if (reason == NEW_KEY) {
+    if (state->ch_in >= '1' && state->ch_in < '1' + num_modes - mode_start) {
+      Mode_ID new_mode = mode_start + state->ch_in - '1';
+      switch_mode(new_mode, state);
+      return 0;
+    }
   }
-
-  // LR Arrows navigation
-
   return 0;
 }
 
@@ -179,13 +185,8 @@ int mode_picker(State *state, WINDOW *canvas_win, WINDOW *status_win) {
  *
  * Move with arrows and insert character with keyboard.
  */
-int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win) {
-  // handle mode changing
-  if (state->ch_in == KEY_TAB) {
-    // Clean up code
-    state->last_canvas_mode = MODE_INSERT;
-
-    state->current_mode = MODE_PICKER;
+int mode_insert(reason_t reason, State *state) {
+  if (reason != NEW_KEY) {
     return 0;
   }
 
@@ -206,15 +207,8 @@ int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win) {
       front_setcharcursor(' ');
     } else if (state->ch_in == KEY_DC) {
       front_setcharcursor(' ');
-    } else {
-      // Print non-print characters to bottom left in status_win bar
-      mvwaddch(status_win, 1, COLS - 3, state->ch_in);
     }
   }
-  // Move UI cursor to the right place
-  wmove(canvas_win, cursor_y_to_canvas(state->cursor),
-        cursor_x_to_canvas(state->cursor));
-
   return 0;
 }
 
@@ -222,15 +216,11 @@ int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win) {
 
  * Pans the View with arrow keys
  */
-int mode_pan(State *state, WINDOW *canvas_win, WINDOW *status_win) {
-  // handle mode changing
-  if (state->ch_in == KEY_TAB) {
-    // Clean up code
-    state->last_canvas_mode = MODE_PAN;
-
-    state->current_mode = MODE_PICKER;
+int mode_pan(reason_t reason, State *state) {
+  if (reason != NEW_KEY) {
     return 0;
   }
+
   if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
       (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
     view_pan_ch(state->ch_in, state->view);
@@ -243,13 +233,8 @@ int mode_pan(State *state, WINDOW *canvas_win, WINDOW *status_win) {
  *
  * Move with arrows and insert character with keyboard.
  */
-int mode_free_line(State *state, WINDOW *canvas_win, WINDOW *status_win) {
-  // handle mode changing
-  if (state->ch_in == KEY_TAB) {
-    // Clean up code
-    state->last_canvas_mode = MODE_INSERT;
-
-    state->current_mode = MODE_PICKER;
+int mode_free_line(reason_t reason, State *state) {
+  if (reason != NEW_KEY) {
     return 0;
   }
 
@@ -272,10 +257,6 @@ int mode_free_line(State *state, WINDOW *canvas_win, WINDOW *status_win) {
                        state->cursor, state->view);
     front_setcharcursor(' ');
   }
-
-  wmove(canvas_win, cursor_y_to_canvas(state->cursor),
-        cursor_x_to_canvas(state->cursor));
-
   return 0;
 }
 
@@ -288,55 +269,46 @@ int mode_free_line(State *state, WINDOW *canvas_win, WINDOW *status_win) {
  * TODO: allow multi-character patterns
  * TODO: change "radius" of stroke
  */
-int mode_brush(State *state, WINDOW *canvas_win, WINDOW *status_win) {
-  // handle mode changing
-  if (state->ch_in == KEY_TAB) {
-    // Clean up code
-    state->last_canvas_mode = MODE_BRUSH;
-
-    state->current_mode = MODE_PICKER;
-    return 0;
-  }
-
+int mode_brush(reason_t reason, State *state) {
   // brush mode behavior
 
   mode_brush_config_t *mode_cfg = &mode_brush_config;
 
-  if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
-      (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
-    // arrow keys - move cursor
-    cursor_key_to_move(state->ch_in, state->cursor, state->view);
-  } else if (' ' <= state->ch_in && state->ch_in <= '~') {
-    // printable characters - change brush
-    mode_cfg->pattern = state->ch_in;
-  } else if (KEY_ENTER == state->ch_in) {
-    // ENTER - toggle on/off
-    if (mode_cfg->state == PAINT_ON) {
-      mode_cfg->state = PAINT_OFF;
-    } else if (mode_cfg->state == PAINT_OFF) {
-      mode_cfg->state = PAINT_ON;
-    }
-  } else if (KEY_MOUSE == state->ch_in) {
-    // handle mouse events
-    MEVENT event;
-    if (getmouse(&event) == OK) {
-      logd("New mouse event: (%i, %i), %li\n", event.x, event.y, event.bstate);
-      if (event.bstate & BUTTON1_PRESSED) {
-        mode_cfg->state = PAINT_ON;
-      } else if (event.bstate & BUTTON1_RELEASED) {
+  if (reason == START) {
+    // make sure brush always starts off
+    mode_cfg->state = PAINT_OFF;
+  }
+
+  if (reason == NEW_KEY) {
+    if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
+        (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
+      // arrow keys - move cursor
+      cursor_key_to_move(state->ch_in, state->cursor, state->view);
+    } else if (' ' <= state->ch_in && state->ch_in <= '~') {
+      // printable characters - change brush
+      mode_cfg->pattern = state->ch_in;
+    } else if (KEY_ENTER == state->ch_in) {
+      // ENTER - toggle on/off
+      if (mode_cfg->state == PAINT_ON) {
         mode_cfg->state = PAINT_OFF;
+      } else if (mode_cfg->state == PAINT_OFF) {
+        mode_cfg->state = PAINT_ON;
       }
-      // move cursor to mouse position when PAINT_ON
-      if (mode_cfg->state == PAINT_ON &&
-          wenclose(canvas_win, event.y, event.x)) {
-          state->cursor->x = event.x - 1;
-          state->cursor->y = event.y - 1;
+    } else if (KEY_MOUSE == state->ch_in) {
+      // handle mouse events
+      MEVENT event;
+      if (getmouse(&event) == OK) {
+        logd("New mouse event: (%i, %i), %li\n", event.x, event.y,
+             event.bstate);
+        if (event.bstate & BUTTON1_PRESSED) {
+          mode_cfg->state = PAINT_ON;
+        } else if (event.bstate & BUTTON1_RELEASED) {
+          mode_cfg->state = PAINT_OFF;
+        }
+        state->cursor->x = event.x - 1;
+        state->cursor->y = event.y - 1;
       }
     }
-  } else {
-    // Print non-print characters to bottom left in status_win bar
-    mvwaddch(status_win, 1, COLS - 3, state->ch_in);
-    logd("Keycode: %i\n", state->ch_in);
   }
 
   // if painting, change character

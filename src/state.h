@@ -5,8 +5,6 @@
 #include "mode_id.h"
 #include "view.h"
 
-typedef enum { START, NEW_KEY, EXIT } status_t;
-
 /* State keeps track of changing variables for mode functions.
  * If you add something, don't forget to also add an init before the main
  * loop.
@@ -23,7 +21,6 @@ typedef struct {
   int last_arrow_direction;
   View *view;
   Cursor *last_cursor;
-  status_t status;
 } State;
 
 #endif
