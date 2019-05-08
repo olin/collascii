@@ -1,18 +1,24 @@
+#include "frontend.h"
+
 #include <signal.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "canvas.h"
 #include "cursor.h"
 #include "fe_modes.h"
-#include "frontend.h"
 #include "mode_id.h"
 #include "state.h"
 #include "util.h"
 
-#include <stdio.h>
-#include <unistd.h>
+typedef struct {
+  WINDOW *status_win, *info_win, *msg_win, *mode_win;
+  int info_width;
+
+} status_interface;
 
 WINDOW *canvas_win, *status_win;
 Cursor *cursor;
@@ -29,6 +35,21 @@ char *logfile_path = "out.txt";
 FILE *logfile = NULL;
 #endif
 
+// +---------------------------------------+
+// |                                       |
+// | Hello                                 |
+// | World                                 |
+// |                                       |
+// |                                       |
+// |                                       |
+// |                                       |
+// |                                       |
+// |                                       |
+// +---------------------------------------+
+// |Saved to file "art.txt"   [INSERT](2,6)|
+// |step: ON, TRANSPARENT: OFF             |
+// +---------------------------------------+
+
 /* Layout
  * ___________________________________________
  * | 0 -- X, COLS                           | canvas window
@@ -41,7 +62,7 @@ FILE *logfile = NULL;
  * |                                        |
  * |                                        |
  * |________________________________________|
- * |                                        |  command window
+ * |<CTRL+H> for help          [INSERT](2,4)|  status window
  * |________________________________________|
  *
  */
@@ -311,6 +332,16 @@ WINDOW *create_status_win() {
 
   wrefresh(local_win);
   return local_win;
+}
+
+WINDOW *create_msg_win(WINDOW *status_win) {
+  int sw = getmaxx(status_win) + 1;
+  WINDOW *local_win = derwin(status_win, 1, sw - 2, 1, 1);
+}
+
+WINDOW *create_info_win(WINDOW *status_win) {
+  int sw = getmaxx(status_win) + 1;
+  WINDOW *local_win = derwin(status_win, 1, sw - 2, 1, 1);
 }
 
 void destroy_win(WINDOW *local_win) {
