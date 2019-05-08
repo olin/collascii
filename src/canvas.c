@@ -262,19 +262,25 @@ Canvas *canvas_trimc(Canvas *orig, char ignore, bool right, bool bottom,
     // reset row char flag
     found_char_flag = false;
     // check from left side to max left
-    for (int x = far_left; x <= ml; x++) {
+    for (int x = far_left; x <= far_right; x++) {
       // logd("x1: %d\n", x);
       assert(canvas_isin_x(orig, x));
       if (row[x] != ignore) {
-        ml = x;
-        if (!ml_set) {
-          ml_set = true;
-        }
         if (!found_char_flag) {
           found_char_flag = true;
+          if (!first_char_flag) {
+            first_char_flag = true;
+          }
         }
-        if (!first_char_flag) {
-          first_char_flag = true;
+        // set new max left
+        if (x <= ml) {
+          ml = x;
+          if (!ml_set) {
+            ml_set = true;
+          }
+        } else {
+          // if char is found and past ml
+          break;
         }
       }
     }
@@ -283,18 +289,25 @@ Canvas *canvas_trimc(Canvas *orig, char ignore, bool right, bool bottom,
       continue;
     }
     // check from right side to max right
-    for (int x = far_right; x >= mr; x--) {
+    for (int x = far_right; x >= far_left; x--) {
       // logd("x2: %d\n", x);
       assert(canvas_isin_x(orig, x));
       if (row[x] != ignore) {
-        mr = x;
-        if (!mr_set) {
-          mr_set = true;
+        if (!found_char_flag) {
+          found_char_flag = true;
+        }
+        if (x >= mr) {
+          mr = x;
+          if (!mr_set) {
+            mr_set = true;
+          }
+        } else {
+          break;
         }
       }
     }
     // check y bounds
-    if (y < mt && first_char_flag) {
+    if (y <= mt && first_char_flag) {
       // reset top if above the max top and we've found a character (only
       // happens once)
       mt = y;
@@ -335,10 +348,9 @@ Canvas *canvas_trimc(Canvas *orig, char ignore, bool right, bool bottom,
   assert(ml <= mr);
   assert(mt <= mb);
   // return a copy of the box
-  return canvas_cpy_p1p2(orig, mt, ml, mb, mr);
-  // return canvas_cpy_p1p2(orig, (top ? mt : 0), (left ? ml : 0),
-  //                        (bottom ? mb : orig->num_rows - 1),
-  //                        (right ? mr : orig->num_cols - 1));
+  return canvas_cpy_p1p2(orig, (top ? mt : 0), (left ? ml : 0),
+                         (bottom ? mb : orig->num_rows - 1),
+                         (right ? mr : orig->num_cols - 1));
 }
 
 inline Canvas *canvas_trim(Canvas *orig, int right, int bottom, int left,

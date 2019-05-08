@@ -250,20 +250,20 @@ MU_TEST(test_canvas_trimc) {
   canvas_fill(c2, ' ');
   canvas_ldcanvasyx(c2, c1, 1, 1);
 
-  // printf("\nc1\n");
-  // canvas_print(c1);
-  // printf("\nc2\n");
-  // canvas_print(c2);
+  printf("\nc1\n");
+  canvas_print(c1);
+  printf("\nc2\n");
+  canvas_print(c2);
 
   Canvas *c3 = canvas_trimc(c2, ' ', true, true, true, true);
-  // printf("\nc3\n");
-  // canvas_print(c3);
+  printf("\nc3\n");
+  canvas_print(c3);
   mu_assert_int_eq(1, c3->num_cols);
   mu_assert_int_eq(2, c3->num_rows);
 
   Canvas *c4 = canvas_cpy_p1p2(c2, 1, 1, c3->num_cols - 1, c3->num_rows - 1);
-  // printf("\nc4\n");
-  // canvas_print(c4);
+  printf("\nc4\n");
+  canvas_print(c4);
 
   canvas_free(c2);
   canvas_free(c3);
