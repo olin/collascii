@@ -79,6 +79,10 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
       switch_mode(MODE_PICKER, state);
     }
     return 0;
+  } else if (c == KEY_CTRL('r')) {
+    read_from_file(state);
+  } else if (c == KEY_CTRL('s')) {
+    write_to_file(state);
   } else {
     // pass character on to mode
     state->ch_in = c;
@@ -93,6 +97,30 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
 ////////////////////////////
 // SPECIFC MODE FUNCTIONS //
 ////////////////////////////
+
+void read_from_file(State *state) {
+  FILE *f = fopen(state->filepath, "r");
+  if (f == NULL) {
+    perror("read_from_file");
+    exit(1);
+  }
+  Canvas *old = state->view->canvas;
+  state->view->canvas = canvas_readf(f);
+  fclose(f);
+  canvas_free(old);
+  logd("Read from file '%s'\n", state->filepath);
+}
+
+void write_to_file(State *state) {
+  FILE *f = fopen(state->filepath, "w");
+  if (f == NULL) {
+    perror("write_to_file");
+    exit(1);
+  }
+  canvas_fprint(f, state->view->canvas);
+  fclose(f);
+  logd("Wrote to file '%s'\n", state->filepath);
+}
 
 /* free_line_arrows_to_char
  *

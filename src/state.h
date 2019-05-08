@@ -21,6 +21,7 @@ typedef struct {
   int last_arrow_direction;
   View *view;
   Cursor *last_cursor;
+  char *filepath;  // path of savefile
 } State;
 
 #endif
