@@ -79,7 +79,7 @@ Canvas *canvas_cpy_p1p2(Canvas *orig, int y1, int x1, int y2, int x2) {
   const int tly = min(y1, y2);
 
   // const int brx = max(x1, x2);  // unused
-  const int bry = max(y1, y2);
+  // const int bry = max(y1, y2);  // unused
 
   // make empty canvas
   const int width = abs(x2 - x1) + 1;
