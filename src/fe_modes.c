@@ -138,26 +138,27 @@ int free_line_arrows_to_char(int last_arrow, int current_arrow) {
 // MODE FUNCTIONS //
 ////////////////////
 
-/* mode_status
+/* mode_picker
  *
- * Default mode. Used to choose other modes.
+ * Mode to switch between other modes using number keys.
  */
 int mode_picker(reason_t reason, State *state) {
   if (reason == END) {
     return 0;
   }
 
-  int mode_start = MODE_PICKER + 1;
-  int num_modes = LAST;
+  // get bounds of switchable modes in enum array (DON'T include mode_picker)
+  int mode_first = MODE_PICKER + 1;  // beginning of selectable modes
+  int mode_list_end = LAST;          // length of total mode list
 
   // BUILD MODE INFO MESSAGE
   char msg[128] = "";
   int num_left = sizeof(msg) / sizeof(char);
 
   char buffer[16];
-  for (int i = mode_start; i < num_modes; i++) {
+  for (int i = mode_first; i < mode_list_end; i++) {
     int num_to_write = snprintf(buffer, sizeof(buffer) / sizeof(char),
-                                "%i: %s|", i - mode_start + 1, modes[i].name);
+                                "%i: %s|", i - mode_first + 1, modes[i].name);
     if (num_left - num_to_write < 0) {
       break;
     }
@@ -169,8 +170,10 @@ int mode_picker(reason_t reason, State *state) {
 
   // INTERPRET KEYS
   if (reason == NEW_KEY) {
-    if (state->ch_in >= '1' && state->ch_in < '1' + num_modes - mode_start) {
-      Mode_ID new_mode = mode_start + state->ch_in - '1';
+    // only accept characters within the bounds of the list
+    if (state->ch_in >= '1' &&
+        state->ch_in < '1' + mode_list_end - mode_first) {
+      Mode_ID new_mode = mode_first + state->ch_in - '1';
       switch_mode(new_mode, state);
       return 0;
     }
