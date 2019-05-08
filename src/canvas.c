@@ -5,6 +5,7 @@
  */
 #include "canvas.h"
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -66,6 +67,7 @@ Canvas *canvas_cpy(Canvas *orig) {
  * relative order and location of the two points does not matter.
  */
 Canvas *canvas_cpy_p1p2(Canvas *orig, int y1, int x1, int y2, int x2) {
+  logd("Copying between (%d,%d) and (%d,%d)\n", x1, y1, x2, y2);
   // assert that points are within canvas
   assert(x1 >= 0 && x1 < orig->num_cols);
   assert(x2 >= 0 && x2 < orig->num_cols);
@@ -82,10 +84,16 @@ Canvas *canvas_cpy_p1p2(Canvas *orig, int y1, int x1, int y2, int x2) {
   // make empty canvas
   const int width = abs(x2 - x1) + 1;
   const int height = abs(y2 - y1) + 1;
+  logd("New canvas %dw x %dh\n", width, height);
   Canvas *copy = canvas_new(height, width);
   // copy relevant data from orig, row-sections at a time
-  for (int y = tly; y <= bry; y++) {
-    memcpy(copy->rows[y], &(orig->rows[y][tlx]), sizeof(char) * width);
+  assert(canvas_isin_x(orig, tlx));
+  assert(canvas_isin_x(orig, tlx + width - 1));
+  assert(canvas_isin_x(copy, width - 1));
+  for (int y = 0; y < height; y++) {
+    assert(canvas_isin_y(copy, y));
+    assert(canvas_isin_y(orig, y + tly));
+    memcpy(copy->rows[y], orig->rows[y + tly] + tlx, sizeof(char) * width);
   }
 
   return copy;
@@ -146,9 +154,10 @@ int canvas_ldcanvasyx(Canvas *dest, Canvas *source, int y, int x) {
   const int copy_height = min(max_height, source->num_rows);
   const int copy_width = min(max_width, source->num_cols);
 
+  logd("Copying %dx%d from to (%d, %d)\n", copy_height, copy_width, x, y);
   // copy range over
   for (int i = 0; i < copy_height; i++) {
-    memcpy(&(dest->rows[y + i][x]), source->rows[i], sizeof(char) * copy_width);
+    memcpy(dest->rows[y + i] + x, source->rows[i], sizeof(char) * copy_width);
   }
 
   // figure out if source canvas was truncated
@@ -177,6 +186,7 @@ int canvas_ldcanvasyxc(Canvas *dest, Canvas *source, int y, int x,
   const int copy_height = min(max_height, source->num_rows);
   const int copy_width = min(max_width, source->num_cols);
 
+  logd("Copying %dx%d from to (%d, %d)\n", copy_height, copy_width, x, y);
   // copy range over
   char c;
   for (int i = 0; i < copy_height; i++) {
@@ -228,18 +238,111 @@ int canvas_resize(Canvas **canvas_pointer, int newrows, int newcols) {
  *
  * Returns 1 if the canvas was truncated, 0 otherwise.
  */
-int canvas_trim(Canvas **canvas_pointer, int newrows, int newcols) {
-  Canvas *orig = *canvas_pointer;
-  Canvas *new = canvas_new(newrows, newcols);
+Canvas *canvas_trimc(Canvas *orig, char ignore, bool right, bool bottom,
+                     bool left, bool top) {
+  // setup max left, top, right, and bottom coordinates at opposite maxes
+  // e.g. max left at far right side
+  logd("Trimming: right: %c, bottom: %c, left: %c, top: %c\n",
+       (right ? 'Y' : 'N'), (bottom ? 'Y' : 'N'), (left ? 'Y' : 'N'),
+       (top ? 'Y' : 'N'));
+  int far_left = 0, far_right = orig->num_cols - 1, far_top = 0,
+      far_bottom = orig->num_rows - 1;
+  int ml = far_right, mt = far_bottom, mr = far_left, mb = far_bottom;
 
-  // copy over
-  int res = canvas_ldcanvasyx(new, orig, 0, 0);
+  // iterate through canvas to find characters
+  char *row;
+  bool first_char_flag = false;
+  bool found_char_flag = false;
+  bool ml_set = false;
+  bool mt_set = false;
+  bool mr_set = false;
+  bool mb_set = false;
+  for (int y = 0; y < orig->num_rows; y++) {
+    row = orig->rows[y];
+    // reset row char flag
+    found_char_flag = false;
+    // check from left side to max left
+    for (int x = far_left; x <= ml; x++) {
+      // logd("x1: %d\n", x);
+      assert(canvas_isin_x(orig, x));
+      if (row[x] != ignore) {
+        ml = x;
+        if (!ml_set) {
+          ml_set = true;
+        }
+        if (!found_char_flag) {
+          found_char_flag = true;
+        }
+        if (!first_char_flag) {
+          first_char_flag = true;
+        }
+      }
+    }
+    // skip to next line if nothing has been found yet
+    if (!first_char_flag) {
+      continue;
+    }
+    // check from right side to max right
+    for (int x = far_right; x >= mr; x--) {
+      // logd("x2: %d\n", x);
+      assert(canvas_isin_x(orig, x));
+      if (row[x] != ignore) {
+        mr = x;
+        if (!mr_set) {
+          mr_set = true;
+        }
+      }
+    }
+    // check y bounds
+    if (y < mt && first_char_flag) {
+      // reset top if above the max top and we've found a character (only
+      // happens once)
+      mt = y;
+      if (!mt_set) {
+        mt_set = true;
+      }
+    }
+    if (found_char_flag) {
+      // set max bottom whenever we find a character in a row
+      mb = y;
+      if (!mb_set) {
+        mb_set = true;
+      }
+    }
+  }
 
-  // update and free
-  *canvas_pointer = new;
-  canvas_free(orig);
-  return res;
+  if (!first_char_flag) {
+    ml = 0;
+    mr = 0;
+    mt = 0;
+    mb = 0;
+  } else {
+    // move bounds that didn't trigger
+    if (!ml_set) {
+      ml = far_left;
+    } else if (!mr_set) {
+      mr = far_right;
+    }
+    if (!mt_set) {
+      mt = far_top;
+    } else if (!mb_set) {
+      mb = far_bottom;
+    }
+  }
+
+  // make sure our coordinates are on the right side of each other
+  logd("ml: %i, mr: %i, mt: %i, mb: %i\n", ml, mr, mt, mb);
+  assert(ml <= mr);
+  assert(mt <= mb);
+  // return a copy of the box
+  return canvas_cpy_p1p2(orig, mt, ml, mb, mr);
+  // return canvas_cpy_p1p2(orig, (top ? mt : 0), (left ? ml : 0),
+  //                        (bottom ? mb : orig->num_rows - 1),
+  //                        (right ? mr : orig->num_cols - 1));
 }
+
+inline Canvas *canvas_trim(Canvas *orig, int right, int bottom, int left,
+                           int top) {}
 
 /* Set a single character at position (x, y)
  *

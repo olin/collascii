@@ -1,6 +1,7 @@
 #ifndef canvas_h
 #define canvas_h
 
+#include <stdbool.h>
 #include <stdio.h>
 
 typedef struct {
@@ -24,11 +25,14 @@ void canvas_scharyx(Canvas *canvas, int y, int x, char c);
 void canvas_schari(Canvas *canvas, int i, char c);
 char canvas_gcharyx(Canvas *canvas, int y, int x);
 char canvas_gchari(Canvas *canvas, int i);
+void canvas_fill(Canvas *canvas, char fill);
 
 int canvas_ldcanvasyx(Canvas *dest, Canvas *source, int y, int x);
 int canvas_ldcanvasyxc(Canvas *dest, Canvas *source, int y, int x,
                        char transparent);
 int canvas_resize(Canvas **orig, int newrows, int newcols);
+Canvas *canvas_trimc(Canvas *orig, char ignore, bool right, bool bottom,
+                     bool left, bool top);
 
 int canvas_ldstryx(Canvas *canvas, char *str, int y, int x);
 int canvas_ldstr(Canvas *canvas, char *str);

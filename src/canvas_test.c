@@ -169,6 +169,25 @@ MU_TEST(test_canvas_cpy_p1p2) {
   mu_assert_double_eq('4', canvas_gcharyx(c2, 2, 0));
 
   canvas_free(c2);
+
+  char *ldstr = "123456789";
+  Canvas *c3 = canvas_new(3, 3);
+  canvas_ldstr(c3, ldstr);
+  Canvas *c4 = canvas_cpy_p1p2(c3, 0, 0, c3->num_rows - 1, c3->num_cols - 1);
+  mu_assert(canvas_eq(c3, c4), "Canvases should be equal");
+  canvas_free(c4);
+
+  c4 = canvas_cpy_p1p2(c3, 1, 1, c3->num_rows - 1, c3->num_cols - 1);
+
+  printf("\nc3\n");
+  canvas_print(c3);
+
+  printf("\nc4\n");
+  canvas_print(c4);
+
+  mu_assert_int_eq(2, c4->num_cols);
+  mu_assert_int_eq(2, c4->num_rows);
+  mu_assert_int_eq(canvas_gcharyx(c3, 1, 1), canvas_gcharyx(c4, 0, 0));
 }
 
 MU_TEST(test_canvas_ldcanvasyx) {
@@ -226,6 +245,31 @@ MU_TEST(test_canvas_ldcanvasyxc) {
   canvas_free(c2);
 }
 
+MU_TEST(test_canvas_trimc) {
+  c2 = canvas_new(c1->num_rows, c1->num_cols);
+  canvas_fill(c2, ' ');
+  canvas_ldcanvasyx(c2, c1, 1, 1);
+
+  // printf("\nc1\n");
+  // canvas_print(c1);
+  // printf("\nc2\n");
+  // canvas_print(c2);
+
+  Canvas *c3 = canvas_trimc(c2, ' ', true, true, true, true);
+  // printf("\nc3\n");
+  // canvas_print(c3);
+  mu_assert_int_eq(1, c3->num_cols);
+  mu_assert_int_eq(2, c3->num_rows);
+
+  Canvas *c4 = canvas_cpy_p1p2(c2, 1, 1, c3->num_cols - 1, c3->num_rows - 1);
+  // printf("\nc4\n");
+  // canvas_print(c4);
+
+  canvas_free(c2);
+  canvas_free(c3);
+  canvas_free(c4);
+}
+
 MU_TEST(test_canvas_serialize_deserialize) {
   char buf[c1->num_rows * c1->num_cols];
   int numwritten = canvas_serialize(c1, buf);
@@ -253,6 +297,8 @@ MU_TEST_SUITE(canvas_main) {
 
   MU_RUN_TEST(test_canvas_cpy);
   MU_RUN_TEST(test_canvas_cpy_p1p2);
+
+  MU_RUN_TEST(test_canvas_trimc);
 
   MU_RUN_TEST(test_canvas_serialize_deserialize);
 }
