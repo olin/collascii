@@ -1,5 +1,7 @@
 ## Project-Related
+collascii
 *.out
+*.txt
 
 ## C-Related
 *.o
