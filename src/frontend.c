@@ -14,13 +14,8 @@
 #include "state.h"
 #include "util.h"
 
-typedef struct {
-  WINDOW *status_win, *info_win, *msg_win, *mode_win;
-  int info_width;
-
-} status_interface;
-
-WINDOW *canvas_win, *status_win;
+WINDOW *canvas_win;
+status_interface_t *status_interface;
 Cursor *cursor;
 View *view;
 
@@ -150,7 +145,7 @@ int main(int argc, char *argv[]) {
   // printf("\033[?1003l\n");  // disable events
 
   canvas_win = create_canvas_win();
-  status_win = create_status_win();
+  status_interface = create_status_interface();
 
   cursor = cursor_new();
   Cursor *last_cursor = cursor_new();
@@ -159,7 +154,7 @@ int main(int argc, char *argv[]) {
 
   // Enable keyboard mapping
   keypad(canvas_win, TRUE);
-  keypad(status_win, TRUE);
+  keypad(status_interface->status_win, TRUE);
 
   //// Main loop
   State new_state = {
@@ -184,22 +179,23 @@ int main(int argc, char *argv[]) {
   update_screen_size();
 
   char test_msg[] = "Test mode";
-  print_status(test_msg);
+  print_msg_win(test_msg);
 
   // bootstrap initial UI
   call_mode(state->current_mode, START, state);
 
   // Move cursor to starting location and redraw canvases
-  refresh_screen();
+  // refresh_screen();
 
   while (1) {
-    master_handler(state, canvas_win, status_win);
+    master_handler(state, canvas_win, status_interface->info_win);
     refresh_screen();
   }
 
   // Cleanup
   cursor_free(cursor);
-  destroy_win(status_win);
+  // TODO: destory status_interface
+  destroy_win(status_interface->status_win);
   destroy_win(canvas_win);
   finish(0);
 }
@@ -261,7 +257,15 @@ void refresh_screen() {
   redraw_canvas_win();
   wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
 
-  wrefresh(status_win);
+  mvwprintw(status_interface->msg_win, 0, 0, "MSG");
+  mvwprintw(status_interface->info_win, 0, 0, "INFO");
+  mvwprintw(status_interface->mode_win, 0, 0, "MODE");
+  touchwin(status_interface->status_win);
+  wrefresh(status_interface->status_win);
+
+  wrefresh(status_interface->msg_win);
+  wrefresh(status_interface->info_win);
+  wrefresh(status_interface->mode_win);
   wrefresh(canvas_win);  // Refresh Canvas last so it gets the cursor
 }
 
@@ -277,19 +281,22 @@ void update_screen_size() {
     window_w_old = window_w_new;
 
     wresize(canvas_win, window_h_new - (STATUS_HEIGHT + 1), window_w_new);
-    wresize(status_win, STATUS_HEIGHT + 2, window_w_new);
+    wresize(status_interface->status_win, STATUS_HEIGHT + 2, window_w_new);
 
-    mvwin(status_win, window_h_new - (STATUS_HEIGHT + 2), 0);
+    mvwin(status_interface->status_win, window_h_new - (STATUS_HEIGHT + 2), 0);
 
     wclear(stdscr);
     wclear(canvas_win);
-    wclear(status_win);
+
+    wclear(status_interface->status_win);
+    // TODO: destroy interface
+    status_interface = create_status_interface();
 
     // Redraw borders
-    wborder(status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
-            ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
-            ACS_LTEE, ACS_RTEE, ACS_LLCORNER,
-            ACS_LRCORNER);  // Corners: tl,  tr,  bl,  br
+    // wborder(status_interface->status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
+    //         ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
+    //         ACS_LTEE, ACS_RTEE, ACS_LLCORNER,
+    //         ACS_LRCORNER);  // Corners: tl,  tr,  bl,  br
     wborder(canvas_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
             ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
             ACS_ULCORNER, ACS_URCORNER, ACS_LTEE,
@@ -334,14 +341,51 @@ WINDOW *create_status_win() {
   return local_win;
 }
 
+int INFO_WIDTH = 18;
+
 WINDOW *create_msg_win(WINDOW *status_win) {
   int sw = getmaxx(status_win) + 1;
-  WINDOW *local_win = derwin(status_win, 1, sw - 2, 1, 1);
+  int x, y;
+  getbegyx(status_win, y, x);
+  return newwin(1, sw - 2 - INFO_WIDTH, y + 1, x + 1);
 }
 
 WINDOW *create_info_win(WINDOW *status_win) {
   int sw = getmaxx(status_win) + 1;
-  WINDOW *local_win = derwin(status_win, 1, sw - 2, 1, 1);
+  int x, y;
+  getbegyx(status_win, y, x);
+  return newwin(1, INFO_WIDTH, y + 1, x + 1 + sw - INFO_WIDTH - 1);
+}
+
+WINDOW *create_mode_win(WINDOW *status_win) {
+  int sw = getmaxx(status_win) + 1;
+  int x, y;
+  getbegyx(status_win, y, x);
+  return newwin(1, sw - 2, y + 2, x + 1);
+}
+
+status_interface_t *create_status_interface() {
+  WINDOW *sw = create_status_win();
+  status_interface_t *si = malloc(sizeof(status_interface_t));
+  *si = (status_interface_t){
+      .status_win = sw,
+      .msg_win = create_msg_win(sw),
+      .info_win = create_info_win(sw),
+      .mode_win = create_mode_win(sw),
+  };
+  wborder(si->status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
+          ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
+          ACS_LTEE, ACS_RTEE, ACS_LLCORNER,
+          ACS_LRCORNER);  // Corners: tl,  tr,  bl,  br
+  return si;
+}
+
+void destroy_status_interface(status_interface_t *si) {
+  destroy_win(si->msg_win);
+  destroy_win(si->info_win);
+  destroy_win(si->mode_win);
+  destroy_win(si->status_win);
+  free(si);
 }
 
 void destroy_win(WINDOW *local_win) {
@@ -354,18 +398,45 @@ void destroy_win(WINDOW *local_win) {
 
 /* Prints to status_win, similar to printf
  */
-int print_status(char *format, ...) {
+int print_msg_win(char *format, ...) {
   // there isn't a va_list version of mvwprintw, so move to status_win first and
   // then use vwprintw
-  wclear(status_win);
-  wborder(status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
-          ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
-          ACS_LTEE, ACS_RTEE, ACS_LLCORNER,
-          ACS_LRCORNER);  // Corners: tl,  tr,  bl,  br
-  wmove(status_win, 1, 1);
+  WINDOW *mw = status_interface->msg_win;
+  wclear(mw);
+  wmove(mw, 0, 0);
   va_list argp;
   va_start(argp, format);
-  int res = vwprintw(status_win, format, argp);
+  int res = vwprintw(mw, format, argp);
+  va_end(argp);
+  return res;
+}
+
+/* Prints to status_win, similar to printf
+ */
+int print_info_win(char *format, ...) {
+  // there isn't a va_list version of mvwprintw, so move to status_win first and
+  // then use vwprintw
+  WINDOW *mw = status_interface->info_win;
+  wclear(mw);
+  wmove(mw, 0, 0);
+  va_list argp;
+  va_start(argp, format);
+  int res = vwprintw(mw, format, argp);
+  va_end(argp);
+  return res;
+}
+
+/* Prints to status_win, similar to printf
+ */
+int print_mode_win(char *format, ...) {
+  // there isn't a va_list version of mvwprintw, so move to status_win first and
+  // then use vwprintw
+  WINDOW *mw = status_interface->mode_win;
+  wclear(mw);
+  wmove(mw, 0, 0);
+  va_list argp;
+  va_start(argp, format);
+  int res = vwprintw(mw, format, argp);
   va_end(argp);
   return res;
 }

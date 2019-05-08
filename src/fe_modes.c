@@ -86,7 +86,7 @@ void switch_mode(Mode_ID new_mode, State *state) {
   call_mode(state->current_mode, END, state);
   state->last_canvas_mode = state->current_mode;
   state->current_mode = new_mode;
-  print_status("");  // clear status window;
+  print_mode_win("");  // clear status window;
   call_mode(new_mode, START, state);
 }
 
@@ -108,10 +108,10 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     return 0;
   } else if (c == KEY_CTRL('r')) {
     cmd_read_from_file(state);
-    print_status("Read from file '%s'\n", state->filepath);
+    print_msg_win("Read from file '%s'\n", state->filepath);
   } else if (c == KEY_CTRL('s')) {
     cmd_write_to_file(state);
-    print_status("Saved to file '%s'\n", state->filepath);
+    print_msg_win("Saved to file '%s'\n", state->filepath);
   } else if (c == KEY_CTRL('t')) {
     cmd_trim_canvas(state);
   } else {
@@ -201,7 +201,7 @@ int mode_picker(reason_t reason, State *state) {
     num_left -= num_to_write;
   }
 
-  print_status(msg);
+  print_mode_win(msg);
 
   // INTERPRET KEYS
   if (reason == NEW_KEY) {
@@ -352,9 +352,9 @@ int mode_brush(reason_t reason, State *state) {
   }
 
   // display brush info
-  print_status("state: %s\tbrush: '%c' (Press ENTER to toggle)",
-               ((mode_cfg->state == PAINT_OFF) ? "OFF" : "ON"),
-               mode_cfg->pattern);
+  print_mode_win("state: %s\tbrush: '%c' (Press ENTER to toggle)",
+                 ((mode_cfg->state == PAINT_OFF) ? "OFF" : "ON"),
+                 mode_cfg->pattern);
 
   return 0;
 }
