@@ -178,14 +178,19 @@ int main(int argc, char *argv[]) {
   // status will clear it otherwise
   update_screen_size();
 
-  char test_msg[] = "Test mode";
-  print_msg_win(test_msg);
+  mvwprintw(status_interface->msg_win, 0, 0, "MSG");
+  mvwprintw(status_interface->info_win, 0, 0, "INFO");
+  mvwprintw(status_interface->mode_win, 0, 0, "MODE");
+
+  char welcome_msg[] = "COLLASCII: <TAB> to switch modes, <CTRL-C> to quit";
+  print_msg_win(welcome_msg);
 
   // bootstrap initial UI
   call_mode(state->current_mode, START, state);
+  update_info_win(state);
 
   // Move cursor to starting location and redraw canvases
-  // refresh_screen();
+  refresh_screen();
 
   while (1) {
     master_handler(state, canvas_win, status_interface->info_win);
@@ -257,11 +262,8 @@ void refresh_screen() {
   redraw_canvas_win();
   wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
 
-  mvwprintw(status_interface->msg_win, 0, 0, "MSG");
-  mvwprintw(status_interface->info_win, 0, 0, "INFO");
-  mvwprintw(status_interface->mode_win, 0, 0, "MODE");
-  touchwin(status_interface->status_win);
-  wrefresh(status_interface->status_win);
+  // touchwin(status_interface->status_win);
+  // wrefresh(status_interface->status_win);
 
   wrefresh(status_interface->msg_win);
   wrefresh(status_interface->info_win);
@@ -281,22 +283,23 @@ void update_screen_size() {
     window_w_old = window_w_new;
 
     wresize(canvas_win, window_h_new - (STATUS_HEIGHT + 1), window_w_new);
-    wresize(status_interface->status_win, STATUS_HEIGHT + 2, window_w_new);
+    // wresize(status_interface->status_win, STATUS_HEIGHT + 2, window_w_new);
 
-    mvwin(status_interface->status_win, window_h_new - (STATUS_HEIGHT + 2), 0);
+    // mvwin(status_interface->status_win, window_h_new - (STATUS_HEIGHT + 2),
+    // 0);
 
     wclear(stdscr);
     wclear(canvas_win);
 
-    wclear(status_interface->status_win);
     // TODO: destroy interface
+    destroy_status_interface(status_interface);
     status_interface = create_status_interface();
 
     // Redraw borders
-    // wborder(status_interface->status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
-    //         ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
-    //         ACS_LTEE, ACS_RTEE, ACS_LLCORNER,
-    //         ACS_LRCORNER);  // Corners: tl,  tr,  bl,  br
+    wborder(status_interface->status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
+            ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
+            ACS_LTEE, ACS_RTEE, ACS_LLCORNER,
+            ACS_LRCORNER);  // Corners: tl,  tr,  bl,  br
     wborder(canvas_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
             ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
             ACS_ULCORNER, ACS_URCORNER, ACS_LTEE,
@@ -354,14 +357,14 @@ WINDOW *create_info_win(WINDOW *status_win) {
   int sw = getmaxx(status_win) + 1;
   int x, y;
   getbegyx(status_win, y, x);
-  return newwin(1, INFO_WIDTH, y + 1, x + 1 + sw - INFO_WIDTH - 1);
+  return newwin(1, INFO_WIDTH, y + 1, x + 1 + sw - INFO_WIDTH - 3);
 }
 
 WINDOW *create_mode_win(WINDOW *status_win) {
   int sw = getmaxx(status_win) + 1;
   int x, y;
   getbegyx(status_win, y, x);
-  return newwin(1, sw - 2, y + 2, x + 1);
+  return newwin(1, sw - 3, y + 2, x + 1);
 }
 
 status_interface_t *create_status_interface() {

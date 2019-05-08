@@ -23,10 +23,12 @@ typedef struct {
 } status_interface_t;
 
 status_interface_t *create_status_interface();
+void destroy_status_interface(status_interface_t *si);
 void destroy_win();
 
 // int print_status(char *format, ...);
 int print_msg_win(char *format, ...);
+int print_info_win(char *format, ...);
 int print_mode_win(char *format, ...);
 
 #endif

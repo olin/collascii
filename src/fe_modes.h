@@ -29,6 +29,7 @@ extern editor_mode_t modes[];
 int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win);
 void switch_mode(Mode_ID new_mode, State *state);
 int call_mode(Mode_ID mode, reason_t reason, State *state);
+void update_info_win(State *state);
 
 void read_from_file(State *state);
 void write_to_file(State *state);

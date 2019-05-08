@@ -29,10 +29,8 @@
 #include "util.h"
 
 editor_mode_t modes[] = {
-    {"Mode Selector", "", mode_picker},
-    {"Insert", "", mode_insert},
-    {"Pan", "", mode_pan},
-    {"Free-Line", "", mode_free_line},
+    {"Switcher", "", mode_picker}, {"Insert", "", mode_insert},
+    {"Pan", "", mode_pan},         {"Free-Line", "", mode_free_line},
     {"Brush", "", mode_brush},
 };
 
@@ -77,8 +75,16 @@ void cmd_trim_canvas(State *state) {
   state->view->canvas = canvas_trimc(orig, ' ', true, true, false, false);
 }
 
+void update_info_win(State *state) {
+  print_info_win("[%s](%i,%i)", modes[state->current_mode].name,
+                 state->view->x + state->cursor->x,
+                 state->view->y + state->cursor->y);
+}
+
 int call_mode(Mode_ID mode, reason_t reason, State *state) {
-  return modes[mode].mode_function(reason, state);
+  int res = modes[mode].mode_function(reason, state);
+  update_info_win(state);
+  return res;
 }
 
 void switch_mode(Mode_ID new_mode, State *state) {
@@ -86,8 +92,9 @@ void switch_mode(Mode_ID new_mode, State *state) {
   call_mode(state->current_mode, END, state);
   state->last_canvas_mode = state->current_mode;
   state->current_mode = new_mode;
-  print_mode_win("");  // clear status window;
+  print_mode_win("");  // clear mode window;
   call_mode(new_mode, START, state);
+  refresh_screen();
 }
 
 /* Runs before each update to catch global keys and manage transitions
@@ -118,7 +125,9 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     // pass character on to mode
     state->ch_in = c;
     call_mode(state->current_mode, NEW_KEY, state);
+    update_info_win(state);
   }
+
   // Move UI cursor to the right place
   wmove(canvas_win, cursor_y_to_canvas(state->cursor),
         cursor_x_to_canvas(state->cursor));
