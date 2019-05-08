@@ -117,7 +117,7 @@ void write_to_file(State *state) {
     perror("write_to_file");
     exit(1);
   }
-  canvas_fprint(f, state->view->canvas);
+  canvas_fprint_trim(f, state->view->canvas);
   fclose(f);
   logd("Wrote to file '%s'\n", state->filepath);
 }

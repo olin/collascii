@@ -219,6 +219,28 @@ int canvas_resize(Canvas **canvas_pointer, int newrows, int newcols) {
   return res;
 }
 
+/* Change the size of a canvas.
+ *
+ * Creates a new canvas, copies the content over, and frees the old canvas. Any
+ * data falling outside the bounds of the new canvas is dropped.
+ *
+ * Requires a pointer to a canvas pointer.
+ *
+ * Returns 1 if the canvas was truncated, 0 otherwise.
+ */
+int canvas_trim(Canvas **canvas_pointer, int newrows, int newcols) {
+  Canvas *orig = *canvas_pointer;
+  Canvas *new = canvas_new(newrows, newcols);
+
+  // copy over
+  int res = canvas_ldcanvasyx(new, orig, 0, 0);
+
+  // update and free
+  *canvas_pointer = new;
+  canvas_free(orig);
+  return res;
+}
+
 /* Set a single character at position (x, y)
  *
  * Top left of canvas is (0, 0).
@@ -378,7 +400,7 @@ int fprintcr(FILE *stream, char c, int num) {
   return total;
 }
 
-/* Print a canvas to a file stream, trimming trailing spaces and newlines
+/* Print a canvas to a file stream, trimming trailing spaces.
  *
  * Returns: the number of characters printed if successful, or a negative value
  * on output error from fprintf
@@ -387,21 +409,20 @@ int canvas_fprint_trim(FILE *stream, Canvas *canvas) {
   char *row;
   int res1, res2;
   int total = 0;
-  int num_trailing_space = 0;
-  int num_trailing_lines = 0;
+  int num_trailing_spaces = 0;
   for (int i = 0; i < canvas->num_rows; i++) {
     // print row char by char
     row = canvas->rows[i];
     for (int j = 0; j < canvas->num_cols; j++) {
       res1 = 0, res2 = 0;
       if (row[j] == ' ') {
-        num_trailing_space++;
+        num_trailing_spaces++;
       } else {
-        if (num_trailing_space > 0) {
+        if (num_trailing_spaces > 0) {
           // print hoarded spaces if a non-whitespace character has appeared.
-          res1 = fprintcr(stream, ' ', num_trailing_space);
+          res1 = fprintcr(stream, ' ', num_trailing_spaces);
           // reset counter
-          num_trailing_space = 0;
+          num_trailing_spaces = 0;
         }
         res2 = fprintf(stream, "%c", row[j]);
       }
@@ -412,17 +433,10 @@ int canvas_fprint_trim(FILE *stream, Canvas *canvas) {
       }
       total += res1 + res2;
     }
-    res1 = 0;
-    if (num_trailing_space == canvas->num_cols) {
-      // if entire row was blank
-      num_trailing_lines++;
-    } else {
-      // if row wasn't empty, print newline plus any hoarded
-      // reuse res1
-      res1 = fprintcr(stream, '\n', 1 + num_trailing_lines);
-      num_trailing_lines = 0;
-    }
-    num_trailing_space = 0;
+    num_trailing_spaces = 0;
+    // finish row
+    // reuse res1
+    res1 = fprintf(stream, "\n");
     if (res1 < 0) {
       return res1;
     }
