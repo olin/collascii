@@ -150,7 +150,7 @@ int mode_picker(reason_t reason, State *state) {
   int mode_start = MODE_PICKER + 1;
   int num_modes = LAST;
 
-  // BUILD MESSAGE
+  // BUILD MODE INFO MESSAGE
   char msg[128] = "";
   int num_left = sizeof(msg) / sizeof(char);
 
@@ -165,10 +165,7 @@ int mode_picker(reason_t reason, State *state) {
     num_left -= num_to_write;
   }
 
-  // print_status("foo");
-  // wrefresh(status_win);
   print_status(msg);
-  // wrefresh(status_win);
 
   // INTERPRET KEYS
   if (reason == NEW_KEY) {
