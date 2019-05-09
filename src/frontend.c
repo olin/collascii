@@ -258,9 +258,6 @@ void refresh_screen() {
   redraw_canvas_win();
   wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
 
-  // touchwin(status_interface->status_win);
-  // wrefresh(status_interface->status_win);
-
   wrefresh(status_interface->msg_win);
   wrefresh(status_interface->info_win);
   wrefresh(status_interface->mode_win);
@@ -279,15 +276,10 @@ void update_screen_size() {
     window_w_old = window_w_new;
 
     wresize(canvas_win, window_h_new - (STATUS_HEIGHT + 1), window_w_new);
-    // wresize(status_interface->status_win, STATUS_HEIGHT + 2, window_w_new);
-
-    // mvwin(status_interface->status_win, window_h_new - (STATUS_HEIGHT + 2),
-    // 0);
 
     wclear(stdscr);
     wclear(canvas_win);
 
-    // TODO: destroy interface
     destroy_status_interface(status_interface);
     status_interface = create_status_interface();
 
