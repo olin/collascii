@@ -67,7 +67,7 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
 |   * also presentations                                                     |09
 |                                                                            |10
 | * features cutting-edge input methods, bringing it closer still to         |11
-|   industry standards like Microsoft Paint                                  |12
+|   industry standards like Notepad, Microsoft Paint                         |12
 |                                                                            |13
 |                                                                            |14
 |                                                                            |15
@@ -131,14 +131,14 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
 |                                                                            |16
 |                                                                          06|17
 \----------------------------------------------------------------------------/18
-/-----------------+----------------------------------------------------------\00  What we learned
+/-----------------+----------------------------------------------------------\00  What we learned (Adam)
 | WHAT WE LEARNED |                                                          |01
 +-----------------+                                                          |02
 |                                                                            |03
 | * How to work on a programming project that is tangible                    |04
 |                                                                            |05
 | * Separating abstractions effectively                                      |06
-|   * (M:canvas, V:frontend, C:input, network)           /                   |07
+|   * (M:canvas, V:frontend, C:input, network)                               |07
 |                                                                            |08
 | * Managing state                                                           |09
 |                                                                            |10
@@ -189,8 +189,8 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
 |                                                                          08|17
 \----------------------------------------------------------------------------/18
 /----------------------------------------------------------------------------\00  Fin.
-|                                                                            |01
-|                                                                            |02
+|                                                                            |01  * give people access?
+|                                                                            |02    "End not with a bang, but with a segfault"
 |                                                                            |03
 |                                                                            |04
 |                                                                            |05
