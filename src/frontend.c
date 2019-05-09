@@ -30,6 +30,7 @@
 
 #include <signal.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,6 +40,7 @@
 #include "cursor.h"
 #include "fe_modes.h"
 #include "mode_id.h"
+#include "network.h"
 #include "state.h"
 #include "util.h"
 
@@ -46,6 +48,7 @@ WINDOW *canvas_win;
 status_interface_t *status_interface;
 Cursor *cursor;
 View *view;
+bool networked = false;
 
 char *DEFAULT_FILEPATH = "art.txt";
 
@@ -77,8 +80,27 @@ int main(int argc, char *argv[]) {
   Canvas *canvas;
   // load canvas from file if argument exists
   char *in_filename = "";
+  fd_set testfds;
+  int fd;
+  Net_cfg *net_cfg;
+
   if (argc > 1) {
-    if (strcmp(argv[1], "-") == 0) {
+    /* If connecting to server */
+    if (!strcmp(argv[1], "-s")) {
+      networked = true;
+      if (argc == 3) {
+        canvas = net_init(argv[2], "");
+      } else if (argc == 4) {
+        canvas = net_init(argv[2], argv[3]);
+      } else {
+        printf("Usage:\ncollascii [filename]\ncollascii -s hostname [port]\n");
+        exit(1);
+      }
+
+      net_cfg = net_getcfg();
+
+      /* If reading from std in */
+    } else if (strcmp(argv[1], "-") == 0) {
       // read from stdin if specified
       logd("Reading from stdin\n");
       canvas = canvas_readf_norewind(stdin);
@@ -86,12 +108,16 @@ int main(int argc, char *argv[]) {
       // `/dev/tty` points to current terminal
       // note that this is NOT portable
       freopen("/dev/tty", "rw", stdin);
+
+      /* If reading from file */
     } else {
       in_filename = argv[1];
       FILE *f = fopen(in_filename, "r");
       logd("Reading from '%s'\n", in_filename);
       if (f == NULL) {
-        perror("savefile read");
+        printf("cannot read file %s\n", in_filename);
+        printf("Usage:\ncollascii [filename]\ncollascii -s hostname [port]\n");
+
         exit(1);
       }
       canvas = canvas_readf(f);
@@ -99,6 +125,7 @@ int main(int argc, char *argv[]) {
     }
     // canvas_resize(&canvas, 100, 100);
   } else {
+    logd("making blank canvas\n");
     canvas = canvas_new_blank(100, 100);
   }
 
@@ -121,9 +148,14 @@ int main(int argc, char *argv[]) {
 
   // ENABLE MOUSE INPUT
   // grab only mouse movement and left mouse press/release
+#ifndef LOG_KEYS
+  mousemask(REPORT_MOUSE_POSITION | BUTTON1_PRESSED | BUTTON1_RELEASED, NULL);
+#endif
+#ifdef LOG_KEYS
   mmask_t return_mask = mousemask(
       REPORT_MOUSE_POSITION | BUTTON1_PRESSED | BUTTON1_RELEASED, NULL);
-  logd("Returned mouse mask: %li\n", return_mask);
+  logd("Returned mouse mask: %li\n", (long int)return_mask);
+#endif
   // get mouse updates faster at the expense of not registering "clicks"
   mouseinterval(0);
   // Make the terminal report mouse movement events, in a not-great way.
@@ -192,11 +224,40 @@ int main(int argc, char *argv[]) {
   // Move cursor to starting location and redraw canvases
   refresh_screen();
 
-  while (1) {
-    master_handler(state, canvas_win, status_interface->info_win);
-    refresh_screen();
-  }
+  // If connected to server, check both network and keyboard streams
+  if (networked) {
+    logd("Running networked loop\n");
+    while (1) {
+      testfds = net_cfg->clientfds;
+      select(FD_SETSIZE, &testfds, NULL, NULL, NULL);
 
+      for (fd = 0; fd < FD_SETSIZE; fd++) {
+        if (FD_ISSET(fd, &testfds)) {
+          if (networked &&
+              fd == net_cfg->sockfd) {  // Accept data from open socket
+            logd("recv network\n");
+            // If server disconnects
+            if (net_handler(view) != 0) {
+              networked = false;
+              print_msg_win("Server Disconnect!");
+            };
+            redraw_canvas_win();  // TODO: draw single char update
+            refresh_screen();
+          } else if (fd == 0) {  // process keyboard activity
+            master_handler(state, canvas_win, status_interface->info_win);
+            refresh_screen();
+          }
+        }
+      }
+    }
+    // If local, process keyboard stream
+  } else {
+    logd("Running local loop\n");
+    while (1) {
+      master_handler(state, canvas_win, status_interface->info_win);
+      refresh_screen();
+    }
+  }
   // Cleanup
   cursor_free(cursor);
   // TODO: destory status_interface
@@ -227,6 +288,9 @@ void front_setcharcursor(char ch) {
   canvas_scharyx(view->canvas, cursor->y + view->y, cursor->x + view->x, ch);
   mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor),
            ch);
+  if (networked) {
+    net_send_char(cursor->y + view->y, cursor->x + view->x, ch);
+  }
 }
 
 void redraw_canvas_win() {
