@@ -44,7 +44,140 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
                                                        H8Pe=/<<t]???/@        16
                                                    NNo^MRq0~</t(j\/'H@HF      17
                                                M@NM@MoMMoP//]=<?]=~HWWHFAWAa0218
-/----------------------------------------------------------------------------\00  Third slide
+/------------+---------------------------------------------------------------\00  What It Is (Matt)
+| WHAT IT IS |                                                               |01
++------------+-                                                              |02
+|                                                                            |03
+| * a terminal-based editor, built with ncurses                              |04
+| * ASCII-based and *.txt-compatible                                         |05
+| * suited for text art                                                      |06
+|   * also presentations                                                     |07
+| * features cutting-edge input methods, bringing it closer still to         |08
+|   industry standards like Microsoft Paint                                  |09
+|                                                                            |10
+|                                                                            |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          03|17
+\----------------------------------------------------------------------------/18
+/----------------------------+-----------------------------------------------\00  Feature - Examples (Matt)
+| COOL FEATURE 1 - EXAMPLES! |                                               |01
++----------------------------+                                               |02
+|                                                                            |03
+|                                                                            |04
+|                                                                            |05
+|                                                                            |06
+|                                                                            |07
+|                                                                            |08
+|                                                                            |09
+|                                                                            |10
+|                                                                            |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+| See more (and add your own!) at: o.olin.build/art/                         |16
+| Remember to use #madewithcollascii when sharing!                         04|17
+\----------------------------------------------------------------------------/18
+/-------------------------------+--------------------------------------------\00  Feature - Modes (Matt)
+| COOL FEATURE 2 - INPUT MODES! |                                            |01
++-------------------------------+                                            |02
+|                                                                            |03
+| * Insert                                                                   |04
+| * Panning                                                                  |05
+| * Free line                                                                |06
+| * Brush                                                                    |07
+|                                                                            |08
+|                                                                            |09
+|                                                                            |10
+|                                                                            |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          05|17
+\----------------------------------------------------------------------------/18
+/-------------------------------------+--------------------------------------\00  Feature - Collaborative (Matt)
+| COOL FAETURE X - CATCHY TITLE HERE! |                                      |01  * Matt: feign confusion about unfinished slide
++-------------------------------------+                                      |02  * Adam: fix typo in title
+|                                                                            |03  * Adam: write "IT'S COLLABORATIVE" in title box
+|                                             impossible                     |04  * Adam: start editing page
+|  huh?                                                                      |05  * Evan: demonstrate that there are no wires
+|                                                                            |06
+|                                                                            |07  TODO: add a download link here?
+|     n                                                                      |08
+|                           ?eb ti dluoc tahW                                |09
+|     o                                                                      |10
+|                                                                            |11
+|     p                                                                      |12
+|                                                                            |13
+|     e                                                                      |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          06|17
+\----------------------------------------------------------------------------/18
+/-----------------+----------------------------------------------------------\00  What we learned
+| WHAT WE LEARNED |                                                          |01
++-----------------+                                                          |02
+|                                                                            |03
+| * How to work on a programming project that is tangible                    |04
+|                                                                            |05
+| * Separating abstractions effectively                                      |06
+|   * (M:canvas, V:frontend, C:input, network)                               |07
+|                                                                            |08
+| * Managing state                                                           |09
+|                                                                            |10
+| * Networking is hard!                                                      |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          06|17
+\----------------------------------------------------------------------------/18
+/--------------------------------------------+-------------------------------\00  Lesson - Macros (Evan)
+| LESSON 1 - DEBUGGING THE FRONTEND & MACROS |                               |01  TODO: fill this in
++--------------------------------------------+                               |02
+|                                                                            |03
+| *                                                                          |04
+|                                                                            |05
+|                                                                            |06
+|                                                                            |07
+|                                                                            |08
+|                                                                            |09
+|                                                                            |10
+|                                                                            |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          07|17
+\----------------------------------------------------------------------------/18
+/-------------------------------+--------------------------------------------\00  Lesson - Variadic Functions (Evan)
+| LESSON 2 - VARIADIC FUNCTIONS |                                            |01  TODO: fill this in
++-------------------------------+                                            |02
+|                                                                            |03
+| *                                                                          |04
+|                                                                            |05
+|                                                                            |06
+|                                                                            |07
+|                                                                            |08
+|                                                                            |09
+|                                                                            |10
+|                                                                            |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          08|17
+\----------------------------------------------------------------------------/18
+/----------------------------------------------------------------------------\00  This slide intentionally left blank.
 |                                                                            |01
 |                                                                            |02
 |                                                                            |03
@@ -61,5 +194,5 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
 |                                                                            |14
 |                                                                            |15
 |                                                                            |16
-|                                                                          03|17
+|                                                                          ##|17
 \----------------------------------------------------------------------------/18
