@@ -82,22 +82,21 @@ void cmd_trim_canvas(State *state) {
   redraw_canvas_win();
 }
 
-/* Update the info subwindow in the status win
- */
-void update_info_win(State *state) {
-  print_info_win("[%s](%i,%i)", modes[state->current_mode].name,
-                 state->view->x + state->cursor->x,
-                 state->view->y + state->cursor->y);
-}
-
 /* Call a mode given its Mode_ID.
  *
  * This makes sure info_win is always updated.
  */
 int call_mode(Mode_ID mode, reason_t reason, State *state) {
   int res = modes[mode].mode_function(reason, state);
-  update_info_win(state);
+  update_info_win_state(state);
   return res;
+}
+
+/* Wrapper of update_info_win for state
+ */
+inline void update_info_win_state(State *state) {
+  update_info_win(state->current_mode, state->view->x + state->cursor->x,
+                  state->view->y + state->cursor->y);
 }
 
 /* Switch to a different mode.
@@ -131,6 +130,23 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
       switch_mode(MODE_PICKER, state);
     }
     return 0;
+  } else if (c == KEY_NPAGE || c == KEY_PPAGE) {
+    // shift view down
+    const int h = getmaxy(canvas_win) - 2;  // height of visible canvas
+    const int vy = state->view->y;
+    const int ch = state->view->canvas->num_rows;
+    int new_vy;
+    if (c == KEY_NPAGE) {
+      // stop with last of canvas still visible
+      new_vy = min(vy + h, ch - h);
+    } else {
+      new_vy = max(0, vy - h);
+    }
+    // shift view
+    state->view->y = new_vy;
+    redraw_canvas_win();
+  } else if (c == KEY_PPAGE) {
+    // shift view up
   } else if (c == KEY_CTRL('r')) {
     cmd_read_from_file(state);
     print_msg_win("Read from file '%s'\n", state->filepath);
@@ -367,8 +383,11 @@ int mode_brush(reason_t reason, State *state) {
         } else if (event.bstate & BUTTON1_RELEASED) {
           mode_cfg->state = PAINT_OFF;
         }
-        state->cursor->x = event.x - 1;
-        state->cursor->y = event.y - 1;
+        // only update cursor position on mouse move if we're painting
+        if (mode_cfg->state == PAINT_ON) {
+          state->cursor->x = event.x - 1;
+          state->cursor->y = event.y - 1;
+        }
       }
     }
   }
