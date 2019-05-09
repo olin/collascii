@@ -367,8 +367,11 @@ int mode_brush(reason_t reason, State *state) {
         } else if (event.bstate & BUTTON1_RELEASED) {
           mode_cfg->state = PAINT_OFF;
         }
-        state->cursor->x = event.x - 1;
-        state->cursor->y = event.y - 1;
+        // only update cursor position on mouse move if we're painting
+        if (mode_cfg->state == PAINT_ON) {
+          state->cursor->x = event.x - 1;
+          state->cursor->y = event.y - 1;
+        }
       }
     }
   }
