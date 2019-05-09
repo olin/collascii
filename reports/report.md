@@ -1,7 +1,7 @@
 <!-- TODO: double-check for typos -->
-# COLLASCII
+# COLLASCII: A collaborative ascii canvas
 
-_A collaborative ascii canvas_
+_The Future Editor of Yesterday, Tomorrow_
 
 
 Team members:
@@ -14,14 +14,31 @@ Team members:
 We made a collaborative ascii drawing application with a terminal interface. Think of it like the google docs of [asciiflow](http://asciiflow.com/), but in a terminal.
 Why? Because it's funny, questionable, and a little bit artsy. Oh and a great learning experience too.
 
-Featuring:
+#### Featuring:
 
-The MVP is designed to be a relatively low bar to ensure we get to a good place.
-- An editor where you move with arrow keys and press a character to change a cell.
-- A status bar a la vim.
-- A brush mode and a free line mode, as well as a mode switcher.
-- Saving and loading .txt files.
-- A client/server model that allows other people to connect to and edit your instance, given an IP and port.
+We are pleased to present a fully-featured collaborative ascii editor, that enables you to create beautiful walls of text.
+
+<!-- TODO: Embed Video Here -->
+
+Highlighted features:
+- Collaboration over the network
+- File read/write to import/export artwork
+- 3 drawing modes:
+  - Insert: Type characters onto the canvas
+  - Line drawing: make continuous lines with arrow keys
+  - Brush: use mouse or arrows to paint onto the canvas
+- A slick API for implementing new modes
+
+
+#### Synergetic Resources:
+These are a few applications that interface well with collascii:
+* [Cowsay](https://en.wikipedia.org/wiki/Cowsay)
+* [Figlet](https://www.askapache.com/online-tools/figlet-ascii/)
+* [Svgbob](https://github.com/ivanceras/svgbob)
+* [Asciifier](https://github.com/newsch/asciifier)
+
+Please let us know of any projects that we should know about.
+
 
 <!-- TODO: update this w/ the latest and greatest -->
 Here is an actual screenshot of our application (terminal made smaller for demo):
@@ -99,7 +116,6 @@ _Separately, the `Mode_ID` enum used to to select functions, in the same order:_
 typedef enum {
   MODE_PICKER,
   MODE_INSERT,
-  MODE_FREE_LINE,
   MODE_PAN,
   MODE_FREE_LINE,
   MODE_BRUSH,
@@ -109,14 +125,14 @@ typedef enum {
 } Mode_ID;
 ```
 
-Passing keypress events from NCURSES and providing them to the relevant mode is handled by the function 
+Passing keypress events from NCURSES and providing them to the relevant mode is handled by the function `master_handler`. It also intercepts global commands (like mode switching and file read/write).
 
 
-The frontend has a `State` struct to neatly keep track of variables during the main while loop. This includes the input character, previous input, cursor position and mode. This state is then passed into the mode function.
+The frontend has a `State` struct to neatly keeps track of variables inside the main while loop. This includes the input character, previous input, cursor position and mode. This state is then passed into the mode function.
 
 Our application mostly follows the [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) pattern.
 
-The **Model** is a `Canvas` struct. It holds the all the characters in a matrix. All changes are made to the canvas, and then written to the terminal through NCURSES.
+In addition to the `State`, our **model** is stored `Canvas` struct. `Canvas` holds the all the characters in a matrix, and has an API for reading/writing it.
 
 ```c
 typedef struct {
@@ -135,17 +151,15 @@ Finally the file `frontend.c` wraps up all of these features and presents them i
 
 Networking was heavily inspired by ["Simple Chat Server in C"](https://github.com/yorickdewid/Chat-Server/blob/master/chat_server.c) and ["Simple Chat Client in C"](https://github.com/dtolj/simple-chat-client-server).
 
-The protocol has two functions:
-- `/set y x c` sets the spot `(x,y)` to the character `c`, and sends this to all other clients
-- `/canvas` makes the server respond with the entire canvas
+The protocol has only a few functions:
+- `s y x c` sets the spot `(x,y)` to the character `c`, and sends this to all other clients (It is `y x` to standardize to ncurses)
+- `c` makes the server respond with the entire canvas
+- `q` closes the connection and makes the sessions offline only
 
-The chat server has the master copy of the canvas, and tracks changes as all clients update it with the set command. It sends a serialized canvas to new clients. The set command sends updates to all clients (including the author) to preserve a consistent timeline of canvas changes. Each command is a fixed length for maximum simplicity (with an imperceptible performance tradeoff).
+The chat server has the master copy of the canvas, and tracks changes as all clients update it with the set command. It sends a serialized canvas to new clients. The set command sends updates to all clients (including the author) to preserve a consistent timeline of canvas changes. The commands are sent over a TCP socket delimeted by a newline. With [fdopen()](https://linux.die.net/man/3/fdopen) we can treat the socket as a file and use convenient functions like getline().
 
-**A few networking features that would be nice to have:**
-* Integrate server into the main binary, with ability to spin it up after editing the canvas
-* Compress the canvas when serializing (text should be extremely compressible)
-* Make network client and keyboard input asynchronous
-* Make client cache user input, but wait for server to confirm changes before updating canvas
+## Future
+We found this project very exciting and are happy with the current state of the project. There are many unresolved [issues](https://github.com/olin/SoftSysCollascii/issues) on the github repo, and we have kept adding feature requests and bug reports.
 
 ## Learning Goals Reflection
 
@@ -157,8 +171,8 @@ The chat server has the master copy of the canvas, and tracks changes as all cli
 
 > I want to make something that says "Look I can write C, but not for important things". Learning goals include writing good apis, writing good C, designing a decent CLI, and learning about networking hands on.
 
-I think the final result matches my first goal fairly well. If you're reading this and think "boy we should hire this guy to write all of our C", then I suppose I did not. In all seriousness, I'm quite proud of the final result. It's surprisingly fun to mess around with, and I enjoy talking about it. 
-From a technical standpoint, I got what I wanted out of doing this project. At the nuts and bolts level, I noticed that we didn't have to constantly refactor everything, which is a sign that we designed our apis decently well from the start. We didn't quite reach my grand ideas for a beautiful command line interface, but it's usable enough to get the point across. While I didn't touch much of the networking code myself, talking about the implementation with Evan and Adam sufficiently scratched my learning itch. On the meta software engineering level, this project was a good exercise in using a good GitHub workflow. In summary, this is a project I'm pretty proud of and it definitely solidified my knowledge of C. 
+I think the final result matches my first goal fairly well. If you're reading this and think "boy we should hire this guy to write all of our C", then I suppose I did not. In all seriousness, I'm quite proud of the final result. It's surprisingly fun to mess around with, and I enjoy talking about it.
+From a technical standpoint, I got what I wanted out of doing this project. At the nuts and bolts level, I noticed that we didn't have to constantly refactor everything, which is a sign that we designed our apis decently well from the start. We didn't quite reach my grand ideas for a beautiful command line interface, but it's usable enough to get the point across. While I didn't touch much of the networking code myself, talking about the implementation with Evan and Adam sufficiently scratched my learning itch. On the meta software engineering level, this project was a good exercise in using a good GitHub workflow. In summary, this is a project I'm pretty proud of and it definitely solidified my knowledge of C.
 
 ### Adam
 
@@ -171,7 +185,7 @@ I found great motivation by working on a project that sparks joy. Seeing my edit
 ### Learning
 - Guide to NCURSES that was very useful: https://www.tldp.org/HOWTO/NCURSES-Programming-HOWTO/index.html
 - NCURSES manual (not always on the first page of search results): https://invisible-island.net/ncurses/man/ncurses.3x.html
-- 
+-
 
 ### Project-Related
 
