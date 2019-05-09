@@ -29,9 +29,11 @@
 #include "util.h"
 
 editor_mode_t modes[] = {
-    {"Switcher", "", mode_picker}, {"Insert", "", mode_insert},
-    {"Pan", "", mode_pan},         {"Free-Line", "", mode_free_line},
-    {"Brush", "", mode_brush},
+    {"Switcher", "Switch to another mode", mode_picker},
+    {"Insert", "Insert characters", mode_insert},
+    {"Pan", "Pan around the canvas", mode_pan},
+    {"Free-Line", "Draw a line with your arrow keys", mode_free_line},
+    {"Brush", "Paint with arrow keys and mouse", mode_brush},
 };
 
 typedef struct {
