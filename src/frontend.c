@@ -1,20 +1,49 @@
+/*
+ *   ___ ___  _    _      _   ___  ___ ___ ___
+ *  / __/ _ \| |  | |    /_\ / __|/ __|_ _|_ _|
+ * | (_| (_) | |__| |__ / _ \\__ \ (__ | | | |
+ *  \___\___/|____|____/_/ \_\___/\___|___|___|
+ *
+ *   Yesterday’s future, tomorrow!
+ *
+ * A collaborative ASCII editor, in your terminal.
+ *
+ * By Matthew Beaudouin, Evan New-Schmidt, Adam Novotny
+ *
+ * +---------------------------------------+ canvas window:
+ * | 0 -- X, COLS                          |
+ * | |                                     |
+ * | Y, ROWS                               |
+ * |                                       |
+ * |                                       |
+ * |                                       |
+ * |                                       |
+ * |                                       |
+ * |                                       |
+ * +---------------------------------------+ status window:
+ * |Saved to file "art.txt"   [INSERT](2,6)| Message               Info
+ * |step: ON, TRANSPARENT: OFF             | Mode
+ * +---------------------------------------+
+ */
+
+#include "frontend.h"
+
 #include <signal.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "canvas.h"
 #include "cursor.h"
 #include "fe_modes.h"
-#include "frontend.h"
 #include "mode_id.h"
 #include "state.h"
 #include "util.h"
 
-#include <stdio.h>
-#include <unistd.h>
-
-WINDOW *canvas_win, *status_win;
+WINDOW *canvas_win;
+status_interface_t *status_interface;
 Cursor *cursor;
 View *view;
 
@@ -28,23 +57,6 @@ char *DEFAULT_FILEPATH = "art.txt";
 char *logfile_path = "out.txt";
 FILE *logfile = NULL;
 #endif
-
-/* Layout
- * ___________________________________________
- * | 0 -- X, COLS                           | canvas window
- * | |                                      |
- * | Y, LINES                               |
- * |                                        |
- * |                                        |
- * |                                        |
- * |                                        |
- * |                                        |
- * |                                        |
- * |________________________________________|
- * |                                        |  command window
- * |________________________________________|
- *
- */
 
 int main(int argc, char *argv[]) {
 #ifdef LOG_TO_FILE
@@ -125,11 +137,13 @@ int main(int argc, char *argv[]) {
   // https://gist.github.com/sylt/93d3f7b77e7f3a881603
   // https://stackoverflow.com/q/29020638
   // https://stackoverflow.com/q/7462850
+  //
+  // Disable mouse events is called in finish(), remove it if you change this.
   printf("\033[?1003h\n");  // enable events
   // printf("\033[?1003l\n");  // disable events
 
   canvas_win = create_canvas_win();
-  status_win = create_status_win();
+  status_interface = create_status_interface();
 
   cursor = cursor_new();
   Cursor *last_cursor = cursor_new();
@@ -138,7 +152,7 @@ int main(int argc, char *argv[]) {
 
   // Enable keyboard mapping
   keypad(canvas_win, TRUE);
-  keypad(status_win, TRUE);
+  keypad(status_interface->status_win, TRUE);
 
   //// Main loop
   State new_state = {
@@ -162,23 +176,29 @@ int main(int argc, char *argv[]) {
   // status will clear it otherwise
   update_screen_size();
 
-  char test_msg[] = "Test mode";
-  print_status(test_msg);
+  mvwprintw(status_interface->msg_win, 0, 0, "MSG");
+  mvwprintw(status_interface->info_win, 0, 0, "INFO");
+  mvwprintw(status_interface->mode_win, 0, 0, "MODE");
+
+  char welcome_msg[] = "COLLASCII: <TAB> to switch modes, <CTRL-C> to quit";
+  print_msg_win(welcome_msg);
 
   // bootstrap initial UI
   call_mode(state->current_mode, START, state);
+  update_info_win(state);
 
   // Move cursor to starting location and redraw canvases
   refresh_screen();
 
   while (1) {
-    master_handler(state, canvas_win, status_win);
+    master_handler(state, canvas_win, status_interface->info_win);
     refresh_screen();
   }
 
   // Cleanup
   cursor_free(cursor);
-  destroy_win(status_win);
+  // TODO: destory status_interface
+  destroy_win(status_interface->status_win);
   destroy_win(canvas_win);
   finish(0);
 }
@@ -240,7 +260,9 @@ void refresh_screen() {
   redraw_canvas_win();
   wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
 
-  wrefresh(status_win);
+  wrefresh(status_interface->msg_win);
+  wrefresh(status_interface->info_win);
+  wrefresh(status_interface->mode_win);
   wrefresh(canvas_win);  // Refresh Canvas last so it gets the cursor
 }
 
@@ -256,16 +278,15 @@ void update_screen_size() {
     window_w_old = window_w_new;
 
     wresize(canvas_win, window_h_new - (STATUS_HEIGHT + 1), window_w_new);
-    wresize(status_win, STATUS_HEIGHT + 2, window_w_new);
-
-    mvwin(status_win, window_h_new - (STATUS_HEIGHT + 2), 0);
 
     wclear(stdscr);
     wclear(canvas_win);
-    wclear(status_win);
+
+    destroy_status_interface(status_interface);
+    status_interface = create_status_interface();
 
     // Redraw borders
-    wborder(status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
+    wborder(status_interface->status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
             ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
             ACS_LTEE, ACS_RTEE, ACS_LLCORNER,
             ACS_LRCORNER);  // Corners: tl,  tr,  bl,  br
@@ -313,6 +334,53 @@ WINDOW *create_status_win() {
   return local_win;
 }
 
+int INFO_WIDTH = 18;
+
+WINDOW *create_msg_win(WINDOW *status_win) {
+  int sw = getmaxx(status_win) + 1;
+  int x, y;
+  getbegyx(status_win, y, x);
+  return newwin(1, sw - 2 - INFO_WIDTH, y + 1, x + 1);
+}
+
+WINDOW *create_info_win(WINDOW *status_win) {
+  int sw = getmaxx(status_win) + 1;
+  int x, y;
+  getbegyx(status_win, y, x);
+  return newwin(1, INFO_WIDTH, y + 1, x + 1 + sw - INFO_WIDTH - 3);
+}
+
+WINDOW *create_mode_win(WINDOW *status_win) {
+  int sw = getmaxx(status_win) + 1;
+  int x, y;
+  getbegyx(status_win, y, x);
+  return newwin(1, sw - 3, y + 2, x + 1);
+}
+
+status_interface_t *create_status_interface() {
+  WINDOW *sw = create_status_win();
+  status_interface_t *si = malloc(sizeof(status_interface_t));
+  *si = (status_interface_t){
+      .status_win = sw,
+      .msg_win = create_msg_win(sw),
+      .info_win = create_info_win(sw),
+      .mode_win = create_mode_win(sw),
+  };
+  wborder(si->status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
+          ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
+          ACS_LTEE, ACS_RTEE, ACS_LLCORNER,
+          ACS_LRCORNER);  // Corners: tl,  tr,  bl,  br
+  return si;
+}
+
+void destroy_status_interface(status_interface_t *si) {
+  destroy_win(si->msg_win);
+  destroy_win(si->info_win);
+  destroy_win(si->mode_win);
+  destroy_win(si->status_win);
+  free(si);
+}
+
 void destroy_win(WINDOW *local_win) {
   // Clear borders explicitly
   wborder(local_win, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
@@ -323,24 +391,54 @@ void destroy_win(WINDOW *local_win) {
 
 /* Prints to status_win, similar to printf
  */
-int print_status(char *format, ...) {
-  // there isn't a va_list version of mvwprintw, so move to status_win first and
-  // then use vwprintw
-  wclear(status_win);
-  wborder(status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
-          ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
-          ACS_LTEE, ACS_RTEE, ACS_LLCORNER,
-          ACS_LRCORNER);  // Corners: tl,  tr,  bl,  br
-  wmove(status_win, 1, 1);
+int print_msg_win(char *format, ...) {
+  // there isn't a va_list version of mvw_printw, so move to status_win first
+  // and then use vw_printw
+  WINDOW *mw = status_interface->msg_win;
+  wclear(mw);
+  wmove(mw, 0, 0);
   va_list argp;
   va_start(argp, format);
-  int res = vwprintw(status_win, format, argp);
+  int res = vw_printw(mw, format, argp);
+  va_end(argp);
+  return res;
+}
+
+/* Prints to status_win, similar to printf
+ */
+int print_info_win(char *format, ...) {
+  // there isn't a va_list version of mvw_printw, so move to status_win first
+  // and then use vw_printw
+  WINDOW *mw = status_interface->info_win;
+  wclear(mw);
+  wmove(mw, 0, 0);
+  va_list argp;
+  va_start(argp, format);
+  int res = vw_printw(mw, format, argp);
+  va_end(argp);
+  return res;
+}
+
+/* Prints to status_win, similar to printf
+ */
+int print_mode_win(char *format, ...) {
+  // there isn't a va_list version of mvw_printw, so move to status_win first
+  // and then use vw_printw
+  WINDOW *mw = status_interface->mode_win;
+  wclear(mw);
+  wmove(mw, 0, 0);
+  va_list argp;
+  va_start(argp, format);
+  int res = vw_printw(mw, format, argp);
   va_end(argp);
   return res;
 }
 
 void finish(int sig) {
   endwin();
+
+  // Disable mouse events
+  printf("\033[?1003l\n");
 
   /* do your non-curses wrapup here */
 #ifdef LOG_TO_FILE

@@ -29,11 +29,11 @@
 #include "util.h"
 
 editor_mode_t modes[] = {
-    {"Mode Selector", "", mode_picker},
-    {"Insert", "", mode_insert},
-    {"Pan", "", mode_pan},
-    {"Free-Line", "", mode_free_line},
-    {"Brush", "", mode_brush},
+    {"Switcher", "Switch to another mode", mode_picker},
+    {"Insert", "Insert characters", mode_insert},
+    {"Pan", "Pan around the canvas", mode_pan},
+    {"Free-Line", "Draw a line with your arrow keys", mode_free_line},
+    {"Brush", "Paint with arrow keys and mouse", mode_brush},
 };
 
 typedef struct {
@@ -77,21 +77,41 @@ void cmd_trim_canvas(State *state) {
   state->view->canvas = canvas_trimc(orig, ' ', true, true, false, false);
 }
 
-int call_mode(Mode_ID mode, reason_t reason, State *state) {
-  return modes[mode].mode_function(reason, state);
+/* Update the info subwindow in the status win
+ */
+void update_info_win(State *state) {
+  print_info_win("[%s](%i,%i)", modes[state->current_mode].name,
+                 state->view->x + state->cursor->x,
+                 state->view->y + state->cursor->y);
 }
 
+/* Call a mode given its Mode_ID.
+ *
+ * This makes sure info_win is always updated.
+ */
+int call_mode(Mode_ID mode, reason_t reason, State *state) {
+  int res = modes[mode].mode_function(reason, state);
+  update_info_win(state);
+  return res;
+}
+
+/* Switch to a different mode.
+ *
+ * It sends END to the old mode and then START to the new mode
+ */
 void switch_mode(Mode_ID new_mode, State *state) {
   logd("Switching to %s\n", modes[new_mode].name);
   call_mode(state->current_mode, END, state);
   state->last_canvas_mode = state->current_mode;
   state->current_mode = new_mode;
-  print_status("");  // clear status window;
+  print_mode_win("");  // clear mode window;
   call_mode(new_mode, START, state);
+  refresh_screen();
 }
 
-/* Runs before each update to catch global keys and manage transitions
+/* Handler run in frontend main loop.
  *
+ * Interprets keypresses, manages global keys, and passes data to modes.
  */
 int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   // catching keypresses
@@ -108,26 +128,28 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     return 0;
   } else if (c == KEY_CTRL('r')) {
     cmd_read_from_file(state);
-    print_status("Read from file '%s'\n", state->filepath);
+    print_msg_win("Read from file '%s'\n", state->filepath);
   } else if (c == KEY_CTRL('s')) {
     cmd_write_to_file(state);
-    print_status("Saved to file '%s'\n", state->filepath);
+    print_msg_win("Saved to file '%s'\n", state->filepath);
   } else if (c == KEY_CTRL('t')) {
     cmd_trim_canvas(state);
   } else {
     // pass character on to mode
     state->ch_in = c;
     call_mode(state->current_mode, NEW_KEY, state);
+    update_info_win(state);
   }
+
   // Move UI cursor to the right place
   wmove(canvas_win, cursor_y_to_canvas(state->cursor),
         cursor_x_to_canvas(state->cursor));
   return 0;
 }
 
-////////////////////////////
-// SPECIFC MODE FUNCTIONS //
-////////////////////////////
+/////////////////////////////
+// SPECIFIC MODE FUNCTIONS //
+/////////////////////////////
 
 /* free_line_arrows_to_char
  *
@@ -173,7 +195,7 @@ int free_line_arrows_to_char(int last_arrow, int current_arrow) {
 // MODE FUNCTIONS //
 ////////////////////
 
-/* mode_picker
+/* mode_status
  *
  * Mode to switch between other modes using number keys.
  */
@@ -201,7 +223,7 @@ int mode_picker(reason_t reason, State *state) {
     num_left -= num_to_write;
   }
 
-  print_status(msg);
+  print_mode_win(msg);
 
   // INTERPRET KEYS
   if (reason == NEW_KEY) {
@@ -247,8 +269,8 @@ int mode_insert(reason_t reason, State *state) {
   return 0;
 }
 
-/* Mode Pan
-
+/* mode_pan
+ *
  * Pans the View with arrow keys
  */
 int mode_pan(reason_t reason, State *state) {
@@ -352,9 +374,9 @@ int mode_brush(reason_t reason, State *state) {
   }
 
   // display brush info
-  print_status("state: %s\tbrush: '%c' (Press ENTER to toggle)",
-               ((mode_cfg->state == PAINT_OFF) ? "OFF" : "ON"),
-               mode_cfg->pattern);
+  print_mode_win("state: %s\tbrush: '%c' (Press ENTER to toggle)",
+                 ((mode_cfg->state == PAINT_OFF) ? "OFF" : "ON"),
+                 mode_cfg->pattern);
 
   return 0;
 }
