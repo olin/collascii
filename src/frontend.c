@@ -158,8 +158,8 @@ int main(int argc, char *argv[]) {
   State new_state = {
       .ch_in = OK,
       .cursor = cursor,
-      .current_mode = MODE_PICKER,
-      // .current_mode = MODE_INSERT,
+      // .current_mode = MODE_PICKER,
+      .current_mode = MODE_INSERT,
       // .current_mode = MODE_FREE_LINE,
       // .current_mode = MODE_BRUSH,
 
