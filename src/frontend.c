@@ -390,14 +390,14 @@ void destroy_win(WINDOW *local_win) {
 /* Prints to status_win, similar to printf
  */
 int print_msg_win(char *format, ...) {
-  // there isn't a va_list version of mvwprintw, so move to status_win first and
-  // then use vwprintw
+  // there isn't a va_list version of mvw_printw, so move to status_win first
+  // and then use vw_printw
   WINDOW *mw = status_interface->msg_win;
   wclear(mw);
   wmove(mw, 0, 0);
   va_list argp;
   va_start(argp, format);
-  int res = vwprintw(mw, format, argp);
+  int res = vw_printw(mw, format, argp);
   va_end(argp);
   return res;
 }
@@ -405,14 +405,14 @@ int print_msg_win(char *format, ...) {
 /* Prints to status_win, similar to printf
  */
 int print_info_win(char *format, ...) {
-  // there isn't a va_list version of mvwprintw, so move to status_win first and
-  // then use vwprintw
+  // there isn't a va_list version of mvw_printw, so move to status_win first
+  // and then use vw_printw
   WINDOW *mw = status_interface->info_win;
   wclear(mw);
   wmove(mw, 0, 0);
   va_list argp;
   va_start(argp, format);
-  int res = vwprintw(mw, format, argp);
+  int res = vw_printw(mw, format, argp);
   va_end(argp);
   return res;
 }
@@ -420,14 +420,14 @@ int print_info_win(char *format, ...) {
 /* Prints to status_win, similar to printf
  */
 int print_mode_win(char *format, ...) {
-  // there isn't a va_list version of mvwprintw, so move to status_win first and
-  // then use vwprintw
+  // there isn't a va_list version of mvw_printw, so move to status_win first
+  // and then use vw_printw
   WINDOW *mw = status_interface->mode_win;
   wclear(mw);
   wmove(mw, 0, 0);
   va_list argp;
   va_start(argp, format);
-  int res = vwprintw(mw, format, argp);
+  int res = vw_printw(mw, format, argp);
   va_end(argp);
   return res;
 }
