@@ -13,13 +13,13 @@
  * Make sure its length is capped.
  */
 typedef struct {
-  int ch_in;
-  Cursor *cursor;
-  Mode_ID current_mode;
-
-  Mode_ID last_canvas_mode;
+  int ch_in;                 // characters read by ncurses
+  MEVENT *mevent_in;         // mouse events read by ncurses
+  Cursor *cursor;            // cursor location on screen, relative to window
+  View *view;                // view of the canvas (also holds the canvas)
+  Mode_ID current_mode;      // the current mode of the interface
+  Mode_ID last_canvas_mode;  // the last mode of the interface
   int last_arrow_direction;
-  View *view;
   Cursor *last_cursor;
   char *filepath;  // path of savefile
 } State;

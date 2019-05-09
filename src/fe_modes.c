@@ -31,6 +31,8 @@
 #include "mode_id.h"
 #include "util.h"
 
+// #define LOG_KEY_EVENTS  // `logd` new mouse and key events
+
 editor_mode_t modes[] = {
     {"Switcher", "Switch to another mode", mode_picker},
     {"Insert", "Insert characters", mode_insert},
@@ -126,10 +128,23 @@ void switch_mode(Mode_ID new_mode, State *state) {
 int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   // catching keypresses
   int c = wgetch(canvas_win);  // grab from window
-#ifdef LOG_KEYS
+#ifdef LOG_KEY_EVENTS
   logd("New key: '%c' (%d)\n", c, c);
 #endif
-  if (c == KEY_TAB) {  // switching modes
+  if (c == KEY_MOUSE) {
+    // handle mouse events
+    MEVENT event;
+    if (getmouse(&event) == OK) {
+#ifdef LOG_KEY_EVENTS
+      logd("New mouse event: (%i, %i), %li\n", event.x, event.y, event.bstate);
+#endif
+      // TODO: look into mouse_trafo, wmouse_trafo
+      // https://invisible-island.net/ncurses/man/curs_mouse.3x.html
+      state->ch_in = c;
+      state->mevent_in = &event;
+      call_mode(state->current_mode, NEW_MOUSE, state);
+    }
+  } else if (c == KEY_TAB) {  // switching modes
     if (state->current_mode == MODE_PICKER &&
         state->last_canvas_mode != MODE_PICKER) {
       logd("Reverting to last mode\n");
@@ -404,7 +419,18 @@ int mode_brush(reason_t reason, State *state) {
     mode_cfg->state = PAINT_OFF;
   }
 
-  if (reason == NEW_KEY) {
+  if (reason == NEW_MOUSE) {
+    if (state->mevent_in->bstate & BUTTON1_PRESSED) {
+      mode_cfg->state = PAINT_ON;
+    } else if (state->mevent_in->bstate & BUTTON1_RELEASED) {
+      mode_cfg->state = PAINT_OFF;
+    }
+    // only update cursor position on mouse move if we're painting
+    if (mode_cfg->state == PAINT_ON) {
+      state->cursor->x = state->mevent_in->x - 1;
+      state->cursor->y = state->mevent_in->y - 1;
+    }
+  } else if (reason == NEW_KEY) {
     if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
         (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
       // arrow keys - move cursor
@@ -418,25 +444,6 @@ int mode_brush(reason_t reason, State *state) {
         mode_cfg->state = PAINT_OFF;
       } else if (mode_cfg->state == PAINT_OFF) {
         mode_cfg->state = PAINT_ON;
-      }
-    } else if (KEY_MOUSE == state->ch_in) {
-      // handle mouse events
-      MEVENT event;
-      if (getmouse(&event) == OK) {
-#ifdef LOG_KEYS
-        logd("New mouse event: (%i, %i), %li\n", event.x, event.y,
-             (long int)event.bstate);
-#endif
-        if (event.bstate & BUTTON1_PRESSED) {
-          mode_cfg->state = PAINT_ON;
-        } else if (event.bstate & BUTTON1_RELEASED) {
-          mode_cfg->state = PAINT_OFF;
-        }
-        // only update cursor position on mouse move if we're painting
-        if (mode_cfg->state == PAINT_ON) {
-          state->cursor->x = event.x - 1;
-          state->cursor->y = event.y - 1;
-        }
       }
     }
   }
