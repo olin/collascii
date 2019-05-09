@@ -169,25 +169,6 @@ EXAMPLE - CODE DOCUMENTATION                                                  00
 |                                                                            |16
 |                                                                          05|17
 \----------------------------------------------------------------------------/18
-/-------------------------------------+--------------------------------------\00  Feature - Networked (Matt)
-| COOL FAETURE X - CATCHY TITLE HERE! |                                      |01  * Matt: feign confusion about unfinished slide
-+-------------------------------------+                                      |02  * Adam: fix typo in title
-|                                                                            |03  * Adam: write "IT'S COLLABORATIVE" in title box
-|                                             impossible                     |04  * Adam: start editing page
-|  huh?                                                                      |05  * Evan: demonstrate that there are no wires
-|                                                                            |06
-|                                                                            |07  TODO: add a download link here?
-|     n                                                                      |08
-|                           ?eb ti dluoc tahW                                |09
-|     o                                                                      |10
-|                                                                            |11
-|     p                                                                      |12
-|                                                                            |13
-|     e                                                                      |14
-|                                                                            |15
-|                                                                            |16
-|                                                                          06|17
-\----------------------------------------------------------------------------/18
 /-----------------+----------------------------------------------------------\00  What we learned (Adam)
 | WHAT WE LEARNED |                                                          |01
 +-----------------+                                                          |02
@@ -244,6 +225,25 @@ EXAMPLE - CODE DOCUMENTATION                                                  00
 |                                                                            |15
 |                                                                            |16
 |                                                                          08|17
+\----------------------------------------------------------------------------/18
+/-------------------------------------+--------------------------------------\00  Feature - Networked (Matt)
+| COOL FAETURE X - CATCHY TITLE HERE! |                                      |01  * Matt: feign confusion about unfinished slide
++-------------------------------------+                                      |02  * Adam: fix typo in title
+|                                                                            |03  * Adam: write "IT'S COLLABORATIVE" in title box
+|                                             impossible                     |04  * Adam: start editing page
+|  huh?                                                                      |05  * Evan: demonstrate that there are no wires
+|                                                                            |06
+|                                                                            |07  TODO: add a download link here?
+|     n                                                                      |08
+|                           ?eb ti dluoc tahW                                |09
+|     o                                                                      |10
+|                                                                            |11
+|     p                                                                      |12
+|                                                                            |13
+|     e                                                                      |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          06|17
 \----------------------------------------------------------------------------/18
 /----------------------------------------------------------------------------\00  Fin.
 |                                                                            |01  * give people access?
