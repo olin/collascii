@@ -99,7 +99,7 @@ Net_cfg *net_getcfg() {
 int net_handler(View *view) {
   logd("receiving: ");
   getline(&msg_buf, &msg_size, sockstream);
-  logd("[%d]", msg_size);
+  logd("[%li]", msg_size);
   logd(msg_buf);
   char ch = msg_buf[strlen(msg_buf) - 2];  // -2 for '\n'
 

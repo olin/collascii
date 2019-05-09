@@ -1,0 +1,399 @@
+Final presentation for SoftSys, 2019-05-09.
+Sized for the canvas window in an 80x24 terminal.
+To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
+                        |
+                        |  General Notes:
+                        |
+                        |
+                        |
+                        |
+                        |
+                        |
+                        |
+                        |
+                        |  presentation notes ------------------------------------+
+                        |  slide line #s -------------------------------------+   |
+                        |  last visible col when presenting -----------------+|   |
+                        |                                                    ||   |
+                        v                                                    v|   |
++-------------------------------------8<-------------------------------------+v   v
+/----------------------------------------------------------------------------\00  Title slide
+|                                                                            |01
+|                                                                            |02
+|                                                                            |03
+|                                                                            |04
+|                                                                            |05
+|                                                                            |06
+|                                 COLLASCII                                  |07
+|                                                                            |08
+|                  "The Future Editor of Yesterday, Tomorrow"                |09
+|                                                                            |10
+|                         github.com/olin/collascii                          |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          01|17
+\----------------------------------------------------------------------------/18
+                                                                              00
+                                                                              01
+                                                          60_                 02
+                                                      q##QGAU&&j<             03
+                                                    K@@ENNRqVUz2<``.          04
+                                                  =RE@@@ANAGGUzzi~  -         05
+                                 /---------\      `#MMMMNNRqqW2zx_`--         06
+                                 |COLLASCII|     -A@MMMM@ERR8qqzzi|||ij       07
+                                 \---------/      R@@EqQKqd2zjj?zz<?/v`       08
+                                            \      qx_~@U.H| ~_=Ir&2~=_       09
+                                             \     WW8qBlIbNBNKzrz25zz0       10
+                                              \    B##@Nz<oARZRozrr&zz        11
+                                               \   RNf|x+_2~K3I/zv22_         12
+                                                --  AoM/RN~,  U<t???          13
+                                                    qG/#@U333Ax++j?v          14
+                                                     RNEMMgRd?=(]j/z_o        15
+                                                       H8Pe=/<<t]???/@        16
+                                                   NNo^MRq0~</t(j\/'H@HF      17
+                                               M@NM@MoMMoP//]=<?]=~HWWHFAWAaoa18
+/------------+---------------------------------------------------------------\00  What It Is (Matt)
+| WHAT IT IS |                                                               |01
++------------+-                                                              |02
+|                                                                            |03
+| * a terminal-based editor, built with ncurses                              |04
+|                                                                            |05
+| * ASCII-based and *.txt-compatible                                         |06
+|                                                                            |07
+| * suited for text art                                                      |08
+|   * also presentations                                                     |09
+|                                                                            |10
+| * features cutting-edge input methods, bringing it closer still to         |11
+|   industry standards like Notepad, Microsoft Paint                         |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          03|17
+\----------------------------------------------------------------------------/18
+/----------------------------+-----------------------------------------------\00  Feature - Examples (Matt)
+| COOL FEATURE 1 - EXAMPLES! |                                               |01
++----------------------------+                                               |02
+|                                                                            |03
+|                                                                            |04
+|                                                                            |05
+|                                                                            |06
+|                                                                            |07
+|                                                                            |08
+|                                                                            |09
+|                                                                            |10
+|                                                                            |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+| See more (and add your own!) at: o.olin.build/art/                         |16
+| Remember to use #madewithcollascii when sharing!                         04|17
+\----------------------------------------------------------------------------/18
+EXAMPLE - THREAD DIAGRAM                                                      00
+                                                                              01
+PARENT                                                                        02
+  |                                                                           03
+"Creating child 0" ------------------ CHILD 0                                 04
+  |                                      |                                    05
+ fork                                 sleep 0                                 06
+  |                                      |                                    07
+"Creating child 1" ---- CHILD 1  "Hello from child 0"                         08
+  |                       |              |                                    09
+ fork                  sleep 1    /---< exit                                  10
+  |                       |      /                                            11
+"Hello from parent" /-----|-----/                                             12
+  |           /----/      |                                                   13
+wait 0 <-----/    "Hello from child 1"                                        14
+  |                       |                                                   15
+wait 1 <---------------< exit                                                 16
+  |                                                                           17
+exit                                                                          18
+EXAMPLE - BIRTHDAY GIFT                                                       00
+                                                                              01
+                              CCCCCCCCCCCCCC                                  02
+                         CCCCC              CCCCC                             03
+                      CCC          \|/           CCC                          04
+                    CC            --*--             CC                        05
+                   C               /|\                C                       06
+                  C                 |                  C                      07
+                  CC                |                 CC                      08
+                  C CC                              CC C                      09
+                  C   CCC                        CCC   C                      10
+                  C      CCCCC              CCCCC      C                      11
+                   C          CCCCCCCCCCCCCC          C                       12
+                    CC                              CC                        13
+                      CCC                        CCC                          14
+                         CCCCC              CCCCC                             15
+                              CCCCCCCCCCCCCC                                  16
+                                                                              17
+                                                                              18
+EXAMPLE - CODE DOCUMENTATION                                                  00
+                                                                              01
+  *                                                                           02
+  * +---------------------------------------+ canvas window:                  03
+  * | 0 -- X, COLS                          |                                 04
+  * | |                                     |                                 05
+  * | Y, ROWS                               |                                 06
+  * |                                       |                                 07
+  * |                                       |                                 08
+  * |                                       |                                 09
+  * |                                       |                                 10
+  * |                                       |                                 11
+  * |                                       |                                 12
+  * +---------------------------------------+ status window:                  13
+  * |Saved to file "art.txt"   [INSERT](2,6)| Message               Info      14
+  * |step: ON, TRANSPARENT: OFF             | Mode                            15
+  * +---------------------------------------+                                 16
+  */                                                                          17
+                                                                              18
+/-------------------------------+--------------------------------------------\00  Feature - Modes (Matt)
+| COOL FEATURE 2 - INPUT MODES! |                                            |01
++-------------------------------+                                            |02
+|                                                                            |03
+| * Insert                                                                   |04
+|                                                                            |05
+| * Panning                                                                  |06
+|                                                                            |07
+| * Free line                                                                |08
+|                                                                            |09
+| * Brush                                                                    |10
+|                                                                            |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          08|17
+\----------------------------------------------------------------------------/18
+/-----------------+----------------------------------------------------------\00  What we learned (Adam)
+| WHAT WE LEARNED |                                                          |01
++-----------------+                                                          |02
+|                                                                            |03
+| * How to work on a programming project that is tangible                    |04
+|                                                                            |05
+| * Separating abstractions effectively                                      |06
+|   * (M:canvas, V:frontend, C:input, network)                               |07
+|                                                                            |08
+| * Managing state                                                           |09
+|                                                                            |10
+| * Networking is hard!                                                      |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          09|17
+\----------------------------------------------------------------------------/18
+/-----------------+----------------------------------------------------------\00  What we learned (Adam)
+| STATE           |                                                          |01
++-----------------+                                                          |02
+|                                                                            |03
+| typedef struct {               typedef struct {                            |04
+|   int ch_in;                     int num_cols, num_rows;                   |05
+|   Cursor *cursor;                char **rows;                              |06
+|   Mode_ID current_mode;        } Canvas;                                   |07
+|                                                                            |08
+|   Mode_ID last_canvas_mode;                                                |09
+|   int last_arrow_direction;                                                |10
+|   View *view;                                                              |11
+|   Cursor *last_cursor;                                                     |12
+|   char *filepath;                                                          |13
+| } State;                                                                   |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          10|17
+\----------------------------------------------------------------------------/18
+/-----------------+----------------------------------------------------------\00  TEMPLATE CONTENT
+| NETWORK         |                                                          |01
+|-----------------+                                                          |02
+|                                                                            |03
+| API:                                                                       |04
+|                                                                            |05
+|                                                                            |06
+|   `s y x c` sets the spot `(x,y)`                                          |07
+|                                                                            |08
+|   `c` makes the server respond with the entire canvas                      |09
+|                                                                            |10
+|   `q` closes the connection                                                |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          11|17
+\----------------------------------------------------------------------------/18
+/-----------------+----------------------------------------------------------\00  TEMPLATE CONTENT
+| NETWORK         |                                                          |01
+|-----------------+                                                          |02
+|                                                                            |03
+|                                                                            |04
+|                                                                            |05
+|                                                                            |06
+|                                                                            |07
+|       fdopen() is wonderful. It makes a FILE * wrapper for sockets.        |08
+|                                                                            |09
+|       Then you can run functions like:                                     |10
+|                                                                            |11
+|        getline()                                                           |12
+|        and                                                                 |13
+|        fprintf()                                                           |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          12|17
+\----------------------------------------------------------------------------/18
+/-------------------------------+--------------------------------------------\00  Lesson - Variadic Functions (Evan)
+| LESSON 1 - VARIADIC FUNCTIONS |                                            |01
++-------------------------------+                                            |02
+|                                                                            |03
+| * How do both `printf(foo);` and `printf(foo, foo1, foo2, foo3);` work?    |04
+|                                                                            |05
+| * Use `<stdarg.h>`:                                                        |06
+|   * Make the real function with `...`:                                     |07
+|     ```c                                                                   |08
+|    void foo(char fmt, ...) {                                               |09
+|       va_list argp;                                                        |10
+|       va_start(argp, thing1);                                              |11
+|       vprintf(fmt, argp);  // call a va_list variant or use it yourself    |12
+|       va_end(argp);                                                        |13
+|     }                                                                      |14
+|     ```                                                                    |15
+|   * We used this to print to specific ncurses windows nicely               |16
+|                                                                          13|17
+\----------------------------------------------------------------------------/18
+/--------------------------------------------+-------------------------------\00  Lesson - Macros (Evan)
+| LESSON 2 - DEBUGGING THE FRONTEND & MACROS |                               |01
++--------------------------------------------+                               |02
+|                                                                            |03
+| * lots of complex function interactions to debug                           |04
+|                                                                            |05
+| * sadly, ncurses uses stdin and stdout - printing to stdout or stderr      |06
+|   writes to the screen in an unpleasant manner                             |07
+|                                                                            |08
+| * solution: let ncurses keep stdout, but use stderr for logging/debugging  |09
+|                                                                            |10
+|                                                                            |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          14|17
+\----------------------------------------------------------------------------/18
+/----------------------------------------------------+-----------------------\00  Lesson - Macros (Evan)
+| LESSON 2 - DEBUGGING THE FRONTEND & MACROS (CONT.) |                       |01
++----------------------------------------------------+                       |02
+|                                                                            |03
+| * syntax:                                                                  |04
+|   ```C                                                                     |05
+|   #define foo(bar) printf(bar)  // macro function syntaxout or stderr      |06
+|   #define eprintf(...) fprintf(stderr, __VA_ARGS__)  // variadic syntax    |07
+|                                                                            |08
+|   #define foo2(bar) \  // multiline macro function                         |09
+|   do { \               // use a do-while so a semicolon works when it's    |10
+|     thing1(bar); \     // "called": `foo2(bar);`                           |11
+|     thing2(bar); \                                                         |12
+|   } while (0)                                                              |13
+|   ```                                                                      |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          15|17
+\----------------------------------------------------------------------------/18
+/-------------------------------------+--------------------------------------\00  Feature - Networked (Matt)
+| COOL FAETURE X - CATCHY TITLE HERE! |                                      |01  * Matt: feign confusion about unfinished slide
++-------------------------------------+                                      |02  * Adam: fix typo in title
+|                                                                            |03  * Adam: write "IT'S COLLABORATIVE" in title box
+|                                             impossible                     |04  * Adam: start editing page
+|  huh?                                                                      |05  * Evan: demonstrate that there are no wires
+|                                                                            |06
+|                                                                            |07  TODO: add a download link here?
+|     n                                                                      |08
+|                           ?eb ti dluoc tahW                                |09
+|     o                                                                      |10
+|                                                                            |11
+|     p                                                                      |12
+|                                                                            |13
+|     e                                                                      |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          16|17
+\----------------------------------------------------------------------------/18
+/----------------------------------------------------------------------------\00  Fin.
+|                                                                            |01  * give people access?
+|                                                                            |02    "End not with a bang, but with a segfault"
+|                                                                            |03
+|                                                                            |04
+|                                                                            |05
+|                                                                            |06
+|                                 COLLASCII                                  |07
+|                                                                            |08
+|                  "The Future Editor of Yesterday, Tomorrow"                |09
+|                                                                            |10
+|                         github.com/olin/collascii                          |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+| Thanks! <3 Matt, Evan, and Adam                                          17|17
+\----------------------------------------------------------------------------/18
+                                                                              00  This slide intentionally left blank.
+                                                                              01
+                                                                              02
+                                                                              03
+                                                                              04
+                                                                              05
+                                                                              06
+                                                                              07
+                                                                              08
+                                                                              09
+                                                                              10
+                                                                              11
+                                                                              12
+                                                                              13
+                                                                              14
+                                                                              15
+                                                                              16
+                                                                              17
+                                                                              18
+/----------------------------------------------------------------------------\00  TEMPLATE EMPTY
+|                                                                            |01
+|                                                                            |02
+|                                                                            |03
+|                                                                            |04
+|                                                                            |05
+|                                                                            |06
+|                                                                            |07
+|                                                                            |08
+|                                                                            |09
+|                                                                            |10
+|                                                                            |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          ##|17
+\----------------------------------------------------------------------------/18
+/-----------------+----------------------------------------------------------\00  TEMPLATE CONTENT
+| SECTION - TITLE |                                                          |01
+|-----------------+                                                          |02
+|                                                                            |03
+| * FIRST ITEM                                                               |04
+|                                                                            |05
+| * SECOND ITEM                                                              |06
+|                                                                            |07
+|                                                                            |08
+|                                                                            |09
+|                                                                            |10
+|                                                                            |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+| FOOTER                                                                   ##|17
+\----------------------------------------------------------------------------/18
