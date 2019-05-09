@@ -158,8 +158,8 @@ int main(int argc, char *argv[]) {
   State new_state = {
       .ch_in = OK,
       .cursor = cursor,
-      .current_mode = MODE_PICKER,
-      // .current_mode = MODE_INSERT,
+      // .current_mode = MODE_PICKER,
+      .current_mode = MODE_INSERT,
       // .current_mode = MODE_FREE_LINE,
       // .current_mode = MODE_BRUSH,
 
@@ -176,9 +176,11 @@ int main(int argc, char *argv[]) {
   // status will clear it otherwise
   update_screen_size();
 
-  mvwprintw(status_interface->msg_win, 0, 0, "MSG");
-  mvwprintw(status_interface->info_win, 0, 0, "INFO");
-  mvwprintw(status_interface->mode_win, 0, 0, "MODE");
+#ifdef DEBUG
+  mvwprintw(status_interface->msg_win, 0, 0, "MSG (debug)");
+  mvwprintw(status_interface->info_win, 0, 0, "INFO (debug)");
+  mvwprintw(status_interface->mode_win, 0, 0, "MODE (debug)");
+#endif
 
   char welcome_msg[] = "COLLASCII: <TAB> to switch modes, <CTRL-C> to quit";
   print_msg_win(welcome_msg);
@@ -218,10 +220,13 @@ void setup_colors() {
 }
 
 /* Update canvas with character at cursor current position.
+ *
+ * Changes the canvas and updates the ncurses `canvas_win` with the change.
  */
 void front_setcharcursor(char ch) {
-  canvas_scharyx(view->canvas, cursor_y_to_canvas(cursor) - 1 + view->y,
-                 cursor_x_to_canvas(cursor) - 1 + view->x, ch);
+  canvas_scharyx(view->canvas, cursor->y + view->y, cursor->x + view->x, ch);
+  mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor),
+           ch);
 }
 
 void redraw_canvas_win() {
@@ -257,7 +262,6 @@ void redraw_canvas_win() {
 
 void refresh_screen() {
   update_screen_size();
-  redraw_canvas_win();
   wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
 
   wrefresh(status_interface->msg_win);
@@ -302,6 +306,8 @@ void update_screen_size() {
     if (cursor->y >= view_max_y) {
       cursor->y = view_max_y;
     }
+
+    redraw_canvas_win();
   }
 }
 
