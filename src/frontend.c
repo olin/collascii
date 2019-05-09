@@ -92,6 +92,8 @@ int main(int argc, char *argv[]) {
         canvas = net_init(argv[2], "");
       } else if (argc == 4) {
         canvas = net_init(argv[2], argv[3]);
+      } else {
+        logd("wrong number of arguments\n");
       }
 
       net_cfg = net_getcfg();
@@ -120,6 +122,7 @@ int main(int argc, char *argv[]) {
     }
     // canvas_resize(&canvas, 100, 100);
   } else {
+    logd("making blank canvas\n");
     canvas = canvas_new_blank(100, 100);
   }
 
@@ -142,9 +145,12 @@ int main(int argc, char *argv[]) {
 
   // ENABLE MOUSE INPUT
   // grab only mouse movement and left mouse press/release
+#ifndef LOG_KEYS
+  mousemask(REPORT_MOUSE_POSITION | BUTTON1_PRESSED | BUTTON1_RELEASED, NULL);
+#endif
+#ifdef LOG_KEYS
   mmask_t return_mask = mousemask(
       REPORT_MOUSE_POSITION | BUTTON1_PRESSED | BUTTON1_RELEASED, NULL);
-#ifdef LOG_KEYS
   logd("Returned mouse mask: %li\n", (long int)return_mask);
 #endif
   // get mouse updates faster at the expense of not registering "clicks"

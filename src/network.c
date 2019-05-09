@@ -36,6 +36,7 @@ Canvas *net_init(char *in_hostname, char *in_port) {
 
   // Set port and hostname
   if (strcmp(in_port, "")) {
+    logd("setting port to %s\n", in_port);
     sscanf(in_port, "%i", &port);
   }
   hostname = strdup(in_hostname);
@@ -98,6 +99,7 @@ void net_handler(View *view) {
   char ch = msg_buf[strlen(msg_buf) - 1];  // -1 for '\n'
 
   char *command = strtok(msg_buf, " ");
+  logd(command);
   if (!strcmp(command, "s")) {
     int y = atoi(strtok(NULL, " "));
     int x = atoi(strtok(NULL, " "));
