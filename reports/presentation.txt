@@ -188,16 +188,35 @@ EXAMPLE - CODE DOCUMENTATION                                                  00
 |                                                                            |16
 |                                                                          06|17
 \----------------------------------------------------------------------------/18
+/-------------------------------+--------------------------------------------\00  Lesson - Variadic Functions (Evan)
+| LESSON 1 - VARIADIC FUNCTIONS |                                            |01
++-------------------------------+                                            |02
+|                                                                            |03
+| * How do both `printf(foo);` and `printf(foo, foo1, foo2, foo3);` work?    |04
+|                                                                            |05
+| * Use `<stdarg.h>`:                                                        |06
+|   * Make the real function with `...`:                                     |07
+|     ```c                                                                   |08
+|    void foo(char fmt, ...) {                                               |09
+|       va_list argp;                                                        |10
+|       va_start(argp, thing1);                                              |11
+|       vprintf(fmt, argp);  // call a va_list variant or use it yourself    |12
+|       va_end(argp);                                                        |13
+|     }                                                                      |14
+|     ```                                                                    |15
+|   * We used this to print to specific ncurses windows nicely               |16
+|                                                                          08|17
+\----------------------------------------------------------------------------/18
 /--------------------------------------------+-------------------------------\00  Lesson - Macros (Evan)
-| LESSON 1 - DEBUGGING THE FRONTEND & MACROS |                               |01  TODO: fill this in
+| LESSON 2 - DEBUGGING THE FRONTEND & MACROS |                               |01
 +--------------------------------------------+                               |02
 |                                                                            |03
-| *                                                                          |04
+| * lots of complex function interactions to debug                           |04
 |                                                                            |05
-|                                                                            |06
-|                                                                            |07
+| * sadly, ncurses uses stdin and stdout - printing to stdout or stderr      |06
+|   writes to the screen in an unpleasant manner                             |07
 |                                                                            |08
-|                                                                            |09
+| * solution: let ncurses keep stdout, but use stderr for logging/debugging  |09
 |                                                                            |10
 |                                                                            |11
 |                                                                            |12
@@ -207,24 +226,24 @@ EXAMPLE - CODE DOCUMENTATION                                                  00
 |                                                                            |16
 |                                                                          07|17
 \----------------------------------------------------------------------------/18
-/-------------------------------+--------------------------------------------\00  Lesson - Variadic Functions (Evan)
-| LESSON 2 - VARIADIC FUNCTIONS |                                            |01  TODO: fill this in
-+-------------------------------+                                            |02
+/----------------------------------------------------+-----------------------\00  Lesson - Macros (Evan)
+| LESSON 2 - DEBUGGING THE FRONTEND & MACROS (CONT.) |                       |01
++----------------------------------------------------+                       |02
 |                                                                            |03
-| *                                                                          |04
-|                                                                            |05
-|                                                                            |06
-|                                                                            |07
+| * syntax:                                                                  |04
+|   ```C                                                                     |05
+|   #define foo(bar) printf(bar)  // macro function syntaxout or stderr      |06
+|   #define eprintf(...) fprintf(stderr, __VA_ARGS__)  // variadic syntax    |07
 |                                                                            |08
-|                                                                            |09
-|                                                                            |10
-|                                                                            |11
-|                                                                            |12
-|                                                                            |13
-|                                                                            |14
+|   #define foo2(bar) \  // multiline macro function                         |09
+|   do { \               // use a do-while so a semicolon works when it's    |10
+|     thing1(bar); \     // "called": `foo2(bar);`                           |11
+|     thing2(bar); \                                                         |12
+|   } while (0)                                                              |13
+|   ```                                                                      |14
 |                                                                            |15
 |                                                                            |16
-|                                                                          08|17
+|                                                                          07|17
 \----------------------------------------------------------------------------/18
 /-------------------------------------+--------------------------------------\00  Feature - Networked (Matt)
 | COOL FAETURE X - CATCHY TITLE HERE! |                                      |01  * Matt: feign confusion about unfinished slide
