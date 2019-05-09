@@ -3,6 +3,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,19 +25,21 @@ int fd;
 int sockfd;
 FILE *sockstream;
 int result;
-char hostname[50];
+char *hostname;
 struct hostent *hostinfo;
 struct sockaddr_in address;
-int networking_enabled = 0;
+
+bool networking_enabled = false;
 
 Canvas *net_init(char *in_hostname, char *in_port) {
   Canvas *canvas;
+  networking_enabled = true;
 
   // Set port and hostname
   if (strcmp(in_port, "")) {
     sscanf(in_port, "%i", &port);
   }
-  strcpy(hostname, in_hostname);
+  hostname = strdup(in_hostname);
 
   sockfd = socket(AF_INET, SOCK_STREAM, 0);
   hostinfo = gethostbyname(hostname);
