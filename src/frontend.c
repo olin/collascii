@@ -131,8 +131,7 @@ int main(int argc, char *argv[]) {
 
   /* initialize your non-curses data structures here */
 
-  (void)signal(SIGINT | SIGKILL | SIGTERM,
-               finish); /* arrange interrupts to terminate */
+  (void)signal(SIGINT, finish); /* arrange interrupts to terminate */
 
   (void)initscr();      /* initialize the curses library */
   keypad(stdscr, TRUE); /* enable keyboard mapping */
