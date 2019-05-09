@@ -188,6 +188,63 @@ EXAMPLE - CODE DOCUMENTATION                                                  00
 |                                                                            |16
 |                                                                          10|17
 \----------------------------------------------------------------------------/18
+/-----------------+----------------------------------------------------------\00  What we learned (Adam)
+| STATE           |                                                          |01
++-----------------+                                                          |02
+|                                                                            |03
+| typedef struct {               typedef struct {                            |04
+|   int ch_in;                     int num_cols, num_rows;                   |05
+|   Cursor *cursor;                char **rows;                              |06
+|   Mode_ID current_mode;        } Canvas;                                   |07
+|                                                                            |08
+|   Mode_ID last_canvas_mode;                                                |09
+|   int last_arrow_direction;                                                |10
+|   View *view;                                                              |11
+|   Cursor *last_cursor;                                                     |12
+|   char *filepath;                                                          |13
+| } State;                                                                   |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          10|17
+\----------------------------------------------------------------------------/18
+/-----------------+----------------------------------------------------------\00  TEMPLATE CONTENT
+| NETWORK         |                                                          |01
+|-----------------+                                                          |02
+|                                                                            |03
+| API:                                                                       |04
+|                                                                            |05
+|                                                                            |06
+|   `s y x c` sets the spot `(x,y)`                                          |07
+|                                                                            |08
+|   `c` makes the server respond with the entire canvas                      |09
+|                                                                            |10
+|   `q` closes the connection                                                |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          ##|17
+\----------------------------------------------------------------------------/18
+/-----------------+----------------------------------------------------------\00  TEMPLATE CONTENT
+| NETWORK         |                                                          |01
+|-----------------+                                                          |02
+|                                                                            |03
+|                                                                            |04
+|                                                                            |05
+|                                                                            |06
+|                                                                            |07
+|       fdopen() is wonderful. It makes a FILE * wrapper for sockets.        |08
+|                                                                            |09
+|       Then you can run functions like:                                     |10
+|                                                                            |11
+|        getline()                                                           |12
+|        and                                                                 |13
+|        fprintf()                                                           |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          ##|17
+\----------------------------------------------------------------------------/18
 /-------------------------------+--------------------------------------------\00  Lesson - Variadic Functions (Evan)
 | LESSON 1 - VARIADIC FUNCTIONS |                                            |01
 +-------------------------------+                                            |02
