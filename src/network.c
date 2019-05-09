@@ -96,32 +96,50 @@ Net_cfg *net_getcfg() {
 /* Reads incoming packets and updates canvas.
  * Need to run redraw_canvas_win() after calling!
  */
-void net_handler(View *view) {
-  logd("receiving: ");
-  getline(&msg_buf, &msg_size, sockstream);
-  logd(msg_buf);
-  char ch = msg_buf[strlen(msg_buf) - 2];  // -2 for '\n'
+int net_handler(View *view) {
+  if (sockfd != NULL) {
+    logd("receiving: ");
+    getline(&msg_buf, &msg_size, sockstream);
+    logd("[%d]", msg_size);
+    logd(msg_buf);
+    char ch = msg_buf[strlen(msg_buf) - 2];  // -2 for '\n'
 
-  char *command = strtok(msg_buf, " ");
-  logd(command);
-  if (!strcmp(command, "s")) {
-    int y = atoi(strtok(NULL, " "));
-    int x = atoi(strtok(NULL, " "));
+    char *command = strtok(msg_buf, " \n");
+    logd("\"%s\"", command);
+    if (!strcmp(command, "s")) {
+      int y = atoi(strtok(NULL, " "));
+      int x = atoi(strtok(NULL, " "));
 
-    canvas_scharyx(view->canvas, y, x, ch);
+      canvas_scharyx(view->canvas, y, x, ch);
+    }
+    if (!strcmp(command, "q")) {
+      logd("closing socket\n");
+      close(sockfd);
+      return 1;
+    }
+  } else {
+    logd("socket closed\n");
+    return 1;
   }
+
+  return 0;
 }
 
 /* Sends a set char command to the server
  *
  */
-void net_send_char(int y, int x, char ch) {
+int net_send_char(int y, int x, char ch) {
   char send_buf[50];
   snprintf(send_buf, 50, "s %d %d %c\n", y, x, ch);
   logd(send_buf);
-  write(sockfd, send_buf, strlen(send_buf));
+  if (write(sockfd, send_buf, strlen(send_buf)) < 0) {
+    logd("write error");
+    return -1;
+  }
 
   logd("sending: s %d %d %c\n", y, x, ch);
   // DON"T TRUST FPRINTF!!! It has failed me!
   // fprintf(sockstream, "s %d %d %c\n", y, x, ch);
+
+  return 0;
 }

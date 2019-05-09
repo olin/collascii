@@ -233,9 +233,14 @@ int main(int argc, char *argv[]) {
 
       for (fd = 0; fd < FD_SETSIZE; fd++) {
         if (FD_ISSET(fd, &testfds)) {
-          if (fd == net_cfg->sockfd) {  // Accept data from open socket
+          if (networked &&
+              fd == net_cfg->sockfd) {  // Accept data from open socket
             logd("recv network\n");
-            net_handler(view);
+            // If server disconnects
+            if (net_handler(view) != 0) {
+              networked = false;
+              print_msg_win("Server Disconnect!");
+            };
             redraw_canvas_win();  // TODO: draw single char update
             refresh_screen();
           } else if (fd == 0) {  // process keyboard activity

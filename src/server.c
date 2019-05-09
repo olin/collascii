@@ -85,6 +85,20 @@ void send_message(char *s, int uid) {
   pthread_mutex_unlock(&clients_mutex);
 }
 
+/* Send a message to all clients */
+void broadcast_message(char *s) {
+  pthread_mutex_lock(&clients_mutex);
+  for (int i = 0; i < MAX_CLIENTS; ++i) {
+    if (clients[i]) {
+      if (write(clients[i]->connfd, s, strlen(s)) < 0) {
+        perror("Write to descriptor failed");
+        break;
+      }
+    }
+  }
+  pthread_mutex_unlock(&clients_mutex);
+}
+
 /* Send message to sender */
 void send_message_self(const char *s, int connfd) {
   if (write(connfd, s, strlen(s)) < 0) {
@@ -201,7 +215,15 @@ void *handle_client(void *arg) {
   return NULL;
 }
 
+/* send quit command to all clients */
+void finish(int sig) {
+  broadcast_message("q\n");
+  exit(sig);
+}
+
 int main(int argc, char *argv[]) {
+  (void)signal(SIGINT, finish); /* arrange interrupts to terminate */
+
   if (argc > 1) {
     if (strcmp(argv[1], "-") == 0) {
       // read from stdin if specified

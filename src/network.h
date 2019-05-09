@@ -16,7 +16,7 @@ typedef struct NET_CFG {
 
 Canvas *net_init(char *hostname, char *port);
 Net_cfg *net_getcfg();
-void net_handler(View *view);
-void net_send_char(int y, int x, char ch);
+int net_handler(View *view);
+int net_send_char(int y, int x, char ch);
 
 #endif
