@@ -50,6 +50,33 @@ mode_brush_config_t mode_brush_config = {
 // GENERAL FUNCTIONS //
 ///////////////////////
 
+void cmd_read_from_file(State *state) {
+  FILE *f = fopen(state->filepath, "r");
+  if (f == NULL) {
+    perror("read_from_file");
+    exit(1);
+  }
+  Canvas *old = state->view->canvas;
+  state->view->canvas = canvas_readf(f);
+  fclose(f);
+  canvas_free(old);
+}
+
+void cmd_write_to_file(State *state) {
+  FILE *f = fopen(state->filepath, "w");
+  if (f == NULL) {
+    perror("write_to_file");
+    exit(1);
+  }
+  canvas_fprint_trim(f, state->view->canvas);
+  fclose(f);
+}
+
+void cmd_trim_canvas(State *state) {
+  Canvas *orig = state->view->canvas;
+  state->view->canvas = canvas_trimc(orig, ' ', true, true, false, false);
+}
+
 int call_mode(Mode_ID mode, reason_t reason, State *state) {
   return modes[mode].mode_function(reason, state);
 }
@@ -79,6 +106,14 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
       switch_mode(MODE_PICKER, state);
     }
     return 0;
+  } else if (c == KEY_CTRL('r')) {
+    cmd_read_from_file(state);
+    print_status("Read from file '%s'\n", state->filepath);
+  } else if (c == KEY_CTRL('s')) {
+    cmd_write_to_file(state);
+    print_status("Saved to file '%s'\n", state->filepath);
+  } else if (c == KEY_CTRL('t')) {
+    cmd_trim_canvas(state);
   } else {
     // pass character on to mode
     state->ch_in = c;

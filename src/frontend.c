@@ -1,6 +1,7 @@
 #include <signal.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "canvas.h"
 #include "cursor.h"
@@ -16,6 +17,8 @@
 WINDOW *canvas_win, *status_win;
 Cursor *cursor;
 View *view;
+
+char *DEFAULT_FILEPATH = "art.txt";
 
 #ifdef DEBUG
 #define LOG_TO_FILE
@@ -56,6 +59,36 @@ int main(int argc, char *argv[]) {
   }
 #endif
   logd("Starting frontend\n");
+
+  // init canvas from file
+  // run before ncurses init so stdin will read correctly
+  Canvas *canvas;
+  // load canvas from file if argument exists
+  char *in_filename = "";
+  if (argc > 1) {
+    if (strcmp(argv[1], "-") == 0) {
+      // read from stdin if specified
+      logd("Reading from stdin\n");
+      canvas = canvas_readf_norewind(stdin);
+      // reopen stdin b/c EOF has been sent
+      // `/dev/tty` points to current terminal
+      // note that this is NOT portable
+      freopen("/dev/tty", "rw", stdin);
+    } else {
+      in_filename = argv[1];
+      FILE *f = fopen(in_filename, "r");
+      logd("Reading from '%s'\n", in_filename);
+      if (f == NULL) {
+        perror("savefile read");
+        exit(1);
+      }
+      canvas = canvas_readf(f);
+      fclose(f);
+    }
+    // canvas_resize(&canvas, 100, 100);
+  } else {
+    canvas = canvas_new_blank(100, 100);
+  }
 
   /* initialize your non-curses data structures here */
 
@@ -100,9 +133,8 @@ int main(int argc, char *argv[]) {
 
   cursor = cursor_new();
   Cursor *last_cursor = cursor_new();
-  Canvas *canvas = canvas_new_blank(1000, 1000);
 
-  view = view_new_startpos(canvas, 300, 300);
+  view = view_new_startpos(canvas, 0, 0);
 
   // Enable keyboard mapping
   keypad(canvas_win, TRUE);
@@ -121,6 +153,7 @@ int main(int argc, char *argv[]) {
       .last_canvas_mode = MODE_INSERT,
       .view = view,
       .last_cursor = last_cursor,
+      .filepath = in_filename[0] == '\0' ? DEFAULT_FILEPATH : in_filename,
   };
   State *state = &new_state;
 
