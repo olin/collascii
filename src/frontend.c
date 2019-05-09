@@ -176,9 +176,11 @@ int main(int argc, char *argv[]) {
   // status will clear it otherwise
   update_screen_size();
 
-  mvwprintw(status_interface->msg_win, 0, 0, "MSG");
-  mvwprintw(status_interface->info_win, 0, 0, "INFO");
-  mvwprintw(status_interface->mode_win, 0, 0, "MODE");
+#ifdef DEBUG
+  mvwprintw(status_interface->msg_win, 0, 0, "MSG (debug)");
+  mvwprintw(status_interface->info_win, 0, 0, "INFO (debug)");
+  mvwprintw(status_interface->mode_win, 0, 0, "MODE (debug)");
+#endif
 
   char welcome_msg[] = "COLLASCII: <TAB> to switch modes, <CTRL-C> to quit";
   print_msg_win(welcome_msg);
