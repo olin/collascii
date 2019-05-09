@@ -20,7 +20,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-// #include "network.h"
 #include "canvas.h"
 
 static _Atomic unsigned int cli_count = 0;
