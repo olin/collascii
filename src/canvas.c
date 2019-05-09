@@ -361,6 +361,7 @@ inline Canvas *canvas_trim(Canvas *orig, int right, int bottom, int left,
  * Top left of canvas is (0, 0).
  */
 void canvas_scharyx(Canvas *canvas, int y, int x, char c) {
+  assert(canvas_isin_yx(canvas, y, x));
   canvas->rows[y][x] = c;
 }
 
@@ -369,6 +370,7 @@ void canvas_scharyx(Canvas *canvas, int y, int x, char c) {
  * Index starts at 0 at position (0, 0) and increments first horizontally.
  */
 void canvas_schari(Canvas *canvas, int i, char c) {
+  assert(canvas_isin_i(canvas, i));
   int row = i / canvas->num_cols;
   int col = i % canvas->num_cols;
   canvas->rows[row][col] = c;
@@ -378,8 +380,7 @@ void canvas_schari(Canvas *canvas, int i, char c) {
  *
  */
 char canvas_gcharyx(Canvas *canvas, int y, int x) {
-  assert(x <= canvas->num_cols);
-  assert(y <= canvas->num_rows);
+  assert(canvas_isin_yx(canvas, y, x));
   return canvas->rows[y][x];
 }
 
@@ -387,6 +388,7 @@ char canvas_gcharyx(Canvas *canvas, int y, int x) {
  *
  */
 char canvas_gchari(Canvas *canvas, int i) {
+  assert(canvas_isin_i(canvas, i));
   int row = i / canvas->num_cols;
   int col = i % canvas->num_cols;
   return canvas->rows[row][col];
