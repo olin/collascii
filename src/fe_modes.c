@@ -60,6 +60,7 @@ void cmd_read_from_file(State *state) {
   state->view->canvas = canvas_readf(f);
   fclose(f);
   canvas_free(old);
+  redraw_canvas_win();
 }
 
 void cmd_write_to_file(State *state) {
@@ -75,6 +76,7 @@ void cmd_write_to_file(State *state) {
 void cmd_trim_canvas(State *state) {
   Canvas *orig = state->view->canvas;
   state->view->canvas = canvas_trimc(orig, ' ', true, true, false, false);
+  redraw_canvas_win();
 }
 
 /* Update the info subwindow in the status win
@@ -138,7 +140,6 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     // pass character on to mode
     state->ch_in = c;
     call_mode(state->current_mode, NEW_KEY, state);
-    update_info_win(state);
   }
 
   // Move UI cursor to the right place
@@ -283,6 +284,7 @@ int mode_pan(reason_t reason, State *state) {
     view_pan_ch(state->ch_in, state->view);
   }
 
+  redraw_canvas_win();
   return 0;
 }
 

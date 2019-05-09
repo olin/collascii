@@ -220,8 +220,9 @@ void setup_colors() {
 /* Update canvas with character at cursor current position.
  */
 void front_setcharcursor(char ch) {
-  canvas_scharyx(view->canvas, cursor_y_to_canvas(cursor) - 1 + view->y,
-                 cursor_x_to_canvas(cursor) - 1 + view->x, ch);
+  canvas_scharyx(view->canvas, cursor->y + view->y, cursor->x + view->x, ch);
+  mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor),
+           ch);
 }
 
 void redraw_canvas_win() {
@@ -257,7 +258,6 @@ void redraw_canvas_win() {
 
 void refresh_screen() {
   update_screen_size();
-  redraw_canvas_win();
   wmove(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor));
 
   wrefresh(status_interface->msg_win);
@@ -302,6 +302,8 @@ void update_screen_size() {
     if (cursor->y >= view_max_y) {
       cursor->y = view_max_y;
     }
+
+    redraw_canvas_win();
   }
 }
 
