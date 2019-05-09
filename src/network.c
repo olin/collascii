@@ -110,9 +110,5 @@ void net_handler(View *view) {
 
 void net_send_char(int y, int x, char ch) {
   logd("sending: s %d %d %c\n", y, x, ch);
-  char send_buf[50];
-  snprintf(send_buf, 50, "s %d %d %c\n", y, x, ch);
-  logd(send_buf);
-  write(sockfd, send_buf, strlen(send_buf));
-  //   fprintf(sockstream, "s %d %d %c\n", x, y, ch);
+  fprintf(sockstream, "s %d %d %c\n", x, y, ch);
 }
