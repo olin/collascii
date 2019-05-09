@@ -167,6 +167,8 @@ We found this project very exciting and are happy with the current state of the 
 
 > I'd like to work with 3rd-party libraries, implement a concurrent networked program, and learn how to write a terminal interface. I'm looking forward to writing thoughtful APIs that are used in multiple ways, and above all else I want to create something that people will enjoy using.
 
+
+
 ### Matt
 
 > I want to make something that says "Look I can write C, but not for important things". Learning goals include writing good apis, writing good C, designing a decent CLI, and learning about networking hands on.

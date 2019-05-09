@@ -3,7 +3,7 @@ Sized for the canvas window in an 80x24 terminal.
 To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
                         |
                         |  General Notes:
-                        |  TODO: double-check slide numbers
+                        |
                         |
                         |
                         |
@@ -37,24 +37,24 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
 |                                                                          01|17
 \----------------------------------------------------------------------------/18
                                                                               00
-                                                                              01  TODO: fix COLLASCII placement, move slide?
+                                                                              01
                                                           60_                 02
                                                       q##QGAU&&j<             03
                                                     K@@ENNRqVUz2<``.          04
                                                   =RE@@@ANAGGUzzi~  -         05
-                                                  `#MMMMNNRqqW2zx_`--         06
-                               /-------------\   -A@MMMM@ERR8qqzzi|||ij       07
-                               |             |    R@@EqQKqd2zjj?zz<?/v`       08
-                               |  COLLASCII  |     qx_~@U.H| ~_=Ir&2~=_       09
-                               |             |     WW8qBlIbNBNKzrz25zz0       10
-                               \-------------/     B##@Nz<oARZRozrr&zz        11
-                                                   RNf|x+_2~K3I/zv22_         12
-                                                    AoM/RN~,  U<t???          13
+                                 /---------\      `#MMMMNNRqqW2zx_`--         06
+                                 |COLLASCII|     -A@MMMM@ERR8qqzzi|||ij       07
+                                 \---------/      R@@EqQKqd2zjj?zz<?/v`       08
+                                            \      qx_~@U.H| ~_=Ir&2~=_       09
+                                             \     WW8qBlIbNBNKzrz25zz0       10
+                                              \    B##@Nz<oARZRozrr&zz        11
+                                               \   RNf|x+_2~K3I/zv22_         12
+                                                --  AoM/RN~,  U<t???          13
                                                     qG/#@U333Ax++j?v          14
                                                      RNEMMgRd?=(]j/z_o        15
                                                        H8Pe=/<<t]???/@        16
                                                    NNo^MRq0~</t(j\/'H@HF      17
-                                               M@NM@MoMMoP//]=<?]=~HWWHFAWAa0218
+                                               M@NM@MoMMoP//]=<?]=~HWWHFAWAaoa18
 /------------+---------------------------------------------------------------\00  What It Is (Matt)
 | WHAT IT IS |                                                               |01
 +------------+-                                                              |02
@@ -167,7 +167,7 @@ EXAMPLE - CODE DOCUMENTATION                                                  00
 |                                                                            |14
 |                                                                            |15
 |                                                                            |16
-|                                                                          05|17
+|                                                                          08|17
 \----------------------------------------------------------------------------/18
 /-----------------+----------------------------------------------------------\00  What we learned (Adam)
 | WHAT WE LEARNED |                                                          |01
@@ -186,37 +186,37 @@ EXAMPLE - CODE DOCUMENTATION                                                  00
 |                                                                            |14
 |                                                                            |15
 |                                                                            |16
-|                                                                          06|17
-\----------------------------------------------------------------------------/18
-/--------------------------------------------+-------------------------------\00  Lesson - Macros (Evan)
-| LESSON 1 - DEBUGGING THE FRONTEND & MACROS |                               |01  TODO: fill this in
-+--------------------------------------------+                               |02
-|                                                                            |03
-| *                                                                          |04
-|                                                                            |05
-|                                                                            |06
-|                                                                            |07
-|                                                                            |08
-|                                                                            |09
-|                                                                            |10
-|                                                                            |11
-|                                                                            |12
-|                                                                            |13
-|                                                                            |14
-|                                                                            |15
-|                                                                            |16
-|                                                                          07|17
+|                                                                          10|17
 \----------------------------------------------------------------------------/18
 /-------------------------------+--------------------------------------------\00  Lesson - Variadic Functions (Evan)
-| LESSON 2 - VARIADIC FUNCTIONS |                                            |01  TODO: fill this in
+| LESSON 1 - VARIADIC FUNCTIONS |                                            |01
 +-------------------------------+                                            |02
 |                                                                            |03
-| *                                                                          |04
+| * How do both `printf(foo);` and `printf(foo, foo1, foo2, foo3);` work?    |04
 |                                                                            |05
-|                                                                            |06
-|                                                                            |07
+| * Use `<stdarg.h>`:                                                        |06
+|   * Make the real function with `...`:                                     |07
+|     ```c                                                                   |08
+|    void foo(char fmt, ...) {                                               |09
+|       va_list argp;                                                        |10
+|       va_start(argp, thing1);                                              |11
+|       vprintf(fmt, argp);  // call a va_list variant or use it yourself    |12
+|       va_end(argp);                                                        |13
+|     }                                                                      |14
+|     ```                                                                    |15
+|   * We used this to print to specific ncurses windows nicely               |16
+|                                                                          11|17
+\----------------------------------------------------------------------------/18
+/--------------------------------------------+-------------------------------\00  Lesson - Macros (Evan)
+| LESSON 2 - DEBUGGING THE FRONTEND & MACROS |                               |01
++--------------------------------------------+                               |02
+|                                                                            |03
+| * lots of complex function interactions to debug                           |04
+|                                                                            |05
+| * sadly, ncurses uses stdin and stdout - printing to stdout or stderr      |06
+|   writes to the screen in an unpleasant manner                             |07
 |                                                                            |08
-|                                                                            |09
+| * solution: let ncurses keep stdout, but use stderr for logging/debugging  |09
 |                                                                            |10
 |                                                                            |11
 |                                                                            |12
@@ -224,7 +224,26 @@ EXAMPLE - CODE DOCUMENTATION                                                  00
 |                                                                            |14
 |                                                                            |15
 |                                                                            |16
-|                                                                          08|17
+|                                                                          12|17
+\----------------------------------------------------------------------------/18
+/----------------------------------------------------+-----------------------\00  Lesson - Macros (Evan)
+| LESSON 2 - DEBUGGING THE FRONTEND & MACROS (CONT.) |                       |01
++----------------------------------------------------+                       |02
+|                                                                            |03
+| * syntax:                                                                  |04
+|   ```C                                                                     |05
+|   #define foo(bar) printf(bar)  // macro function syntaxout or stderr      |06
+|   #define eprintf(...) fprintf(stderr, __VA_ARGS__)  // variadic syntax    |07
+|                                                                            |08
+|   #define foo2(bar) \  // multiline macro function                         |09
+|   do { \               // use a do-while so a semicolon works when it's    |10
+|     thing1(bar); \     // "called": `foo2(bar);`                           |11
+|     thing2(bar); \                                                         |12
+|   } while (0)                                                              |13
+|   ```                                                                      |14
+|                                                                            |15
+|                                                                            |16
+|                                                                          13|17
 \----------------------------------------------------------------------------/18
 /-------------------------------------+--------------------------------------\00  Feature - Networked (Matt)
 | COOL FAETURE X - CATCHY TITLE HERE! |                                      |01  * Matt: feign confusion about unfinished slide
@@ -243,7 +262,7 @@ EXAMPLE - CODE DOCUMENTATION                                                  00
 |     e                                                                      |14
 |                                                                            |15
 |                                                                            |16
-|                                                                          06|17
+|                                                                          09|17
 \----------------------------------------------------------------------------/18
 /----------------------------------------------------------------------------\00  Fin.
 |                                                                            |01  * give people access?
@@ -262,7 +281,7 @@ EXAMPLE - CODE DOCUMENTATION                                                  00
 |                                                                            |14
 |                                                                            |15
 |                                                                            |16
-| Thanks! <3 Matt, Evan, and Adam                                          01|17
+| Thanks! <3 Matt, Evan, and Adam                                          10|17
 \----------------------------------------------------------------------------/18
                                                                               00  This slide intentionally left blank.
                                                                               01
