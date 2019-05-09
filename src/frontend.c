@@ -440,10 +440,18 @@ int print_mode_win(char *format, ...) {
   return res;
 }
 
-/* Update the info subwindow in the status win
+/* Update the info subwindow in status_win with relevant info.
+ *
+ * Prints the current mode and cursor coordinates, right-aligned.
  */
 void update_info_win(Mode_ID current_mode, int x, int y) {
-  print_info_win("[%s](%i,%i)", modes[current_mode].name, x, y);
+  WINDOW *mw = status_interface->info_win;
+  char buffer[INFO_WIDTH + 1];
+  char *mode_name = modes[current_mode].name;
+  int width = snprintf(buffer, INFO_WIDTH + 1, "[%s](%i,%i)", mode_name, x, y);
+  wclear(mw);
+  wmove(mw, 0, INFO_WIDTH - width);
+  waddnstr(mw, buffer, INFO_WIDTH);
 }
 
 void finish(int sig) {
