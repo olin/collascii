@@ -97,28 +97,23 @@ Net_cfg *net_getcfg() {
  * Need to run redraw_canvas_win() after calling!
  */
 int net_handler(View *view) {
-  if (sockfd != NULL) {
-    logd("receiving: ");
-    getline(&msg_buf, &msg_size, sockstream);
-    logd("[%d]", msg_size);
-    logd(msg_buf);
-    char ch = msg_buf[strlen(msg_buf) - 2];  // -2 for '\n'
+  logd("receiving: ");
+  getline(&msg_buf, &msg_size, sockstream);
+  logd("[%d]", msg_size);
+  logd(msg_buf);
+  char ch = msg_buf[strlen(msg_buf) - 2];  // -2 for '\n'
 
-    char *command = strtok(msg_buf, " \n");
-    logd("\"%s\"", command);
-    if (!strcmp(command, "s")) {
-      int y = atoi(strtok(NULL, " "));
-      int x = atoi(strtok(NULL, " "));
+  char *command = strtok(msg_buf, " \n");
+  logd("\"%s\"", command);
+  if (!strcmp(command, "s")) {
+    int y = atoi(strtok(NULL, " "));
+    int x = atoi(strtok(NULL, " "));
 
-      canvas_scharyx(view->canvas, y, x, ch);
-    }
-    if (!strcmp(command, "q")) {
-      logd("closing socket\n");
-      close(sockfd);
-      return 1;
-    }
-  } else {
-    logd("socket closed\n");
+    canvas_scharyx(view->canvas, y, x, ch);
+  }
+  if (!strcmp(command, "q")) {
+    logd("closing socket\n");
+    close(sockfd);
     return 1;
   }
 
