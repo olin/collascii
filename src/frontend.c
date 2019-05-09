@@ -1,3 +1,31 @@
+/*
+ *   ___ ___  _    _      _   ___  ___ ___ ___
+ *  / __/ _ \| |  | |    /_\ / __|/ __|_ _|_ _|
+ * | (_| (_) | |__| |__ / _ \\__ \ (__ | | | |
+ *  \___\___/|____|____/_/ \_\___/\___|___|___|
+ *
+ *   Yesterday’s future, tomorrow!
+ *
+ * A collaborative ASCII editor, in your terminal.
+ *
+ * By Matthew Beaudouin, Evan New-Schmidt, Adam Novotny
+ *
+ * +---------------------------------------+
+ * | 0 -- X, COLS                          | canvas window
+ * | |                                     |
+ * | Y, ROWS                               |
+ * |                                       |
+ * |                                       |
+ * |                                       |
+ * |                                       |
+ * |                                       |
+ * |                                       |
+ * +---------------------------------------+
+ * |Saved to file "art.txt"   [INSERT](2,6)| status window
+ * |step: ON, TRANSPARENT: OFF             |
+ * +---------------------------------------+
+ */
+
 #include "frontend.h"
 
 #include <signal.h>
@@ -29,38 +57,6 @@ char *DEFAULT_FILEPATH = "art.txt";
 char *logfile_path = "out.txt";
 FILE *logfile = NULL;
 #endif
-
-// +---------------------------------------+
-// |                                       |
-// | Hello                                 |
-// | World                                 |
-// |                                       |
-// |                                       |
-// |                                       |
-// |                                       |
-// |                                       |
-// |                                       |
-// +---------------------------------------+
-// |Saved to file "art.txt"   [INSERT](2,6)|
-// |step: ON, TRANSPARENT: OFF             |
-// +---------------------------------------+
-
-/* Layout
- * ___________________________________________
- * | 0 -- X, COLS                           | canvas window
- * | |                                      |
- * | Y, LINES                               |
- * |                                        |
- * |                                        |
- * |                                        |
- * |                                        |
- * |                                        |
- * |                                        |
- * |________________________________________|
- * |<CTRL+H> for help          [INSERT](2,4)|  status window
- * |________________________________________|
- *
- */
 
 int main(int argc, char *argv[]) {
 #ifdef LOG_TO_FILE
