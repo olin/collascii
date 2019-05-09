@@ -225,11 +225,9 @@ int main(int argc, char *argv[]) {
       canvas = canvas_readf(f);
       fclose(f);
     }
-  }
-  // canvas_resize(&canvas, 100, 100);
-  else {
+  } else {
     printf("making blank canvas\n");
-    canvas = canvas_new_blank(100, 100);  // ONLY SQUARE CANVASES PLEASE!
+    canvas = canvas_new_blank(100, 100);
   }
 
   canvas_buf = malloc((sizeof(char) * canvas->num_cols * canvas->num_rows) + 1);
