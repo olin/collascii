@@ -49,6 +49,12 @@ mode_brush_config_t mode_brush_config = {
     .state = PAINT_OFF,
 };
 
+typedef struct {
+  Cursor *last_dir_change;
+} mode_insert_config_t;
+
+mode_insert_config_t mode_insert_config = {NULL};
+
 ///////////////////////
 // GENERAL FUNCTIONS //
 ///////////////////////
@@ -269,11 +275,25 @@ int mode_insert(reason_t reason, State *state) {
     return 0;
   }
 
+  mode_insert_config_t *mode_cfg = &mode_insert_config;
+  // init config cursor
+  if (mode_cfg->last_dir_change == NULL) {
+    mode_cfg->last_dir_change = cursor_copy(state->cursor);
+  }
+
+  // watch for view shifts
+  const int vx = state->view->x;
+  const int vy = state->view->y;
   // insert mode behavior
   if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
       (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
     cursor_key_to_move(state->ch_in, state->cursor, state->view);
     state->last_arrow_direction = state->ch_in;
+
+    // update direction change cursor
+    Cursor *old = mode_cfg->last_dir_change;
+    mode_cfg->last_dir_change = cursor_copy(state->cursor);
+    cursor_free(old);
   } else {
     if (' ' <= state->ch_in &&
         state->ch_in <= '~') {  // check if ch is printable
@@ -286,7 +306,32 @@ int mode_insert(reason_t reason, State *state) {
       front_setcharcursor(' ');
     } else if (state->ch_in == KEY_DC) {
       front_setcharcursor(' ');
+    } else if (state->ch_in == KEY_ENTER) {
+      // return to beginning of "line" on ENTER
+      // TODO: check if out of view and recenter
+      if (state->last_arrow_direction == KEY_RIGHT ||
+          state->last_arrow_direction == KEY_LEFT) {
+        // return down if left/right
+        state->cursor->x = mode_cfg->last_dir_change->x;
+        cursor_move_down(state->cursor, state->view);
+        mode_cfg->last_dir_change->y = state->cursor->y;
+      } else if (state->last_arrow_direction == KEY_UP ||
+                 state->last_arrow_direction == KEY_DOWN) {
+        // return right if up/down
+        state->cursor->y = mode_cfg->last_dir_change->y;
+        cursor_move_right(state->cursor, state->view);
+        mode_cfg->last_dir_change->x = state->cursor->x;
+      }
     }
+  }
+  // update last_dir_change with view diffs
+  const int dx = vx - state->view->x;
+  const int dy = vy - state->view->y;
+  if (dx != 0) {
+    mode_cfg->last_dir_change->x += dx;
+  }
+  if (dy != 0) {
+    mode_cfg->last_dir_change->y += dy;
   }
   return 0;
 }
