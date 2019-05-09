@@ -121,7 +121,9 @@ void switch_mode(Mode_ID new_mode, State *state) {
 int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   // catching keypresses
   int c = wgetch(canvas_win);  // grab from window
+#ifdef LOG_KEYS
   logd("New key: '%c' (%d)\n", c, c);
+#endif
   if (c == KEY_TAB) {  // switching modes
     if (state->current_mode == MODE_PICKER &&
         state->last_canvas_mode != MODE_PICKER) {
@@ -360,8 +362,10 @@ int mode_brush(reason_t reason, State *state) {
       // handle mouse events
       MEVENT event;
       if (getmouse(&event) == OK) {
+#ifdef LOG_KEYS
         logd("New mouse event: (%i, %i), %li\n", event.x, event.y,
-             event.bstate);
+             (long int)event.bstate);
+#endif
         if (event.bstate & BUTTON1_PRESSED) {
           mode_cfg->state = PAINT_ON;
         } else if (event.bstate & BUTTON1_RELEASED) {
