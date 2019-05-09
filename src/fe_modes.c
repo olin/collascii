@@ -82,22 +82,21 @@ void cmd_trim_canvas(State *state) {
   redraw_canvas_win();
 }
 
-/* Update the info subwindow in the status win
- */
-void update_info_win(State *state) {
-  print_info_win("[%s](%i,%i)", modes[state->current_mode].name,
-                 state->view->x + state->cursor->x,
-                 state->view->y + state->cursor->y);
-}
-
 /* Call a mode given its Mode_ID.
  *
  * This makes sure info_win is always updated.
  */
 int call_mode(Mode_ID mode, reason_t reason, State *state) {
   int res = modes[mode].mode_function(reason, state);
-  update_info_win(state);
+  update_info_win_state(state);
   return res;
+}
+
+/* Wrapper of update_info_win for state
+ */
+inline void update_info_win_state(State *state) {
+  update_info_win(state->current_mode, state->view->x + state->cursor->x,
+                  state->view->y + state->cursor->y);
 }
 
 /* Switch to a different mode.

@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
 
   // bootstrap initial UI
   call_mode(state->current_mode, START, state);
-  update_info_win(state);
+  update_info_win_state(state);
 
   // Move cursor to starting location and redraw canvases
   refresh_screen();
@@ -438,6 +438,12 @@ int print_mode_win(char *format, ...) {
   int res = vw_printw(mw, format, argp);
   va_end(argp);
   return res;
+}
+
+/* Update the info subwindow in the status win
+ */
+void update_info_win(Mode_ID current_mode, int x, int y) {
+  print_info_win("[%s](%i,%i)", modes[current_mode].name, x, y);
 }
 
 void finish(int sig) {
