@@ -179,7 +179,7 @@ void *handle_client(void *arg) {
         printf("setting (%d,%d) to '%c'\n", x, y, c);
         canvas_scharyx(canvas, y, x, c);
 
-        sprintf(buff_out, "s %d %d %c\n", x, y, c);
+        sprintf(buff_out, "s %d %d %c\n", y, x, c);
         send_message(buff_out, cli->uid);
       }
     } else if (!strcmp(command, "c")) {

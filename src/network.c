@@ -96,7 +96,7 @@ void net_handler(View *view) {
   logd("receiving: ");
   getline(&msg_buf, &msg_size, sockstream);
   logd(msg_buf);
-  char ch = msg_buf[strlen(msg_buf) - 1];  // -1 for '\n'
+  char ch = msg_buf[strlen(msg_buf) - 2];  // -2 for '\n'
 
   char *command = strtok(msg_buf, " ");
   logd(command);
