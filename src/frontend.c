@@ -30,6 +30,7 @@
 
 #include <signal.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -78,14 +79,22 @@ int main(int argc, char *argv[]) {
   Canvas *canvas;
   // load canvas from file if argument exists
   char *in_filename = "";
+  bool networked = false;
+  fd_set testfds;
+  int fd;
+  Net_cfg *net_cfg;
+
   if (argc > 1) {
     /* If connecting to server */
     if (!strcmp(argv[1], "-s")) {
+      networked = true;
       if (argc == 3) {
         canvas = net_init(argv[2], "");
       } else if (argc == 4) {
         canvas = net_init(argv[2], argv[3]);
       }
+
+      net_cfg = net_getcfg();
 
       /* If reading from std in */
     } else if (strcmp(argv[1], "-") == 0) {
@@ -210,7 +219,32 @@ int main(int argc, char *argv[]) {
     master_handler(state, canvas_win, status_interface->info_win);
     refresh_screen();
   }
+  // If connected to server, check both network and keyboard streams
+  if (networked) {
+    while (1) {
+      testfds = net_cfg->clientfds;
+      select(FD_SETSIZE, &testfds, NULL, NULL, NULL);
 
+      for (fd = 0; fd < FD_SETSIZE; fd++) {
+        if (FD_ISSET(fd, &testfds)) {
+          if (fd == net_cfg->sockfd) { /*Accept data from open socket */
+            logd("recv network\n");
+            net_handler(view);
+            refresh_screen();
+          } else if (fd == 0) { /*process keyboard activity*/
+            master_handler(state, canvas_win, status_interface->info_win);
+            refresh_screen();
+          }
+        }
+      }
+    }
+    // If local, process keyboard stream
+  } else {
+    while (1) {
+      master_handler(state, canvas_win, status_interface->info_win);
+      refresh_screen();
+    }
+  }
   // Cleanup
   cursor_free(cursor);
   // TODO: destory status_interface

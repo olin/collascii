@@ -3,7 +3,6 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,11 +28,11 @@ char *hostname;
 struct hostent *hostinfo;
 struct sockaddr_in address;
 
-bool networking_enabled = false;
-
+/* Connects to server and initializes a canvas
+ *
+ */
 Canvas *net_init(char *in_hostname, char *in_port) {
   Canvas *canvas;
-  networking_enabled = true;
 
   // Set port and hostname
   if (strcmp(in_port, "")) {
@@ -78,4 +77,16 @@ Canvas *net_init(char *in_hostname, char *in_port) {
   logd("done reading\n");
 
   return canvas;
+}
+
+/* Returns new Net_cfg object with current clientfds and sockfd
+ *
+ */
+Net_cfg *net_getcfg() {
+  Net_cfg *config = malloc(sizeof(Net_cfg));
+
+  config->clientfds = clientfds;
+  config->sockfd = sockfd;
+
+  return config;
 }
