@@ -75,18 +75,28 @@ void cmd_trim_canvas(State *state) {
   state->view->canvas = canvas_trimc(orig, ' ', true, true, false, false);
 }
 
+/* Update the info subwindow in the status win
+ */
 void update_info_win(State *state) {
   print_info_win("[%s](%i,%i)", modes[state->current_mode].name,
                  state->view->x + state->cursor->x,
                  state->view->y + state->cursor->y);
 }
 
+/* Call a mode given its Mode_ID.
+ *
+ * This makes sure info_win is always updated.
+ */
 int call_mode(Mode_ID mode, reason_t reason, State *state) {
   int res = modes[mode].mode_function(reason, state);
   update_info_win(state);
   return res;
 }
 
+/* Switch to a different mode.
+ *
+ * It sends END to the old mode and then START to the new mode
+ */
 void switch_mode(Mode_ID new_mode, State *state) {
   logd("Switching to %s\n", modes[new_mode].name);
   call_mode(state->current_mode, END, state);
@@ -97,8 +107,9 @@ void switch_mode(Mode_ID new_mode, State *state) {
   refresh_screen();
 }
 
-/* Runs before each update to catch global keys and manage transitions
+/* Handler run in frontend main loop.
  *
+ * Interprets keypresses, manages global keys, and passes data to modes.
  */
 int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   // catching keypresses
@@ -134,9 +145,9 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   return 0;
 }
 
-////////////////////////////
-// SPECIFC MODE FUNCTIONS //
-////////////////////////////
+/////////////////////////////
+// SPECIFIC MODE FUNCTIONS //
+/////////////////////////////
 
 /* free_line_arrows_to_char
  *
@@ -256,8 +267,8 @@ int mode_insert(reason_t reason, State *state) {
   return 0;
 }
 
-/* Mode Pan
-
+/* mode_pan
+ *
  * Pans the View with arrow keys
  */
 int mode_pan(reason_t reason, State *state) {
