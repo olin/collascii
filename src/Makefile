@@ -58,4 +58,4 @@ test: $(patsubst %.c, .run-%.c, $(wildcard *_test.c))
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 clean:
-	-rm *.o *_test *.out
+	-rm *.o *_test *.out collascii
