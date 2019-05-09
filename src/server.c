@@ -209,9 +209,6 @@ int main() {
   canvas_serialize(canvas, canvas_buf);
   canvas_buf[(canvas->num_cols * canvas->num_rows) + 1] = 0;
 
-  canvas_scharyx(canvas, 0, 0, 'h');
-  canvas_scharyx(canvas, 0, 1, 'i');
-
   int listenfd = 0, connfd = 0;
   struct sockaddr_in serv_addr;
   struct sockaddr_in cli_addr;
