@@ -130,6 +130,23 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
       switch_mode(MODE_PICKER, state);
     }
     return 0;
+  } else if (c == KEY_NPAGE || c == KEY_PPAGE) {
+    // shift view down
+    const int h = getmaxy(canvas_win) - 2;  // height of visible canvas
+    const int vy = state->view->y;
+    const int ch = state->view->canvas->num_rows;
+    int new_vy;
+    if (c == KEY_NPAGE) {
+      // stop with last of canvas still visible
+      new_vy = min(vy + h, ch - h);
+    } else {
+      new_vy = max(0, vy - h);
+    }
+    // shift view
+    state->view->y = new_vy;
+    redraw_canvas_win();
+  } else if (c == KEY_PPAGE) {
+    // shift view up
   } else if (c == KEY_CTRL('r')) {
     cmd_read_from_file(state);
     print_msg_win("Read from file '%s'\n", state->filepath);
