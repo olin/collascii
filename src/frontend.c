@@ -93,7 +93,8 @@ int main(int argc, char *argv[]) {
       } else if (argc == 4) {
         canvas = net_init(argv[2], argv[3]);
       } else {
-        logd("wrong number of arguments\n");
+        printf("Usage:\ncollascii [filename]\ncollascii -s hostname [port]\n");
+        exit(1);
       }
 
       net_cfg = net_getcfg();
