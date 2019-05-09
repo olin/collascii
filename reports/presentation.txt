@@ -18,17 +18,17 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
                         v                                                    v|   |
 +-------------------------------------8<-------------------------------------+v   v
 /----------------------------------------------------------------------------\00  Title slide
-|                                                                            |01  (sized for the canvas window in an 80x24 window)
+|                                                                            |01
 |                                                                            |02
 |                                                                            |03
 |                                                                            |04
 |                                                                            |05
 |                                                                            |06
-|                                                                            |07
-|                                 COLLASCII                                  |08
-|                                                                            |09
-|                  "The Future Editor of Yesterday, Tomorrow"                |10
-|                                                                            |11
+|                                 COLLASCII                                  |07
+|                                                                            |08
+|                  "The Future Editor of Yesterday, Tomorrow"                |09
+|                                                                            |10
+|                         github.com/olin/collascii                          |11
 |                                                                            |12
 |                                                                            |13
 |                                                                            |14
@@ -36,8 +36,8 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
 |                                                                            |16
 |                                                                          01|17
 \----------------------------------------------------------------------------/18
-                                                                              00  Second slide
-                                                                              01
+                                                                              00
+                                                                              01  TODO: fix COLLASCII placement, move slide?
                                                           60_                 02
                                                       q##QGAU&&j<             03
                                                     K@@ENNRqVUz2<``.          04
@@ -195,11 +195,11 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
 |                                                                            |04
 |                                                                            |05
 |                                                                            |06
-|                                                                            |07
-|                                 COLLASCII                                  |08
-|                                                                            |09
-|                  "The Future Editor of Yesterday, Tomorrow"                |10
-|                                                                            |11
+|                                 COLLASCII                                  |07
+|                                                                            |08
+|                  "The Future Editor of Yesterday, Tomorrow"                |09
+|                                                                            |10
+|                         github.com/olin/collascii                          |11
 |                                                                            |12
 |                                                                            |13
 |                                                                            |14
