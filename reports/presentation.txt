@@ -2,9 +2,20 @@ Final presentation for SoftSys, 2019-05-09.
 Sized for the canvas window in an 80x24 terminal.
 To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
                         |
-                        |                                presentation notes ------+
-                        |                                     slide line #s --+   |
-                        v                                                     |   |
+                        |  General Notes:
+                        |  TODO: double-check slide numbers
+                        |
+                        |
+                        |
+                        |
+                        |
+                        |
+                        |
+                        |  presentation notes ------------------------------------+
+                        |  slide line #s -------------------------------------+   |
+                        |  last visible col when presenting -----------------+|   |
+                        |                                                    ||   |
+                        v                                                    v|   |
 +-------------------------------------8<-------------------------------------+v   v
 /----------------------------------------------------------------------------\00  Title slide
 |                                                                            |01  (sized for the canvas window in an 80x24 window)
@@ -14,10 +25,10 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
 |                                                                            |05
 |                                                                            |06
 |                                                                            |07
-|                                                                            |08
-|                                 COLLASCII                                  |09
-|                                                                            |10
-|                  "The Future Editor of Yesterday, Tomorrow"                |11
+|                                 COLLASCII                                  |08
+|                                                                            |09
+|                  "The Future Editor of Yesterday, Tomorrow"                |10
+|                                                                            |11
 |                                                                            |12
 |                                                                            |13
 |                                                                            |14
@@ -49,14 +60,14 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
 +------------+-                                                              |02
 |                                                                            |03
 | * a terminal-based editor, built with ncurses                              |04
-| * ASCII-based and *.txt-compatible                                         |05
-| * suited for text art                                                      |06
-|   * also presentations                                                     |07
-| * features cutting-edge input methods, bringing it closer still to         |08
-|   industry standards like Microsoft Paint                                  |09
+|                                                                            |05
+| * ASCII-based and *.txt-compatible                                         |06
+|                                                                            |07
+| * suited for text art                                                      |08
+|   * also presentations                                                     |09
 |                                                                            |10
-|                                                                            |11
-|                                                                            |12
+| * features cutting-edge input methods, bringing it closer still to         |11
+|   industry standards like Microsoft Paint                                  |12
 |                                                                            |13
 |                                                                            |14
 |                                                                            |15
@@ -87,12 +98,12 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
 +-------------------------------+                                            |02
 |                                                                            |03
 | * Insert                                                                   |04
-| * Panning                                                                  |05
-| * Free line                                                                |06
-| * Brush                                                                    |07
-|                                                                            |08
+|                                                                            |05
+| * Panning                                                                  |06
+|                                                                            |07
+| * Free line                                                                |08
 |                                                                            |09
-|                                                                            |10
+| * Brush                                                                    |10
 |                                                                            |11
 |                                                                            |12
 |                                                                            |13
@@ -101,7 +112,7 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
 |                                                                            |16
 |                                                                          05|17
 \----------------------------------------------------------------------------/18
-/-------------------------------------+--------------------------------------\00  Feature - Collaborative (Matt)
+/-------------------------------------+--------------------------------------\00  Feature - Networked (Matt)
 | COOL FAETURE X - CATCHY TITLE HERE! |                                      |01  * Matt: feign confusion about unfinished slide
 +-------------------------------------+                                      |02  * Adam: fix typo in title
 |                                                                            |03  * Adam: write "IT'S COLLABORATIVE" in title box
@@ -127,7 +138,7 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
 | * How to work on a programming project that is tangible                    |04
 |                                                                            |05
 | * Separating abstractions effectively                                      |06
-|   * (M:canvas, V:frontend, C:input, network)                               |07
+|   * (M:canvas, V:frontend, C:input, network)           /                   |07
 |                                                                            |08
 | * Managing state                                                           |09
 |                                                                            |10
@@ -177,7 +188,45 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
 |                                                                            |16
 |                                                                          08|17
 \----------------------------------------------------------------------------/18
-/----------------------------------------------------------------------------\00  This slide intentionally left blank.
+/----------------------------------------------------------------------------\00  Fin.
+|                                                                            |01
+|                                                                            |02
+|                                                                            |03
+|                                                                            |04
+|                                                                            |05
+|                                                                            |06
+|                                                                            |07
+|                                 COLLASCII                                  |08
+|                                                                            |09
+|                  "The Future Editor of Yesterday, Tomorrow"                |10
+|                                                                            |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+| Thanks! <3 Matt, Evan, and Adam                                          01|17
+\----------------------------------------------------------------------------/18
+                                                                              00  This slide intentionally left blank.
+                                                                              01
+                                                                              02
+                                                                              03
+                                                                              04
+                                                                              05
+                                                                              06
+                                                                              07
+                                                                              08
+                                                                              09
+                                                                              10
+                                                                              11
+                                                                              12
+                                                                              13
+                                                                              14
+                                                                              15
+                                                                              16
+                                                                              17
+                                                                              18
+/----------------------------------------------------------------------------\00  TEMPLATE EMPTY
 |                                                                            |01
 |                                                                            |02
 |                                                                            |03
@@ -195,4 +244,23 @@ To start: pan below this line, use PG_UP/PG_DOWN to switch between slides.
 |                                                                            |15
 |                                                                            |16
 |                                                                          ##|17
+\----------------------------------------------------------------------------/18
+/-----------------+----------------------------------------------------------\00  TEMPLATE CONTENT
+| SECTION - TITLE |                                                          |01
+|-----------------+                                                          |02
+|                                                                            |03
+| * FIRST ITEM                                                               |04
+|                                                                            |05
+| * SECOND ITEM                                                              |06
+|                                                                            |07
+|                                                                            |08
+|                                                                            |09
+|                                                                            |10
+|                                                                            |11
+|                                                                            |12
+|                                                                            |13
+|                                                                            |14
+|                                                                            |15
+|                                                                            |16
+| FOOTER                                                                   ##|17
 \----------------------------------------------------------------------------/18
