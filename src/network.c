@@ -19,7 +19,6 @@
 fd_set testfds, clientfds;
 char *msg_buf;
 size_t msg_size;
-// char *port = "5000";
 int port = 5000;
 int fd;
 int sockfd;
@@ -30,53 +29,12 @@ struct hostent *hostinfo;
 struct sockaddr_in address;
 struct addrinfo hints, *servinfo;
 
-/* Connects to server and returns a canvas
+/* Connects to server and returns its canvas
  *
  */
 Canvas *net_init(char *in_hostname, char *in_port) {
-  // Canvas *canvas;
-
-  // // Set port if in_port is not blank
-  // if (strcmp(in_port, "")) {
-  //   port = in_port;
-  // }
-  // hostname = strdup(in_hostname);
-
-  // memset(&hints, 0, sizeof hints);
-  // struct addrinfo hints = {
-  //     .ai_family = AF_UNSPEC,
-  //     .ai_socktype = SOCK_STREAM,
-  // };
-
-  // int returncode;
-  // if ((returncode = getaddrinfo(hostname, port, &hints, &servinfo)) != 0) {
-  //   // getaddrinfo doesn't use errno, except for special cases
-  //   printf("getaddrinfo: %s\n", gai_strerror(returncode));
-  //   exit(1);
-  // }
-
-  // // loop through all the results and find a working socket
-  // struct addrinfo *p;
-  // for (p = servinfo; p != NULL; p = p->ai_next) {
-  //   if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) ==
-  //   -1) {
-  //     perror("socket");
-  //     continue;
-  //   }
-  //   if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-  //     close(sockfd);
-  //     perror("connect");
-  //     continue;
-  //   }
-  //   break;
-  // }
-  // if (p == NULL) {
-  //   perror("connecting");
-  //   printf("Cannot connect to server.\n");
-  //   exit(1);
-  // }
-
   Canvas *canvas;
+
   // Set port and hostname
   if (strcmp(in_port, "")) {
     logd("setting port to %s\n", in_port);
@@ -133,6 +91,9 @@ Net_cfg *net_getcfg() {
   return config;
 }
 
+/* Reads incoming packets and updates canvas.
+ * Need to run redraw_canvas_win() after calling!
+ */
 void net_handler(View *view) {
   logd("receiving: ");
   getline(&msg_buf, &msg_size, sockstream);
@@ -149,6 +110,9 @@ void net_handler(View *view) {
   }
 }
 
+/* Sends a set char command to the server
+ *
+ */
 void net_send_char(int y, int x, char ch) {
   char send_buf[50];
   snprintf(send_buf, 50, "s %d %d %c\n", y, x, ch);
@@ -156,6 +120,6 @@ void net_send_char(int y, int x, char ch) {
   write(sockfd, send_buf, strlen(send_buf));
 
   logd("sending: s %d %d %c\n", y, x, ch);
-  // DON"T TRUST FPRINTF!!!
+  // DON"T TRUST FPRINTF!!! It has failed me!
   // fprintf(sockstream, "s %d %d %c\n", y, x, ch);
 }
