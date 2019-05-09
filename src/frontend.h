@@ -3,6 +3,7 @@
 
 #include <ncurses.h>
 #include "cursor.h"
+#include "mode_id.h"
 #include "view.h"
 
 #define KEY_TAB '\t'
@@ -30,5 +31,6 @@ void destroy_win();
 int print_msg_win(char *format, ...);
 int print_info_win(char *format, ...);
 int print_mode_win(char *format, ...);
+void update_info_win(Mode_ID current_mode, int x, int y);
 
 #endif

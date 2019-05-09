@@ -1,4 +1,5 @@
 #include "view.h"
+#include "frontend.h"
 
 View *view_new(Canvas *canvas) {
   View *view = malloc(sizeof(View));
@@ -20,6 +21,7 @@ void view_move_up(View *view) {
     return;
   }
   view->y--;
+  redraw_canvas_win();
 }
 
 void view_move_down(View *view) {
@@ -27,6 +29,7 @@ void view_move_down(View *view) {
     return;
   }
   view->y++;
+  redraw_canvas_win();
 }
 
 void view_move_left(View *view) {
@@ -34,6 +37,7 @@ void view_move_left(View *view) {
     return;
   }
   view->x--;
+  redraw_canvas_win();
 }
 
 void view_move_right(View *view) {
@@ -41,6 +45,7 @@ void view_move_right(View *view) {
     return;
   }
   view->x++;
+  redraw_canvas_win();
 }
 
 void view_pan_ch(int arrow, View *view) {
