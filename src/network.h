@@ -7,6 +7,7 @@
 #include <sys/types.h>
 
 #include "canvas.h"
+#include "view.h"
 
 typedef struct NET_CFG {
   fd_set clientfds;
@@ -15,5 +16,7 @@ typedef struct NET_CFG {
 
 Canvas *net_init(char *hostname, char *port);
 Net_cfg *net_getcfg();
+void net_handler(View *view);
+void net_send_char(int x, int y, char ch);
 
 #endif

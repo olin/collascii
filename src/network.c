@@ -90,3 +90,27 @@ Net_cfg *net_getcfg() {
 
   return config;
 }
+
+void net_handler(View *view) {
+  logd("receiving: ");
+  getline(&msg_buf, &msg_size, sockstream);
+  logd(msg_buf);
+  char ch = msg_buf[strlen(msg_buf) - 1];  // -1 for '\n'
+
+  char *command = strtok(msg_buf, " ");
+  if (!strcmp(command, "s")) {
+    int y = atoi(strtok(NULL, " "));
+    int x = atoi(strtok(NULL, " "));
+
+    canvas_scharyx(view->canvas, y, x, ch);
+  }
+}
+
+void net_send_char(int y, int x, char ch) {
+  logd("sending: s %d %d %c\n", y, x, ch);
+  char send_buf[50];
+  snprintf(send_buf, 50, "s %d %d %c\n", y, x, ch);
+  logd(send_buf);
+  write(sockfd, send_buf, strlen(send_buf));
+  //   fprintf(sockstream, "s %d %d %c\n", x, y, ch);
+}

@@ -48,6 +48,7 @@ WINDOW *canvas_win;
 status_interface_t *status_interface;
 Cursor *cursor;
 View *view;
+bool networked = false;
 
 char *DEFAULT_FILEPATH = "art.txt";
 
@@ -79,7 +80,6 @@ int main(int argc, char *argv[]) {
   Canvas *canvas;
   // load canvas from file if argument exists
   char *in_filename = "";
-  bool networked = false;
   fd_set testfds;
   int fd;
   Net_cfg *net_cfg;
@@ -215,23 +215,21 @@ int main(int argc, char *argv[]) {
   // Move cursor to starting location and redraw canvases
   refresh_screen();
 
-  while (1) {
-    master_handler(state, canvas_win, status_interface->info_win);
-    refresh_screen();
-  }
   // If connected to server, check both network and keyboard streams
   if (networked) {
+    logd("Running networked loop\n");
     while (1) {
       testfds = net_cfg->clientfds;
       select(FD_SETSIZE, &testfds, NULL, NULL, NULL);
 
       for (fd = 0; fd < FD_SETSIZE; fd++) {
         if (FD_ISSET(fd, &testfds)) {
-          if (fd == net_cfg->sockfd) { /*Accept data from open socket */
+          if (fd == net_cfg->sockfd) {  // Accept data from open socket
             logd("recv network\n");
             net_handler(view);
+            redraw_canvas_win();  // TODO: draw single char update
             refresh_screen();
-          } else if (fd == 0) { /*process keyboard activity*/
+          } else if (fd == 0) {  // process keyboard activity
             master_handler(state, canvas_win, status_interface->info_win);
             refresh_screen();
           }
@@ -240,6 +238,7 @@ int main(int argc, char *argv[]) {
     }
     // If local, process keyboard stream
   } else {
+    logd("Running local loop\n");
     while (1) {
       master_handler(state, canvas_win, status_interface->info_win);
       refresh_screen();
@@ -275,6 +274,9 @@ void front_setcharcursor(char ch) {
   canvas_scharyx(view->canvas, cursor->y + view->y, cursor->x + view->x, ch);
   mvwaddch(canvas_win, cursor_y_to_canvas(cursor), cursor_x_to_canvas(cursor),
            ch);
+  if (networked) {
+    net_send_char(cursor->y + view->y, cursor->x + view->x, ch);
+  }
 }
 
 void redraw_canvas_win() {
