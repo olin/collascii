@@ -147,6 +147,8 @@ void *handle_client(void *arg) {
   printf("sent canvas size\n");
   canvas_serialize(canvas, canvas_buf);
   send_message_self(canvas_buf, cli->connfd);
+  sprintf(buff_out, "\n");
+  send_message_self(buff_out, cli->connfd);
   printf("sent serialized canvas\n");
 
   /* Receive input from client */
@@ -168,8 +170,8 @@ void *handle_client(void *arg) {
       break;
     }
     if (!strcmp(command, "s")) {
-      int x = atoi(strtok(NULL, " "));
       int y = atoi(strtok(NULL, " "));
+      int x = atoi(strtok(NULL, " "));
 
       if (x > canvas->num_cols || y > canvas->num_rows) {
         printf("set out of bounds: (%d,%d)\n", x, y);
@@ -206,6 +208,9 @@ int main() {
   canvas_buf = malloc((sizeof(char) * canvas->num_cols * canvas->num_rows) + 1);
   canvas_serialize(canvas, canvas_buf);
   canvas_buf[(canvas->num_cols * canvas->num_rows) + 1] = 0;
+
+  canvas_scharyx(canvas, 0, 0, 'h');
+  canvas_scharyx(canvas, 0, 1, 'i');
 
   int listenfd = 0, connfd = 0;
   struct sockaddr_in serv_addr;

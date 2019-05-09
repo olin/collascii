@@ -39,6 +39,7 @@
 #include "cursor.h"
 #include "fe_modes.h"
 #include "mode_id.h"
+#include "network.h"
 #include "state.h"
 #include "util.h"
 
@@ -78,7 +79,16 @@ int main(int argc, char *argv[]) {
   // load canvas from file if argument exists
   char *in_filename = "";
   if (argc > 1) {
-    if (strcmp(argv[1], "-") == 0) {
+    /* If connecting to server */
+    if (!strcmp(argv[1], "-s")) {
+      if (argc == 3) {
+        canvas = net_init(argv[2], "");
+      } else if (argc == 4) {
+        canvas = net_init(argv[2], argv[3]);
+      }
+
+      /* If reading from std in */
+    } else if (strcmp(argv[1], "-") == 0) {
       // read from stdin if specified
       logd("Reading from stdin\n");
       canvas = canvas_readf_norewind(stdin);
@@ -86,6 +96,8 @@ int main(int argc, char *argv[]) {
       // `/dev/tty` points to current terminal
       // note that this is NOT portable
       freopen("/dev/tty", "rw", stdin);
+
+      /* If reading from file */
     } else {
       in_filename = argv[1];
       FILE *f = fopen(in_filename, "r");
