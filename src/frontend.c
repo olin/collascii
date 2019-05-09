@@ -218,6 +218,8 @@ void setup_colors() {
 }
 
 /* Update canvas with character at cursor current position.
+ *
+ * Changes the canvas and updates the ncurses `canvas_win` with the change.
  */
 void front_setcharcursor(char ch) {
   canvas_scharyx(view->canvas, cursor->y + view->y, cursor->x + view->x, ch);

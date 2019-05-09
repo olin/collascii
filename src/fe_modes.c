@@ -16,6 +16,9 @@
  * - `NEW_KEY` is given when a new keypress is ready for the mode to interpret.
  *   The keypress is stored in `state->ch_in` as an int of the ncurses character
  *   variety. https://invisible-island.net/ncurses/man/curs_getch.3x.html
+ *
+ * NOTE: if you update the `state->canvas` directly, changes won't be updated on
+ * the ncurses `canvas_win` and you should call `redraw_canvas_win`.
  */
 
 #include "fe_modes.h"
