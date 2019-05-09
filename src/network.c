@@ -46,8 +46,10 @@ Canvas *net_init(char *in_hostname, char *in_port) {
   address.sin_addr = *(struct in_addr *)*hostinfo->h_addr_list;
   address.sin_family = AF_INET;
   address.sin_port = htons(port);
+
   if (connect(sockfd, (struct sockaddr *)&address, sizeof(address)) < 0) {
     logd("Failed connecting to server\n");
+    printf("failed connecting to server.\n");
     exit(1);
   }
 
