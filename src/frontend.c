@@ -52,6 +52,13 @@ bool networked = false;
 
 char *DEFAULT_FILEPATH = "art.txt";
 
+// #define LOG_TO_FILE  // redirect stderr to "out.txt"
+
+// mouse movements options (only use one)
+// #define ENABLE_MOUSE_MOVEMENT 1003  // all move updates
+#define ENABLE_MOUSE_MOVEMENT 1002  // move updates when buttons are pressed
+// #define ENABLE_MOUSE_MOVEMENT 0  // don't send any charcodes
+
 #ifdef DEBUG
 #define LOG_TO_FILE
 #endif
@@ -148,16 +155,15 @@ int main(int argc, char *argv[]) {
 
   // ENABLE MOUSE INPUT
   // grab only mouse movement and left mouse press/release
-#ifndef LOG_KEYS
-  mousemask(REPORT_MOUSE_POSITION | BUTTON1_PRESSED | BUTTON1_RELEASED, NULL);
+  mmask_t mmask = BUTTON1_PRESSED | BUTTON1_RELEASED;
+#ifdef ENABLE_MOUSE_MOVEMENT
+  mmask |= REPORT_MOUSE_POSITION;
 #endif
-#ifdef LOG_KEYS
-  mmask_t return_mask = mousemask(
-      REPORT_MOUSE_POSITION | BUTTON1_PRESSED | BUTTON1_RELEASED, NULL);
-  logd("Returned mouse mask: %li\n", (long int)return_mask);
-#endif
+  mmask_t return_mask = mousemask(mmask, NULL);
+  logd("Returned mouse mask: %li\n", return_mask);
   // get mouse updates faster at the expense of not registering "clicks"
   mouseinterval(0);
+#ifdef ENABLE_MOUSE_MOVEMENT
   // Make the terminal report mouse movement events, in a not-great way.
   // Printing the escape code should bump it into `1003` mode, where an update
   // is sent whenever the mouse moves between cells. Also of note: `1002` only
@@ -170,9 +176,13 @@ int main(int argc, char *argv[]) {
   // https://stackoverflow.com/q/29020638
   // https://stackoverflow.com/q/7462850
   //
-  // Disable mouse events is called in finish(), remove it if you change this.
-  printf("\033[?1003h\n");  // enable events
-  // printf("\033[?1003l\n");  // disable events
+  // disabling mouse event charcodes is done in finish()
+  if (ENABLE_MOUSE_MOVEMENT == 1002) {
+    printf("\033[?1002h\n");
+  } else if (ENABLE_MOUSE_MOVEMENT == 1003) {
+    printf("\033[?1003h\n");
+  }
+#endif
 
   canvas_win = create_canvas_win();
   status_interface = create_status_interface();
@@ -521,8 +531,14 @@ void update_info_win(Mode_ID current_mode, int x, int y) {
 void finish(int sig) {
   endwin();
 
-  // Disable mouse events
-  printf("\033[?1003l\n");
+// Disable mouse events charcode
+#ifdef ENABLE_MOUSE_MOVEMENT
+  if (ENABLE_MOUSE_MOVEMENT == 1002) {
+    printf("\033[?1002l\n");
+  } else if (ENABLE_MOUSE_MOVEMENT == 1003) {
+    printf("\033[?1003l\n");
+  }
+#endif
 
   /* do your non-curses wrapup here */
 #ifdef LOG_TO_FILE
