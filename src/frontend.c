@@ -10,8 +10,8 @@
  *
  * By Matthew Beaudouin, Evan New-Schmidt, Adam Novotny
  *
- * +---------------------------------------+
- * | 0 -- X, COLS                          | canvas window
+ * +---------------------------------------+ canvas window:
+ * | 0 -- X, COLS                          |
  * | |                                     |
  * | Y, ROWS                               |
  * |                                       |
@@ -20,9 +20,9 @@
  * |                                       |
  * |                                       |
  * |                                       |
- * +---------------------------------------+
- * |Saved to file "art.txt"   [INSERT](2,6)| status window
- * |step: ON, TRANSPARENT: OFF             |
+ * +---------------------------------------+ status window:
+ * |Saved to file "art.txt"   [INSERT](2,6)| Message               Info
+ * |step: ON, TRANSPARENT: OFF             | Mode
  * +---------------------------------------+
  */
 
