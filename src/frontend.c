@@ -115,7 +115,9 @@ int main(int argc, char *argv[]) {
       FILE *f = fopen(in_filename, "r");
       logd("Reading from '%s'\n", in_filename);
       if (f == NULL) {
-        perror("savefile read");
+        printf("cannot read file %s\n", in_filename);
+        printf("Usage:\ncollascii [filename]\ncollascii -s hostname [port]\n");
+
         exit(1);
       }
       canvas = canvas_readf(f);
