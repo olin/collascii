@@ -137,6 +137,8 @@ int main(int argc, char *argv[]) {
   // https://gist.github.com/sylt/93d3f7b77e7f3a881603
   // https://stackoverflow.com/q/29020638
   // https://stackoverflow.com/q/7462850
+  //
+  // Disable mouse events is called in finish(), remove it if you change this.
   printf("\033[?1003h\n");  // enable events
   // printf("\033[?1003l\n");  // disable events
 
@@ -434,6 +436,9 @@ int print_mode_win(char *format, ...) {
 
 void finish(int sig) {
   endwin();
+
+  // Disable mouse events
+  printf("\033[?1003l\n");
 
   /* do your non-curses wrapup here */
 #ifdef LOG_TO_FILE
