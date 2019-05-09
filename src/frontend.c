@@ -142,9 +142,9 @@ int main(int argc, char *argv[]) {
 
   // ENABLE MOUSE INPUT
   // grab only mouse movement and left mouse press/release
-#ifdef LOG_KEYS
   mmask_t return_mask = mousemask(
       REPORT_MOUSE_POSITION | BUTTON1_PRESSED | BUTTON1_RELEASED, NULL);
+#ifdef LOG_KEYS
   logd("Returned mouse mask: %li\n", (long int)return_mask);
 #endif
   // get mouse updates faster at the expense of not registering "clicks"
