@@ -5,21 +5,20 @@
  * https://github.com/yorickdewid/Chat-Server/blob/master/chat_server.c
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <netdb.h>
-#include <sys/socket.h>
-#include <unistd.h>
-
 #include <arpa/inet.h>
 #include <assert.h>
 #include <errno.h>
+#include <netdb.h>
 #include <netinet/in.h>
 #include <pthread.h>
 #include <signal.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 // #include "network.h"
 #include "canvas.h"
@@ -203,8 +202,36 @@ void *handle_client(void *arg) {
   return NULL;
 }
 
-int main() {
-  canvas = canvas_new_blank(50, 50);  // ONLY SQUARE CANVASES PLEASE!
+int main(int argc, char *argv[]) {
+  if (argc > 1) {
+    if (strcmp(argv[1], "-") == 0) {
+      // read from stdin if specified
+      printf("Reading from stdin\n");
+      canvas = canvas_readf_norewind(stdin);
+      // reopen stdin b/c EOF has been sent
+      // `/dev/tty` points to current terminal
+      // note that this is NOT portable
+      freopen("/dev/tty", "rw", stdin);
+
+      /* If reading from file */
+    } else {
+      char *in_filename = argv[1];
+      FILE *f = fopen(in_filename, "r");
+      printf("Reading from '%s'\n", in_filename);
+      if (f == NULL) {
+        perror("savefile read");
+        exit(1);
+      }
+      canvas = canvas_readf(f);
+      fclose(f);
+    }
+  }
+  // canvas_resize(&canvas, 100, 100);
+  else {
+    printf("making blank canvas\n");
+    canvas = canvas_new_blank(100, 100);  // ONLY SQUARE CANVASES PLEASE!
+  }
+
   canvas_buf = malloc((sizeof(char) * canvas->num_cols * canvas->num_rows) + 1);
   canvas_serialize(canvas, canvas_buf);
   canvas_buf[(canvas->num_cols * canvas->num_rows) + 1] = 0;
