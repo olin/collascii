@@ -6,7 +6,8 @@
 #include "view.h"
 
 /* State keeps track of changing variables for mode functions.
- * If you add something, don't forget to also add an init before the main loop.
+ * If you add something, don't forget to also add an init before the main
+ * loop.
  *
  * TODO: replace last_arrow with linked list of previous inputs?
  * Make sure its length is capped.

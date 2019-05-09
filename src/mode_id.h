@@ -1,9 +1,10 @@
 #ifndef mode_id_h
 #define mode_id_h
 
-/* IMPORTANT: Ensure that the order of the enum is the same as mode_functions
+/* IMPORTANT: Ensure that the order of the enum is the same as modes in
+ * "fe_modes.c"
  *
- * This enum is used to index into the mode_functions array.
+ * This enum is used to index into the modes array.
  */
 typedef enum {
   MODE_PICKER,

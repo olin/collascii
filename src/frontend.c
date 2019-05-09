@@ -108,24 +108,14 @@ int main(int argc, char *argv[]) {
   keypad(canvas_win, TRUE);
   keypad(status_win, TRUE);
 
-  // update the screen size first. This clears the status window on any changes
-  // (including the first time it's run), so refreshing after updating the
-  // status will clear it otherwise
-  update_screen_size();
-
-  char test_msg[] = "Test mode";
-  print_status(test_msg);
-
-  // Move cursor to starting location and redraw canvases
-  refresh_screen();
-
   //// Main loop
   State new_state = {
-      .ch_in = 0,
+      .ch_in = OK,
       .cursor = cursor,
+      .current_mode = MODE_PICKER,
       // .current_mode = MODE_INSERT,
       // .current_mode = MODE_FREE_LINE,
-      .current_mode = MODE_BRUSH,
+      // .current_mode = MODE_BRUSH,
 
       .last_arrow_direction = KEY_RIGHT,
       .last_canvas_mode = MODE_INSERT,
@@ -134,11 +124,22 @@ int main(int argc, char *argv[]) {
   };
   State *state = &new_state;
 
-  while ((state->ch_in = wgetch(canvas_win))) {
-    // fprintf(stderr, "(%c, %i)    ", (char)state->ch_in, state->ch_in);
+  // update the screen size first. This clears the status window on any changes
+  // (including the first time it's run), so refreshing after updating the
+  // status will clear it otherwise
+  update_screen_size();
 
-    mode_functions[state->current_mode](state, canvas_win, status_win);
+  char test_msg[] = "Test mode";
+  print_status(test_msg);
 
+  // bootstrap initial UI
+  call_mode(state->current_mode, START, state);
+
+  // Move cursor to starting location and redraw canvases
+  refresh_screen();
+
+  while (1) {
+    master_handler(state, canvas_win, status_win);
     refresh_screen();
   }
 
@@ -292,6 +293,11 @@ void destroy_win(WINDOW *local_win) {
 int print_status(char *format, ...) {
   // there isn't a va_list version of mvwprintw, so move to status_win first and
   // then use vwprintw
+  wclear(status_win);
+  wborder(status_win, ACS_VLINE, ACS_VLINE, ACS_HLINE,
+          ACS_HLINE,  // Sides:   ls,  rs,  ts,  bs,
+          ACS_LTEE, ACS_RTEE, ACS_LLCORNER,
+          ACS_LRCORNER);  // Corners: tl,  tr,  bl,  br
   wmove(status_win, 1, 1);
   va_list argp;
   va_start(argp, format);

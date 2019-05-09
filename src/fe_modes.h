@@ -4,12 +4,30 @@
 #include <ncurses.h>
 #include "state.h"
 
-int mode_picker(State *state, WINDOW *canvas_win, WINDOW *status_win);
-int mode_insert(State *state, WINDOW *canvas_win, WINDOW *status_win);
-int mode_pan(State *state, WINDOW *canvas_win, WINDOW *status_win);
-int mode_free_line(State *state, WINDOW *canvas_win, WINDOW *status_win);
-int mode_brush(State *state, WINDOW *canvas_win, WINDOW *status_win);
+int mode_master(State *state, WINDOW *canvas_win, WINDOW *status_win);
 
-extern int (*mode_functions[])(State *, WINDOW *, WINDOW *);
+typedef enum { START, NEW_KEY, END } reason_t;
+
+// Prototype for mode functions. Note that this is NOT a function pointer type
+// (use `mode_function_t*` for that). https://stackoverflow.com/a/5195682
+typedef int mode_function_t(reason_t, State *);
+
+mode_function_t mode_picker;
+mode_function_t mode_insert;
+mode_function_t mode_pan;
+mode_function_t mode_free_line;
+mode_function_t mode_brush;
+
+typedef struct {
+  char *name;
+  char *description;
+  mode_function_t *mode_function;
+} editor_mode_t;
+
+extern editor_mode_t modes[];
+
+int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win);
+void switch_mode(Mode_ID new_mode, State *state);
+int call_mode(Mode_ID mode, reason_t reason, State *state);
 
 #endif
