@@ -4,7 +4,7 @@
  * | (_| (_) | |__| |__ / _ \\__ \ (__ | | | |
  *  \___\___/|____|____/_/ \_\___/\___|___|___|
  *
- *   Yesterday’s future, tomorrow!
+ *   Yesterday's future, tomorrow!
  *
  * A collaborative ASCII editor, in your terminal.
  *
