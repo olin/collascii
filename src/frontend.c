@@ -52,6 +52,10 @@ bool networked = false;
 
 char *DEFAULT_FILEPATH = "art.txt";
 
+// signals to be caught with finish() function
+int caught_signals[] = {SIGINT,  SIGTERM, SIGKILL, SIGABRT,
+                        SIGSEGV, SIGQUIT, SIGSTOP};
+
 // #define LOG_TO_FILE  // redirect stderr to "out.txt"
 
 // mouse movements options (only use one)
@@ -69,6 +73,11 @@ FILE *logfile = NULL;
 #endif
 
 int main(int argc, char *argv[]) {
+  // setup finish() signal handler
+  for (int i = 0; i < sizeof(caught_signals) / sizeof(int); i++) {
+    signal(caught_signals[i], finish);
+  }
+
 #ifdef LOG_TO_FILE
   logfile = fopen(logfile_path, "a");
   if (logfile == NULL) {
@@ -137,8 +146,6 @@ int main(int argc, char *argv[]) {
   }
 
   /* initialize your non-curses data structures here */
-
-  (void)signal(SIGINT, finish); /* arrange interrupts to terminate */
 
   (void)initscr();      /* initialize the curses library */
   keypad(stdscr, TRUE); /* enable keyboard mapping */
@@ -528,9 +535,15 @@ void update_info_win(Mode_ID current_mode, int x, int y) {
   waddnstr(mw, buffer, INFO_WIDTH);
 }
 
+/* Signal handler for exiting
+ *
+ * Turns of ncurses, disables mouse moves commands, closes the logfile.
+ *
+ * If sig is 0 or SIGINT, exits normally, otherwise prints the signal
+ * information to stderr and exits with sig.
+ */
 void finish(int sig) {
   endwin();
-
 // Disable mouse events charcode
 #ifdef ENABLE_MOUSE_MOVEMENT
   if (ENABLE_MOUSE_MOVEMENT == 1002) {
@@ -546,5 +559,16 @@ void finish(int sig) {
     fclose(logfile);
   }
 #endif
-  exit(0);
+  // decide how to exit based on signal
+  switch (sig) {
+    case 0:       // normal
+    case SIGINT:  // user CTRL-C
+      eprintf("Exiting\n");
+      exit(0);
+      break;
+    default:  // problems
+      eprintf("Exited with signal %d (%s)\n", sig, strsignal(sig));
+      exit(sig);
+      break;
+  }
 }
