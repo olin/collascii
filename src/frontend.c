@@ -277,8 +277,7 @@ int main(int argc, char *argv[]) {
   }
   // Cleanup
   cursor_free(cursor);
-  // TODO: destory status_interface
-  destroy_win(status_interface->status_win);
+  destroy_status_interface(status_interface);
   destroy_win(canvas_win);
   finish(0);
 }
