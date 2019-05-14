@@ -1,6 +1,6 @@
 # COLLASCII
 
-[![Build Status](https://travis-ci.com/olin/SoftSysCollascii.svg?branch=master)](https://travis-ci.com/olin/SoftSysCollascii)
+[![Build Status](https://travis-ci.com/olin/collascii.svg?branch=master)](https://travis-ci.com/olin/collascii)
 
 _A collaborative ascii canvas_
 
