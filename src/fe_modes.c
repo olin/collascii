@@ -168,6 +168,7 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     // shift view
     state->view->y = new_vy;
     redraw_canvas_win();
+    update_info_win_state(state);
   } else if (c == KEY_CTRL('r')) {
     cmd_read_from_file(state);
     print_msg_win("Read from file '%s'\n", state->filepath);
