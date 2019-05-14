@@ -50,6 +50,8 @@ Cursor *cursor;
 View *view;
 bool networked = false;
 
+int INFO_WIDTH = 24;  // max width of the info window
+
 char *DEFAULT_FILEPATH = "art.txt";
 
 // signals to be caught with finish() function
@@ -420,8 +422,6 @@ WINDOW *create_status_win() {
   return local_win;
 }
 
-int INFO_WIDTH = 18;
-
 WINDOW *create_msg_win(WINDOW *status_win) {
   int sw = getmaxx(status_win) + 1;
   int x, y;
@@ -522,13 +522,18 @@ int print_mode_win(char *format, ...) {
 
 /* Update the info subwindow in status_win with relevant info.
  *
- * Prints the current mode and cursor coordinates, right-aligned.
+ * Prints the current mode, cursor coordinates, and canvas dimensions
+ * right-aligned.
+ *
+ * "[MODE] (X,Y) WxH"
  */
-void update_info_win(Mode_ID current_mode, int x, int y) {
+void update_info_win(const Mode_ID current_mode, const int x, const int y,
+                     const int w, const int h) {
   WINDOW *mw = status_interface->info_win;
   char buffer[INFO_WIDTH + 1];
-  char *mode_name = modes[current_mode].name;
-  int width = snprintf(buffer, INFO_WIDTH + 1, "[%s](%i,%i)", mode_name, x, y);
+  const char *mode_name = modes[current_mode].name;
+  int width = snprintf(buffer, INFO_WIDTH + 1, "[%s](%i,%i)%ix%i", mode_name, x,
+                       y, w, h);
   wclear(mw);
   wmove(mw, 0, INFO_WIDTH - width);
   waddnstr(mw, buffer, INFO_WIDTH);

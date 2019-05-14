@@ -104,7 +104,8 @@ int call_mode(Mode_ID mode, reason_t reason, State *state) {
  */
 inline void update_info_win_state(State *state) {
   update_info_win(state->current_mode, state->view->x + state->cursor->x,
-                  state->view->y + state->cursor->y);
+                  state->view->y + state->cursor->y,
+                  state->view->canvas->num_cols, state->view->canvas->num_rows);
 }
 
 /* Switch to a different mode.

@@ -31,6 +31,6 @@ void destroy_win();
 int print_msg_win(char *format, ...);
 int print_info_win(char *format, ...);
 int print_mode_win(char *format, ...);
-void update_info_win(Mode_ID current_mode, int x, int y);
-
+void update_info_win(const Mode_ID current_mode, const int x, const int y,
+                     const int w, const int h);
 #endif
