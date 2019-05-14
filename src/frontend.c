@@ -1,29 +1,37 @@
-/*
+/* Collascii - a canvas-based collaborative ascii text editor.
+ *
  *   ___ ___  _    _      _   ___  ___ ___ ___
  *  / __/ _ \| |  | |    /_\ / __|/ __|_ _|_ _|
  * | (_| (_) | |__| |__ / _ \\__ \ (__ | | | |
  *  \___\___/|____|____/_/ \_\___/\___|___|___|
  *
- *   Yesterday's future, tomorrow!
+ * The Future Editor of Yesterday, Tomorrow!
  *
- * A collaborative ASCII editor, in your terminal.
+ * By Matthew Beaudouin-Lafon, Evan New-Schmidt, Adam Novotny
  *
- * By Matthew Beaudouin, Evan New-Schmidt, Adam Novotny
+ * General layout of interface:
+ * +------------------------------------------+ canvas_win
+ * | 0 -- X, COLS                             |
+ * | |                                        |
+ * | Y, ROWS                                  |
+ * |                                          |
+ * |                                          |
+ * |                                          |
+ * |                                          |
+ * |                                          |
+ * |                                          |
+ * +------------------------------------------+ status_interface/status_win:
+ * |Saved to file "art.txt"   [INSERT](2,6)WxH| msg_win                info_win
+ * |step: ON, transparent: OFF                | mode_win
+ * +------------------------------------------+
  *
- * +---------------------------------------+ canvas window:
- * | 0 -- X, COLS                          |
- * | |                                     |
- * | Y, ROWS                               |
- * |                                       |
- * |                                       |
- * |                                       |
- * |                                       |
- * |                                       |
- * |                                       |
- * +---------------------------------------+ status window:
- * |Saved to file "art.txt"   [INSERT](2,6)| Message               Info
- * |step: ON, TRANSPARENT: OFF             | Mode
- * +---------------------------------------+
+ * What all these "wins" are:
+ * - canvas_win: where the ascii canvas is drawn
+ * - status_interface: grouping of all status-related wins, which live in
+ * - status_win:
+ *   - msg_win: displays general messages to user
+ *   - info_win: state-specific info (see update_info_win)
+ *   - mode_win: mode-specific information
  */
 
 #include "frontend.h"
