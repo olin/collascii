@@ -200,6 +200,30 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     call_mode(state->current_mode, NEW_KEY, state);
   }
 
+  // Check if view and/or cursor is out of bounds and snap back
+  {
+    View *v = state->view;
+    const int max_x = v->canvas->num_cols - 1;
+    const int max_y = v->canvas->num_rows - 1;
+    if (v->x > max_x) {
+      v->x = max_x;
+      logd("Snapped view to max width\n");
+    }
+    if (v->y > max_y) {
+      v->y = max_y;
+      logd("Snapped view to max height\n");
+    }
+    Cursor *c = state->cursor;
+    if (c->x + v->x > max_x) {
+      c->x = max_x - v->x;
+      logd("Snapped cursor to max x\n");
+    }
+    if (c->y + v->y > max_y) {
+      c->y = max_y - v->y;
+      logd("Snapped cursor to max y\n");
+    }
+  }
+
   // Move UI cursor to the right place
   wmove(canvas_win, cursor_y_to_canvas(state->cursor),
         cursor_x_to_canvas(state->cursor));
