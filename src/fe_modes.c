@@ -214,13 +214,19 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
       logd("Snapped view to max height\n");
     }
     Cursor *c = state->cursor;
+    bool redraw_flag = false;
     if (c->x + v->x > max_x) {
       c->x = max_x - v->x;
       logd("Snapped cursor to max x\n");
+      redraw_flag = true;
     }
     if (c->y + v->y > max_y) {
       c->y = max_y - v->y;
       logd("Snapped cursor to max y\n");
+      redraw_flag = true;
+    }
+    if (redraw_flag) {
+      redraw_canvas_win();
     }
   }
 
