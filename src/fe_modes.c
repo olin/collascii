@@ -39,6 +39,7 @@ editor_mode_t modes[] = {
     {"Pan", "Pan around the canvas", mode_pan},
     {"Free-Line", "Draw a line with your arrow keys", mode_free_line},
     {"Brush", "Paint with arrow keys and mouse", mode_brush},
+    {"Trim", "Remove empty space", mode_trim},
 };
 
 typedef struct {
@@ -473,5 +474,41 @@ int mode_brush(reason_t reason, State *state) {
                  ((mode_cfg->state == PAINT_OFF) ? "OFF" : "ON"),
                  mode_cfg->pattern);
 
+  return 0;
+}
+
+/* mode_trim
+ *
+ * Trim edges of the canvas.
+ *
+ * Select a direction to trim and
+ */
+int mode_trim(reason_t reason, State *state) {
+  if (reason == NEW_KEY) {
+    int dir = 0;  // 0: top, 1: right, 2: down, 3: left
+    switch (state->ch_in) {
+      case KEY_UP:
+        dir = 0;
+        break;
+      case KEY_RIGHT:
+        dir = 1;
+        break;
+      case KEY_DOWN:
+        dir = 2;
+        break;
+      case KEY_LEFT:
+        dir = 3;
+        break;
+      default:
+        return 0;
+    }
+    Canvas *old_canvas = state->view->canvas;
+    // trimc order   :        right     bottom    left      top
+    Canvas *new_canvas =
+        canvas_trimc(old_canvas, ' ', dir == 1, dir == 2, dir == 3, dir == 0);
+    state->view->canvas = new_canvas;
+    canvas_free(old_canvas);
+    redraw_canvas_win();
+  }
   return 0;
 }

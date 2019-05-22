@@ -237,6 +237,8 @@ int canvas_resize(Canvas **canvas_pointer, int newrows, int newcols) {
  * Requires a pointer to a canvas pointer.
  *
  * Returns 1 if the canvas was truncated, 0 otherwise.
+ *
+ * TODO: update docstring
  */
 Canvas *canvas_trimc(Canvas *orig, char ignore, bool right, bool bottom,
                      bool left, bool top) {
@@ -353,6 +355,7 @@ Canvas *canvas_trimc(Canvas *orig, char ignore, bool right, bool bottom,
                          (right ? mr : orig->num_cols - 1));
 }
 
+// TODO: drop this or fill it out
 inline Canvas *canvas_trim(Canvas *orig, int right, int bottom, int left,
                            int top) {}
 

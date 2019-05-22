@@ -17,6 +17,7 @@ mode_function_t mode_insert;
 mode_function_t mode_pan;
 mode_function_t mode_free_line;
 mode_function_t mode_brush;
+mode_function_t mode_trim;
 
 typedef struct {
   char *name;

@@ -12,6 +12,7 @@ typedef enum {
   MODE_PAN,
   MODE_FREE_LINE,
   MODE_BRUSH,
+  MODE_TRIM,
 
   // ^ add your mode above
   LAST,  // used to get number of elements
