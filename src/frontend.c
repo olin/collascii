@@ -333,12 +333,12 @@ void redraw_canvas_win() {
   }
 
   // draw fill in rest of window
-  for (int x = max_x; x < view_max_x; x++) {
+  for (int x = max(0, max_x); x < view_max_x; x++) {
     for (int y = 0; y < view_max_y; y++) {
       mvwaddch(canvas_win, y + 1, x + 1, ACS_CKBOARD);
     }
   }
-  for (int y = max_y; y < view_max_y; y++) {
+  for (int y = max(0, max_y); y < view_max_y; y++) {
     for (int x = 0; x < max_x; x++) {
       mvwaddch(canvas_win, y + 1, x + 1, ACS_CKBOARD);
     }
