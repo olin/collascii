@@ -6,7 +6,7 @@
 
 int mode_master(State *state, WINDOW *canvas_win, WINDOW *status_win);
 
-typedef enum { START, NEW_KEY, END } reason_t;
+typedef enum { START, NEW_KEY, NEW_MOUSE, END } reason_t;
 
 // Prototype for mode functions. Note that this is NOT a function pointer type
 // (use `mode_function_t*` for that). https://stackoverflow.com/a/5195682

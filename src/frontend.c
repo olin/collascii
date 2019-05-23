@@ -4,7 +4,7 @@
  * | (_| (_) | |__| |__ / _ \\__ \ (__ | | | |
  *  \___\___/|____|____/_/ \_\___/\___|___|___|
  *
- *   Yesterday’s future, tomorrow!
+ *   Yesterday's future, tomorrow!
  *
  * A collaborative ASCII editor, in your terminal.
  *
@@ -52,6 +52,17 @@ bool networked = false;
 
 char *DEFAULT_FILEPATH = "art.txt";
 
+// signals to be caught with finish() function
+int caught_signals[] = {SIGINT,  SIGTERM, SIGKILL, SIGABRT,
+                        SIGSEGV, SIGQUIT, SIGSTOP};
+
+// #define LOG_TO_FILE  // redirect stderr to "out.txt"
+
+// mouse movements options (only use one)
+// #define ENABLE_MOUSE_MOVEMENT 1003  // all move updates
+#define ENABLE_MOUSE_MOVEMENT 1002  // move updates when buttons are pressed
+// #define ENABLE_MOUSE_MOVEMENT 0  // don't send any charcodes
+
 #ifdef DEBUG
 #define LOG_TO_FILE
 #endif
@@ -62,6 +73,11 @@ FILE *logfile = NULL;
 #endif
 
 int main(int argc, char *argv[]) {
+  // setup finish() signal handler
+  for (int i = 0; i < sizeof(caught_signals) / sizeof(int); i++) {
+    signal(caught_signals[i], finish);
+  }
+
 #ifdef LOG_TO_FILE
   logfile = fopen(logfile_path, "a");
   if (logfile == NULL) {
@@ -131,8 +147,6 @@ int main(int argc, char *argv[]) {
 
   /* initialize your non-curses data structures here */
 
-  (void)signal(SIGINT, finish); /* arrange interrupts to terminate */
-
   (void)initscr();      /* initialize the curses library */
   keypad(stdscr, TRUE); /* enable keyboard mapping */
   (void)nonl();         /* tell curses not to do NL->CR/NL on output */
@@ -148,16 +162,15 @@ int main(int argc, char *argv[]) {
 
   // ENABLE MOUSE INPUT
   // grab only mouse movement and left mouse press/release
-#ifndef LOG_KEYS
-  mousemask(REPORT_MOUSE_POSITION | BUTTON1_PRESSED | BUTTON1_RELEASED, NULL);
+  mmask_t mmask = BUTTON1_PRESSED | BUTTON1_RELEASED;
+#ifdef ENABLE_MOUSE_MOVEMENT
+  mmask |= REPORT_MOUSE_POSITION;
 #endif
-#ifdef LOG_KEYS
-  mmask_t return_mask = mousemask(
-      REPORT_MOUSE_POSITION | BUTTON1_PRESSED | BUTTON1_RELEASED, NULL);
-  logd("Returned mouse mask: %li\n", (long int)return_mask);
-#endif
+  mmask_t return_mask = mousemask(mmask, NULL);
+  logd("Returned mouse mask: %li\n", return_mask);
   // get mouse updates faster at the expense of not registering "clicks"
   mouseinterval(0);
+#ifdef ENABLE_MOUSE_MOVEMENT
   // Make the terminal report mouse movement events, in a not-great way.
   // Printing the escape code should bump it into `1003` mode, where an update
   // is sent whenever the mouse moves between cells. Also of note: `1002` only
@@ -170,9 +183,13 @@ int main(int argc, char *argv[]) {
   // https://stackoverflow.com/q/29020638
   // https://stackoverflow.com/q/7462850
   //
-  // Disable mouse events is called in finish(), remove it if you change this.
-  printf("\033[?1003h\n");  // enable events
-  // printf("\033[?1003l\n");  // disable events
+  // disabling mouse event charcodes is done in finish()
+  if (ENABLE_MOUSE_MOVEMENT == 1002) {
+    printf("\033[?1002h\n");
+  } else if (ENABLE_MOUSE_MOVEMENT == 1003) {
+    printf("\033[?1003h\n");
+  }
+#endif
 
   canvas_win = create_canvas_win();
   status_interface = create_status_interface();
@@ -260,8 +277,7 @@ int main(int argc, char *argv[]) {
   }
   // Cleanup
   cursor_free(cursor);
-  // TODO: destory status_interface
-  destroy_win(status_interface->status_win);
+  destroy_status_interface(status_interface);
   destroy_win(canvas_win);
   finish(0);
 }
@@ -314,12 +330,12 @@ void redraw_canvas_win() {
   // draw fill in rest of window
   for (int x = max_x; x < view_max_x; x++) {
     for (int y = 0; y < view_max_y; y++) {
-      mvwaddch(canvas_win, y + 1, x + 1, 'X');
+      mvwaddch(canvas_win, y + 1, x + 1, ACS_CKBOARD);
     }
   }
   for (int y = max_y; y < view_max_y; y++) {
-    for (int x = 0; x < view_max_x; x++) {
-      mvwaddch(canvas_win, y + 1, x + 1, 'X');
+    for (int x = 0; x < max_x; x++) {
+      mvwaddch(canvas_win, y + 1, x + 1, ACS_CKBOARD);
     }
   }
 }
@@ -518,11 +534,23 @@ void update_info_win(Mode_ID current_mode, int x, int y) {
   waddnstr(mw, buffer, INFO_WIDTH);
 }
 
+/* Signal handler for exiting
+ *
+ * Turns of ncurses, disables mouse moves commands, closes the logfile.
+ *
+ * If sig is 0 or SIGINT, exits normally, otherwise prints the signal
+ * information to stderr and exits with sig.
+ */
 void finish(int sig) {
   endwin();
-
-  // Disable mouse events
-  printf("\033[?1003l\n");
+// Disable mouse events charcode
+#ifdef ENABLE_MOUSE_MOVEMENT
+  if (ENABLE_MOUSE_MOVEMENT == 1002) {
+    printf("\033[?1002l\n");
+  } else if (ENABLE_MOUSE_MOVEMENT == 1003) {
+    printf("\033[?1003l\n");
+  }
+#endif
 
   /* do your non-curses wrapup here */
 #ifdef LOG_TO_FILE
@@ -530,5 +558,16 @@ void finish(int sig) {
     fclose(logfile);
   }
 #endif
-  exit(0);
+  // decide how to exit based on signal
+  switch (sig) {
+    case 0:       // normal
+    case SIGINT:  // user CTRL-C
+      eprintf("Exiting\n");
+      exit(0);
+      break;
+    default:  // problems
+      eprintf("Exited with signal %d (%s)\n", sig, strsignal(sig));
+      exit(sig);
+      break;
+  }
 }
