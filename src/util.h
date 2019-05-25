@@ -1,4 +1,8 @@
 #ifndef util_h
+/* Utility macros and functions.
+ *
+ * TODO: use fmt argument in macros instead of anything
+ */
 #define util_h
 
 #include <stdio.h>
@@ -8,16 +12,23 @@
 // printf to stderr
 #define eprintf(...) fprintf(stderr, __VA_ARGS__)
 
+// print an error message with formatting that correctly gets the errno
+#define perrorf(...)                     \
+  do {                                   \
+    const int errnum = errno;            \
+    eprintf(__VA_ARGS__);                \
+    eprintf(": %s\n", strerror(errnum)); \
+  } while (0)
+
 // LOGGING
-// techniques for preventing unused variables/function warnings based on zf_log:
-// https://github.com/wonder-mice/zf_log/
+// techniques for preventing unused variables/function warnings based on
+// zf_log: https://github.com/wonder-mice/zf_log/
 
 /* Dummy function that does nothing with variadic args.
  *
  * Static b/c it shouldn't be used directly anywhere outside of this header.
  * Inline b/c it fixes the "defined but not used" warning, and it will be called
- * many times to do nothing.
- * https://stackoverflow.com/a/2765211
+ * many times to  do nothing. https://stackoverflow.com/a/2765211
  * https://stackoverflow.com/q/2845748
  * https://stackoverflow.com/a/1932371
  * https://stackoverflow.com/q/7762731
