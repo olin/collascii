@@ -36,6 +36,7 @@
 
 #include "frontend.h"
 
+#include <argp.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -57,9 +58,15 @@ status_interface_t *status_interface;
 Cursor *cursor;
 View *view;
 bool networked = false;
+Net_cfg *net_cfg = NULL;
 
 int INFO_WIDTH = 24;  // max width of the info window
 
+// initial canvas dimensions
+const int DEFAULT_WIDTH = 100;
+const int DEFAULT_HEIGHT = 100;
+
+// save filepath
 char *DEFAULT_FILEPATH = "art.txt";
 
 // signals to be caught with finish() function
@@ -82,7 +89,202 @@ char *logfile_path = "out.txt";
 FILE *logfile = NULL;
 #endif
 
+// if version isn't defined by the Makefile
+#ifndef VERSION
+#define VERSION "unknown"
+#endif
+
+//// ARGP CONFIG
+// globals for argp
+const char *argp_program_version = "collascii-" VERSION;
+const char *argp_program_bug_address =
+    "<https://github.com/olin/collascii/issues/>";
+// doc strings
+static char doc[] =
+    "collascii -- a collaborative ascii editor\v"
+    // everything after the vertical tab comes after the usage info
+    "COLLASCII\n\n"
+    "\"The Future Editor of Yesterday, Tomorrow!\"\n\n"
+    "By Matthew Beaudouin-Lafon, Evan New-Schmidt, and Adam Novotny\n\n"
+    "A brief introduction to the interface:\n"
+    "- arrow keys to move the cursor\n"
+    "- enter a character by typing it, unless the mode specifies otherwise\n"
+    "- <TAB> to switch between modes\n"
+    "- <CTRL-C> to quit\n"
+    "- <CTRL-R> to read from the file\n"
+    "- <CTRL-S> to write to the file\n"
+    "- <PGUP>/<PGDOWN> move up/down a screen height\n"
+    "- <SHIFT-LEFT>/<SHIFT-RIGHT> move left/right a screen width\n";
+static char args_doc[] = "[FILE]";  // optional file argument usage string
+// commandline options
+static struct argp_option options[] = {
+    // filename (not a flag)
+    {"FILE", 0, 0, OPTION_DOC,
+     "filepath for read/write ('-' to read from stdin)", 1},
+    // canvas dimensions
+    {"width", 'w', "WIDTH", 0, "initial width of canvas", 2},
+    {"height", 'h', "HEIGHT", 0, "initial height of canvas"},
+    // remote connections
+    {"server", 's', "SERVER", 0, "address of server to connect to", 3},
+    {"port", 'p', "PORT", 0, "port of server to connect to (default 5000)"},
+    {0}  // terminating entry
+};
+
+// representation of desired state from the cmdline interface
+// see the creatively-named "arguments" struct in `main` for the defaults
+typedef struct {
+  int height, width;    // dimensions of initial canvas (use `DEFAULT_` if 0)
+  int x, y;             // initial cursor position
+  bool load_file;       // read from file at start
+  bool use_stdin;       // read from stdin instead of file_name
+  char *filename;       // file to save to/read from
+  bool connect_remote;  // connect to a remote server
+  char *remote_host;
+  char *remote_port;
+} arguments_t;
+
+/* Get a positive int from a string.
+ *
+ * Stores the parsed value from arg in val.
+ *
+ * Return values are meant for an argp parser function.
+ */
+int parse_int(int *val, const char *const arg) {
+  // set errno to 0 to know if strtol sets it (recommended by 9/10 docs)
+  errno = 0;
+  long res = strtol(arg, NULL, 10);
+  // return strtol errors
+  if (errno != 0) {
+    return errno;
+  }
+  // break if negative value is parsed
+  if (res < 0) {
+    return EINVAL;
+  }
+  // otherwise store and return normally
+  *val = (int)res;
+  return 0;
+}
+
+/* Make sure the arguments struct is valid and in a non-conflicting state.
+ *
+ * Return values are meant for an argp parser function.
+ *
+ * TODO: fill this out
+ */
+int validate_arguments(arguments_t *arguments) { return 0; }
+
+// function for parse loop
+static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+  // extract arguments from state
+  arguments_t *arguments = state->input;
+
+  switch (key) {
+    case 'w':
+      return parse_int(&(arguments->width), arg);
+    case 'h':
+      return parse_int(&(arguments->height), arg);
+    case 's':
+      arguments->remote_host = arg;
+      arguments->connect_remote = true;
+      return 0;
+    case 'p':
+      arguments->remote_port = arg;
+      return 0;
+    case ARGP_KEY_ARG:
+      if (strcmp(arg, "-") == 0) {
+        arguments->use_stdin = true;
+      } else {
+        arguments->filename = arg;
+        arguments->load_file = true;
+      }
+      return 0;
+    case ARGP_KEY_END:
+      return validate_arguments(arguments);
+    default:
+      return ARGP_ERR_UNKNOWN;
+  }
+  return 0;
+}
+static struct argp argp = {options, parse_opt, args_doc, doc};
+
+/* Initialize state based on arguments.
+ *
+ * In the process it also initializes the following global values:
+ * - canvas_win
+ * - view
+ * - cursor
+ * - networked
+ * - net_cfg
+ *
+ * This should be run before ncurses init so stdin can be read correctly.
+ */
+void init_state(State *state, const arguments_t *const arguments) {
+  // load canvas from network, file, or blank
+  Canvas *canvas;
+  if (arguments->connect_remote) {
+    networked = true;
+    canvas = net_init(arguments->remote_host, arguments->remote_port);
+    net_cfg = net_getcfg();
+  } else if (arguments->use_stdin) {
+    // read from stdin if specified
+    logd("Reading from stdin\n");
+    canvas = canvas_readf_norewind(stdin);
+    // reopen stdin b/c EOF has been sent
+    // `/dev/tty` points to current terminal
+    // note that this is NOT portable
+    freopen("/dev/tty", "rw", stdin);
+  } else if (arguments->load_file) {
+    char *in_filename = arguments->filename;
+    FILE *f = fopen(in_filename, "r");
+    logd("Reading from '%s'\n", in_filename);
+    if (f == NULL) {
+      eprintf("Cannot read file %s\n", in_filename);
+      exit(1);
+    }
+    canvas = canvas_readf(f);
+    fclose(f);
+    // resize if arguments were given
+    if (arguments->height != 0 || arguments->width != 0) {
+      int res = canvas_resize(
+          &canvas,
+          arguments->height == 0 ? canvas->num_rows : arguments->height,
+          arguments->width == 0 ? canvas->num_cols : arguments->width);
+      if (res == 1) {
+        logd("Canvas truncated on resize\n");  // TODO: display this to user
+      }
+    }
+  } else {
+    canvas = canvas_new_blank(
+        arguments->height == 0 ? DEFAULT_HEIGHT : arguments->height,
+        arguments->width == 0 ? DEFAULT_WIDTH : arguments->width);
+  }
+
+  // init globals
+  view = view_new_startpos(canvas, 0, 0);
+  cursor = cursor_new();
+
+  // init state
+  State new_state = {
+      .ch_in = OK,
+      .cursor = cursor,
+      // .current_mode = MODE_PICKER,
+      .current_mode = MODE_INSERT,
+      // .current_mode = MODE_FREE_LINE,
+      // .current_mode = MODE_BRUSH,
+
+      .last_arrow_direction = KEY_RIGHT,
+      .last_canvas_mode = MODE_INSERT,
+      .view = view,
+      .last_cursor = cursor_newyx(arguments->y, arguments->x),
+      .filepath = arguments->filename,
+  };
+  *state = new_state;
+}
+
 int main(int argc, char *argv[]) {
+  // initialize non-ncurses data structures here
+
   // setup finish() signal handler
   for (int i = 0; i < sizeof(caught_signals) / sizeof(int); i++) {
     signal(caught_signals[i], finish);
@@ -99,63 +301,28 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 #endif
+
+  // struct of arg state, set with defaults
+  arguments_t arguments = {
+      .height = 0,
+      .width = 0,
+      .x = 0,
+      .y = 0,
+      .load_file = false,
+      .use_stdin = false,
+      .filename = DEFAULT_FILEPATH,
+      .connect_remote = false,
+      .remote_host = "",
+      .remote_port = "",
+  };
+
+  // parse arguments, init state
+  argp_parse(&argp, argc, argv, 0, 0, &arguments);
+  State *state = malloc(sizeof(State));
+  init_state(state, &arguments);
+
+  // initializing ncurses
   logd("Starting frontend\n");
-
-  // init canvas from file
-  // run before ncurses init so stdin will read correctly
-  Canvas *canvas;
-  // load canvas from file if argument exists
-  char *in_filename = "";
-  fd_set testfds;
-  int fd;
-  Net_cfg *net_cfg;
-
-  if (argc > 1) {
-    /* If connecting to server */
-    if (!strcmp(argv[1], "-s")) {
-      networked = true;
-      if (argc == 3) {
-        canvas = net_init(argv[2], "");
-      } else if (argc == 4) {
-        canvas = net_init(argv[2], argv[3]);
-      } else {
-        printf("Usage:\ncollascii [filename]\ncollascii -s hostname [port]\n");
-        exit(1);
-      }
-
-      net_cfg = net_getcfg();
-
-      /* If reading from std in */
-    } else if (strcmp(argv[1], "-") == 0) {
-      // read from stdin if specified
-      logd("Reading from stdin\n");
-      canvas = canvas_readf_norewind(stdin);
-      // reopen stdin b/c EOF has been sent
-      // `/dev/tty` points to current terminal
-      // note that this is NOT portable
-      freopen("/dev/tty", "rw", stdin);
-
-      /* If reading from file */
-    } else {
-      in_filename = argv[1];
-      FILE *f = fopen(in_filename, "r");
-      logd("Reading from '%s'\n", in_filename);
-      if (f == NULL) {
-        printf("cannot read file %s\n", in_filename);
-        printf("Usage:\ncollascii [filename]\ncollascii -s hostname [port]\n");
-
-        exit(1);
-      }
-      canvas = canvas_readf(f);
-      fclose(f);
-    }
-    // canvas_resize(&canvas, 100, 100);
-  } else {
-    logd("making blank canvas\n");
-    canvas = canvas_new_blank(100, 100);
-  }
-
-  /* initialize your non-curses data structures here */
 
   (void)initscr();      /* initialize the curses library */
   keypad(stdscr, TRUE); /* enable keyboard mapping */
@@ -204,31 +371,11 @@ int main(int argc, char *argv[]) {
   canvas_win = create_canvas_win();
   status_interface = create_status_interface();
 
-  cursor = cursor_new();
-  Cursor *last_cursor = cursor_new();
-
-  view = view_new_startpos(canvas, 0, 0);
-
   // Enable keyboard mapping
   keypad(canvas_win, TRUE);
   keypad(status_interface->status_win, TRUE);
 
   //// Main loop
-  State new_state = {
-      .ch_in = OK,
-      .cursor = cursor,
-      // .current_mode = MODE_PICKER,
-      .current_mode = MODE_INSERT,
-      // .current_mode = MODE_FREE_LINE,
-      // .current_mode = MODE_BRUSH,
-
-      .last_arrow_direction = KEY_RIGHT,
-      .last_canvas_mode = MODE_INSERT,
-      .view = view,
-      .last_cursor = last_cursor,
-      .filepath = in_filename[0] == '\0' ? DEFAULT_FILEPATH : in_filename,
-  };
-  State *state = &new_state;
 
   // update the screen size first. This clears the status window on any changes
   // (including the first time it's run), so refreshing after updating the
@@ -254,6 +401,8 @@ int main(int argc, char *argv[]) {
   // If connected to server, check both network and keyboard streams
   if (networked) {
     logd("Running networked loop\n");
+    int fd;
+    fd_set testfds;
     while (1) {
       testfds = net_cfg->clientfds;
       select(FD_SETSIZE, &testfds, NULL, NULL, NULL);

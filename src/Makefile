@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS+=-Wall -std=gnu99
 
 version = $(shell git describe --always --tags --dirty)
-CFLAGS+="-DVERSION=version"
+CFLAGS+="-DVERSION=\"$(version)\""
 
 # add debug annotations, turn off optimizations, and #define DEBUG
 # use in bash with `DEBUG=1 make <foo>`
