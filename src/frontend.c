@@ -448,6 +448,7 @@ int main(int argc, char *argv[]) {
               print_msg_win("Server Disconnect!");
             };
             redraw_canvas_win();  // TODO: draw single char update
+            draw_collab_cursors(state);
             refresh_screen();
           } else if (fd == 0) {  // process keyboard activity
             master_handler(state, canvas_win, status_interface->info_win);
