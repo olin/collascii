@@ -55,8 +55,146 @@ int build_pos_msg(char *buff, int buff_len, const int y, const int x,
   return snprintf(buff, buff_len, "p %i %i %i\n", y, x, uid);
 }
 
-int parse_pos_msg(char *buff, int *y, int *x, int *uid) {
+int parse_pos_msg(const char *buff, int *y, int *x, int *uid) {
   return sscanf(buff, "p %i %i %i", y, x, uid) == 3;
+}
+
+int net_send_pos(int y, int x) {
+  char send_buf[32];
+  snprintf(send_buf, 32, "p %d %d 0\n", y, x);
+  if (write_fd(sockfd, send_buf) < 0) {
+    perrorf("net_send_pos: write_fd");
+    return -1;
+  }
+  return 0;
+}
+
+int net_update_pos(State *state) {
+  logd("Hello\n");
+  static int last_x = 0;
+  static int last_y = 0;
+  bool updated = false;
+  const int cur_x = state->view->x + state->cursor->x;
+  const int cur_y = state->view->y + state->cursor->y;
+  if (cur_x != last_x) {
+    last_x = cur_x;
+    updated = true;
+  }
+  if (cur_y != last_y) {
+    last_y = cur_y;
+    updated = true;
+  }
+  if (updated) {
+    logd("Sending updated pos\n");
+    net_send_pos(cur_y, cur_x);
+    return 1;
+  }
+  return 0;
+}
+
+collab_t *collab_create(int uid, int y, int x) {
+  collab_t *c = malloc(sizeof(collab_t));
+  c->uid = uid;
+  c->y = y;
+  c->x = x;
+  return c;
+}
+
+void collab_free(collab_t *collab) {
+  free(collab);
+}
+
+/* Sends a set char command to the server
+ *
+ */
+int net_send_char(int y, int x, char ch) {
+  char send_buf[50];
+  snprintf(send_buf, 50, "s %d %d %c\n", y, x, ch);
+
+  if (write_fd(sockfd, send_buf) < 0) {
+    perrorf("net_send_char: write_fd");
+    return -1;
+  }
+
+  // DON"T TRUST FPRINTF!!! It has failed me!
+  // fprintf(sockstream, "s %d %d %c\n", y, x, ch);
+
+  return 0;
+}
+
+collab_list_t *collab_list_create(int len) {
+  collab_list_t *l = malloc(sizeof(collab_list_t));
+  l->len = len;
+  l->list = malloc(sizeof(collab_t) * len);
+  l->num = 0;
+  for (int i = 0; i < len; i++) {
+    l->list[i] = NULL;
+  }
+  return l;
+}
+
+void collab_list_free(collab_list_t *l) {
+  for (int i = 0; i < l->len; i++) {
+    collab_free(l->list[i]);
+  }
+  free(l->list);
+  free(l);
+}
+
+int collab_list_add(collab_list_t *l, int uid, int y, int x) {
+  int i;
+  logd("Foo\n");
+  logd("list: %p\n", l);
+  for (i = 0; i < l->len; i++) {
+    logd("Loop %i\n", i);
+    if (l->list[i] == NULL) {
+      l->list[i] = collab_create(uid, y, x);
+      l->num++;
+      logd("Added new collaborator %i at (%i, %i)\n", uid, y, x);
+      break;
+    }
+  }
+  if (i == l->len) {
+    logd("Collaborator list full\n");
+    return -1;
+  }
+  return 0;
+}
+
+int collab_list_del(collab_list_t *l, int uid) {
+  int i;
+  for (i = 0; i < l->len; i++) {
+    if (l->list[i]->uid == uid) {
+      collab_t *c = l->list[i];
+      l->list[i] = NULL;
+      collab_free(c);
+      l->num--;
+      break;
+    }
+  }
+  if (i == l->len) {
+    logd("Couldn't find uid %i in list\n", uid);
+    return -1;
+  }
+  return 0;
+}
+
+int collab_list_upd(collab_list_t *l, int uid, int y, int x) {
+  int i;
+  logd("foo\n");
+  for (i = 0; i < l->len; i++) {
+    logd("upd Loop: %d\n", i);
+    if (l->list[i] != NULL && l->list[i]->uid == uid) {
+      l->list[i]->x = x;
+      l->list[i]->y = y;
+      logd("Updated collaborator %i to (%i, %i)\n", uid, x, y);
+      break;
+    }
+  }
+  if (i == l->len) {
+    return collab_list_add(l, uid, y, x);
+  }
+  return 0;
 }
 
 /* Connects to server and returns its canvas
@@ -155,6 +293,7 @@ int net_handler(State *state) {
   logd("received %li bytes: '%s'\n", msg_size, msg_buf);
 #endif
   char ch = msg_buf[strlen(msg_buf) - 2];  // -2 for '\n'
+  char *msg = strndup(msg_buf, msg_size);
 
   char *command = strtok(msg_buf, " \n");
   logd("\"%s\"", command);
@@ -169,30 +308,14 @@ int net_handler(State *state) {
     int x = atoi(strtok(NULL, " "));
 
     canvas_scharyx(view->canvas, y, x, ch);
+  } else if (strcmp(command, "p") == 0) {
+    int y, x, uid;
+    // logd("msg_buf: '%s'", msg_buf);
+    if (!parse_pos_msg(msg, &y, &x, &uid)) {
+      perrorf("net_handler: parse_pos_msg");
+    }
+    collab_list_upd(state->collab_list, uid, y, x);
   }
-  if (!strcmp(command, "q")) {
-    logd("closing socket\n");
-    close(sockfd);
-    return 1;
-  }
-
-  return 0;
-}
-
-/* Sends a set char command to the server
- *
- */
-int net_send_char(int y, int x, char ch) {
-  char send_buf[50];
-  snprintf(send_buf, 50, "s %d %d %c\n", y, x, ch);
-
-  if (write_fd(sockfd, send_buf) < 0) {
-    perrorf("net_send_char: write_fd");
-    return -1;
-  }
-
-  // DON"T TRUST FPRINTF!!! It has failed me!
-  // fprintf(sockstream, "s %d %d %c\n", y, x, ch);
-
+  free(msg);
   return 0;
 }

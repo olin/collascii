@@ -307,6 +307,7 @@ void init_state(State *state, const arguments_t *const arguments) {
       .view = view,
       .last_cursor = cursor_newyx(arguments->y, arguments->x),
       .filepath = arguments->filename,
+      .collab_list = collab_list_create(NUM_COLLAB),
   };
   *state = new_state;
 }
@@ -450,6 +451,8 @@ int main(int argc, char *argv[]) {
             refresh_screen();
           } else if (fd == 0) {  // process keyboard activity
             master_handler(state, canvas_win, status_interface->info_win);
+            draw_collab_cursors(state);
+            net_update_pos(state);
             refresh_screen();
           }
         }
@@ -527,6 +530,24 @@ void redraw_canvas_win() {
   for (int y = max_y; y < view_max_y; y++) {
     for (int x = 0; x < max_x; x++) {
       mvwaddch(canvas_win, y + 1, x + 1, ACS_CKBOARD);
+    }
+  }
+}
+
+void draw_collab_cursors(State *state) {
+  collab_t *c = NULL;
+  const int min_x = view->x;
+  const int min_y = view->y;
+  const int max_x = min(view_max_x, view->canvas->num_cols - view->x);
+  const int max_y = min(view_max_y, view->canvas->num_rows - view->y);
+  for (int i = 0; i < state->collab_list->len; i++) {
+    c = state->collab_list->list[i];
+    if (c != NULL && (c->x >= min_x && c->y <= max_x) &&
+        (c->y >= min_y && c->y <= max_y)) {
+      logd("Drawing collab %i\n", c->uid);
+      // TODO: set reverse video and color at this point
+      if (has_colors()) {
+      }
     }
   }
 }

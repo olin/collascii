@@ -5,6 +5,18 @@
 #include "mode_id.h"
 #include "view.h"
 
+typedef struct {
+  int uid;
+  int y;
+  int x;
+} collab_t;
+
+typedef struct {
+  int num;
+  int len;
+  collab_t **list;
+} collab_list_t;
+
 /* State keeps track of changing variables for mode functions.
  * If you add something, don't forget to also add an init before the main
  * loop.
@@ -22,6 +34,10 @@ typedef struct {
   int last_arrow_direction;
   Cursor *last_cursor;
   char *filepath;  // path of savefile
+
+  // network-related
+  collab_list_t *collab_list;
+  char *name;
 } State;
 
 #endif

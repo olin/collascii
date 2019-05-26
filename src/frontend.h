@@ -4,6 +4,7 @@
 #include <ncurses.h>
 #include "cursor.h"
 #include "mode_id.h"
+#include "state.h"
 #include "view.h"
 
 #define KEY_TAB '\t'
@@ -34,4 +35,5 @@ void highlight_mode_text(int x, int num_ch);
 int print_mode_win(char *format, ...);
 void update_info_win(const Mode_ID current_mode, const int x, const int y,
                      const int w, const int h);
+void draw_collab_cursors(State *state);
 #endif

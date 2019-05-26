@@ -21,12 +21,11 @@
 #include <unistd.h>
 
 #include "canvas.h"
+#include "network.h"
 #include "util.h"
 
 static _Atomic unsigned int cli_count = 0;
 static int uid = 10;
-
-const char* PROTOCOL_VERSION = "1.0";
 
 #define MAX_CLIENTS 100
 #define BUFFER_SZ 2048
@@ -69,16 +68,16 @@ void queue_add(client_t *cl) {
   pthread_mutex_unlock(&clients_mutex);
 }
 
-int write_fd(int fd, const char *s) {
-  const int len = strlen(s);
-  const int res = write(fd, s, strlen(s));
-#ifdef LOG_TRAFFIC
-  const int errnum = errno;
-  logd("Wrote %d of %d bytes to descriptor %d: '%s'\n", res, len, fd, s);
-  errno = errnum;
-#endif
-  return res;
-}
+// int write_fd(int fd, const char *s) {
+//   const int len = strlen(s);
+//   const int res = write(fd, s, strlen(s));
+// #ifdef LOG_TRAFFIC
+//   const int errnum = errno;
+//   logd("Wrote %d of %d bytes to descriptor %d: '%s'\n", res, len, fd, s);
+//   errno = errnum;
+// #endif
+//   return res;
+// }
 
 int write_client(client_t *client, const char *s) {
   int res = write_fd(client->connfd, s);
@@ -240,6 +239,7 @@ void *handle_client(void *arg) {
     /* Process Command */
     char c = buff_in[strlen(buff_in) - 1];
     char *command;
+    char *msg = strndup(buff_in, BUFFER_SZ);
     command = strtok(buff_in, " ");
     if (strcmp(command, "q") == 0) {
       break;
@@ -262,8 +262,20 @@ void *handle_client(void *arg) {
       canvas_serialize(canvas, canvas_buf);
       send_message_self(canvas_buf, cli);
     } else if (strcmp(command, "p") == 0) {
-      
+      // copy pos message and fill in client id
+      char send_buff[32];
+      int y, x, uid;
+      if (!parse_pos_msg(msg, &y, &x, &uid)) {
+        logd("Warning: parse_pos_msg didn't get all of them\n");
+      }
+      logd("Got (%i, %i) from '%s'\n", x, y, msg);
+      if (build_pos_msg(send_buff, 32, y, x, cli->uid) >= 32) {
+        logd("handle_client: build_pos_msg buffer too small\n");
+      }
+      // send to other clients
+      send_message(send_buff, cli);
     }
+    free(msg);
   }
   CLIENT_CLOSE:
 
