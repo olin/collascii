@@ -452,8 +452,8 @@ int main(int argc, char *argv[]) {
           } else if (fd == 0) {  // process keyboard activity
             master_handler(state, canvas_win, status_interface->info_win);
             draw_collab_cursors(state);
-            net_update_pos(state);
             refresh_screen();
+            net_update_pos(state);
           }
         }
       }
@@ -478,12 +478,12 @@ void setup_colors() {
 
   // TODO: Use #define to get colors for standard uses
   // Assign color codes
-  init_pair(1, COLOR_RED, COLOR_BLACK);
-  init_pair(2, COLOR_GREEN, COLOR_BLACK);
-  init_pair(3, COLOR_BLUE, COLOR_BLACK);
-  init_pair(4, COLOR_CYAN, COLOR_BLACK);
-  init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
-  init_pair(6, COLOR_YELLOW, COLOR_BLACK);
+  init_pair(1, COLOR_WHITE, COLOR_BLUE);
+  init_pair(2, COLOR_WHITE, COLOR_GREEN);
+  init_pair(3, COLOR_WHITE, COLOR_RED);
+  init_pair(4, COLOR_WHITE, COLOR_CYAN);
+  init_pair(5, COLOR_WHITE, COLOR_MAGENTA);
+  init_pair(6, COLOR_WHITE, COLOR_YELLOW);
   init_pair(7, COLOR_BLACK, COLOR_WHITE);
 }
 
@@ -545,9 +545,11 @@ void draw_collab_cursors(State *state) {
     if (c != NULL && (c->x >= min_x && c->y <= max_x) &&
         (c->y >= min_y && c->y <= max_y)) {
       logd("Drawing collab %i\n", c->uid);
-      // TODO: set reverse video and color at this point
-      if (has_colors()) {
-      }
+      const int color = has_colors() ? (i % 6) + 1 : 0;
+      // TODO: blink cursor with A_BLINK attribute (needs to pause between
+      // updates/only move on changes?)
+      mvwchgat(canvas_win, c->y - view->y + 1, c->x - view->x + 1, 1, 0, color,
+               NULL);
     }
   }
 }

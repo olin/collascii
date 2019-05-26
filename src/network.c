@@ -143,10 +143,7 @@ void collab_list_free(collab_list_t *l) {
 
 int collab_list_add(collab_list_t *l, int uid, int y, int x) {
   int i;
-  logd("Foo\n");
-  logd("list: %p\n", l);
   for (i = 0; i < l->len; i++) {
-    logd("Loop %i\n", i);
     if (l->list[i] == NULL) {
       l->list[i] = collab_create(uid, y, x);
       l->num++;
@@ -181,9 +178,7 @@ int collab_list_del(collab_list_t *l, int uid) {
 
 int collab_list_upd(collab_list_t *l, int uid, int y, int x) {
   int i;
-  logd("foo\n");
   for (i = 0; i < l->len; i++) {
-    logd("upd Loop: %d\n", i);
     if (l->list[i] != NULL && l->list[i]->uid == uid) {
       l->list[i]->x = x;
       l->list[i]->y = y;
