@@ -241,10 +241,11 @@ void *handle_client(void *arg) {
     char c = buff_in[strlen(buff_in) - 1];
     char *command;
     command = strtok(buff_in, " ");
-    if (!strcmp(command, "q")) {
+    if (strcmp(command, "q") == 0) {
       break;
     }
-    if (!strcmp(command, "s")) {
+
+    if (strcmp(command, "s") == 0) {
       int y = atoi(strtok(NULL, " "));
       int x = atoi(strtok(NULL, " "));
 
@@ -257,9 +258,11 @@ void *handle_client(void *arg) {
         sprintf(buff_out, "s %d %d %c\n", y, x, c);
         send_message(buff_out, cli);
       }
-    } else if (!strcmp(command, "c")) {
+    } else if (strcmp(command, "c") == 0) {
       canvas_serialize(canvas, canvas_buf);
       send_message_self(canvas_buf, cli);
+    } else if (strcmp(command, "p") == 0) {
+      
     }
   }
   CLIENT_CLOSE:
