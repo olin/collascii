@@ -12,8 +12,11 @@
 
 #include "canvas.h"
 #include "network.h"
+#include "state.h"
 #include "util.h"
 #include "view.h"
+
+#define LOG_TRAFFIC
 
 /* Network Client Variables */
 fd_set testfds, clientfds;
@@ -30,6 +33,31 @@ struct sockaddr_in address;
 struct addrinfo hints, *servinfo;
 
 const char *PROTOCOL_VERSION = "1.0";
+
+int write_fd(int fd, const char *s) {
+  const int len = strlen(s);
+  const int res = write(fd, s, strlen(s));
+#ifdef LOG_TRAFFIC
+  const int errnum = errno;
+  logd("Wrote %d of %d bytes to descriptor %d: '%s'\n", res, len, fd, s);
+  errno = errnum;
+#endif
+  return res;
+}
+
+int build_set_msg(char *buff, int buff_len, const int y, const int x,
+                  const char val) {
+  return snprintf(buff, buff_len, "s %i %i %c\n", y, x, val);
+}
+
+int build_pos_msg(char *buff, int buff_len, const int y, const int x,
+                  const int uid) {
+  return snprintf(buff, buff_len, "p %i %i %i\n", y, x, uid);
+}
+
+int parse_pos_msg(char *buff, int *y, int *x, int *uid) {
+  return sscanf(buff, "p %i %i %i", y, x, uid) == 3;
+}
 
 /* Connects to server and returns its canvas
  *
@@ -84,7 +112,7 @@ Canvas *net_init(char *in_hostname, char *in_port) {
   // receive canvas from server
   getline(&msg_buf, &msg_size, sockstream);
   char *command = strtok(msg_buf, " ");
-  if (!strcmp(command, "cs")) {
+  if (strcmp(command, "cs") == 0) {
     int row = atoi(strtok(NULL, " "));
     int col = atoi(strtok(NULL, " "));
 
@@ -119,16 +147,24 @@ Net_cfg *net_getcfg() {
 /* Reads incoming packets and updates canvas.
  * Need to run redraw_canvas_win() after calling!
  */
-int net_handler(View *view) {
-  logd("receiving: ");
+int net_handler(State *state) {
+  View *view = state->view;
+
   getline(&msg_buf, &msg_size, sockstream);
-  logd("[%li]", msg_size);
-  logd("rec buffer: '%s'", msg_buf);
+#ifdef LOG_TRAFFIC
+  logd("received %li bytes: '%s'\n", msg_size, msg_buf);
+#endif
   char ch = msg_buf[strlen(msg_buf) - 2];  // -2 for '\n'
 
   char *command = strtok(msg_buf, " \n");
   logd("\"%s\"", command);
-  if (!strcmp(command, "s")) {
+  if (strcmp(command, "q") == 0) {
+    logd("closing socket\n");
+    close(sockfd);
+    return 1;
+  }
+
+  if (strcmp(command, "s") == 0) {
     int y = atoi(strtok(NULL, " "));
     int x = atoi(strtok(NULL, " "));
 
@@ -149,13 +185,12 @@ int net_handler(View *view) {
 int net_send_char(int y, int x, char ch) {
   char send_buf[50];
   snprintf(send_buf, 50, "s %d %d %c\n", y, x, ch);
-  logd("send buffer: '%s'\n", send_buf);
-  if (write(sockfd, send_buf, strlen(send_buf)) < 0) {
-    logd("write error");
+
+  if (write_fd(sockfd, send_buf) < 0) {
+    perrorf("net_send_char: write_fd");
     return -1;
   }
 
-  logd("sending: s %d %d %c\n", y, x, ch);
   // DON"T TRUST FPRINTF!!! It has failed me!
   // fprintf(sockstream, "s %d %d %c\n", y, x, ch);
 

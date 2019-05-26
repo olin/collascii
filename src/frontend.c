@@ -442,7 +442,7 @@ int main(int argc, char *argv[]) {
               fd == net_cfg->sockfd) {  // Accept data from open socket
             logd("recv network\n");
             // If server disconnects
-            if (net_handler(view) != 0) {
+            if (net_handler(state) != 0) {
               networked = false;
               print_msg_win("Server Disconnect!");
             };
