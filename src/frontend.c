@@ -95,6 +95,12 @@ FILE *logfile = NULL;
 #define VERSION "unknown"
 #endif
 
+// colors of collaborator cursors, drawn in order based on uid
+// see `setup_colors` and `draw_collab_cursors`
+const short cursor_colors[] = {
+    COLOR_CYAN, COLOR_YELLOW, COLOR_MAGENTA, COLOR_GREEN, COLOR_RED, COLOR_BLUE,
+};
+
 // cli pieces
 const char *program_name = "collascii";
 const char *program_version = VERSION;
@@ -474,18 +480,22 @@ int main(int argc, char *argv[]) {
   finish(0);
 }
 
+/* Initialize ncurses color configurations
+ *
+ * Before using color features elsewhere make sure to check has_colors() first.
+ */
 void setup_colors() {
   start_color();
+  // Use the terminal's prefered color scheme if it supports it
+  // -1 can be used to refer to the prefered background/foreground
+  use_default_colors();
 
-  // TODO: Use #define to get colors for standard uses
-  // Assign color codes
-  init_pair(1, COLOR_WHITE, COLOR_BLUE);
-  init_pair(2, COLOR_WHITE, COLOR_GREEN);
-  init_pair(3, COLOR_WHITE, COLOR_RED);
-  init_pair(4, COLOR_WHITE, COLOR_CYAN);
-  init_pair(5, COLOR_WHITE, COLOR_MAGENTA);
-  init_pair(6, COLOR_WHITE, COLOR_YELLOW);
-  init_pair(7, COLOR_BLACK, COLOR_WHITE);
+  // initialize cursor colors - prefered foreground with colored background
+  // start at index 1 (0 is already default colors)
+  const int start = 1;
+  for (int i = 0; i < sizeof(cursor_colors) / sizeof(short); i++) {
+    init_pair(i + start, -1, cursor_colors[i]);
+  }
 }
 
 /* Update canvas with character at cursor current position.
@@ -535,6 +545,8 @@ void redraw_canvas_win() {
   }
 }
 
+/* Draw all visible collaborator cursors on the canvas.
+ */
 void draw_collab_cursors(State *state) {
   collab_t *c = NULL;
   const int min_x = view->x;
@@ -546,11 +558,19 @@ void draw_collab_cursors(State *state) {
     if (c != NULL && (c->x >= min_x && c->y <= max_x) &&
         (c->y >= min_y && c->y <= max_y)) {
       logd("Drawing collab %i\n", c->uid);
-      const int color = has_colors() ? (i % 6) + 1 : 0;
+
+      // pick color based on uid, which starts at 1
+      // if color isn't supported, use normal terminal colors and reverse video
+      const int uid_start = 0;
+      const int color_start = 1;
+      const size_t colors_len = sizeof(cursor_colors) / sizeof(short);
+      const int color =
+          has_colors() ? ((c->uid - uid_start) % colors_len) + color_start : 0;
+      const int attr = has_colors() ? 0 : A_REVERSE;
       // TODO: blink cursor with A_BLINK attribute (needs to pause between
       // updates/only move on changes?)
-      mvwchgat(canvas_win, c->y - view->y + 1, c->x - view->x + 1, 1, 0, color,
-               NULL);
+      mvwchgat(canvas_win, c->y - view->y + 1, c->x - view->x + 1, 1, attr,
+               color, NULL);
     }
   }
 }
