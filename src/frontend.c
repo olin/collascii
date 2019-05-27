@@ -558,7 +558,7 @@ void draw_collab_cursors(collab_list_t *collab_list) {
   for (int i = 0; i < collab_list->len; i++) {
     c = collab_list->list[i];
     // only draw cursors that exist and are visible on the screen
-    if (c != NULL && (c->x >= min_x && c->y <= max_x) &&
+    if (c != NULL && (c->x >= min_x && c->x <= max_x) &&
         (c->y >= min_y && c->y <= max_y)) {
       logd("Drawing collab %i\n", c->uid);
 
