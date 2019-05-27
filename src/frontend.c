@@ -454,11 +454,11 @@ int main(int argc, char *argv[]) {
               print_msg_win("Server Disconnect!");
             };
             redraw_canvas_win();  // TODO: draw single char update
-            draw_collab_cursors(state);
+            draw_collab_cursors(state->collab_list);
             refresh_screen();
           } else if (fd == 0) {  // process keyboard activity
             master_handler(state, canvas_win, status_interface->info_win);
-            draw_collab_cursors(state);
+            draw_collab_cursors(state->collab_list);
             refresh_screen();
             net_update_pos(state);
           }
@@ -547,14 +547,14 @@ void redraw_canvas_win() {
 
 /* Draw all visible collaborator cursors on the canvas.
  */
-void draw_collab_cursors(State *state) {
+void draw_collab_cursors(collab_list_t *collab_list) {
   collab_t *c = NULL;
   const int min_x = view->x;
   const int min_y = view->y;
   const int max_x = min(view_max_x, view->canvas->num_cols - view->x);
   const int max_y = min(view_max_y, view->canvas->num_rows - view->y);
-  for (int i = 0; i < state->collab_list->len; i++) {
-    c = state->collab_list->list[i];
+  for (int i = 0; i < collab_list->len; i++) {
+    c = collab_list->list[i];
     if (c != NULL && (c->x >= min_x && c->y <= max_x) &&
         (c->y >= min_y && c->y <= max_y)) {
       logd("Drawing collab %i\n", c->uid);

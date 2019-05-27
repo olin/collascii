@@ -35,5 +35,5 @@ void highlight_mode_text(int x, int num_ch);
 int print_mode_win(char *format, ...);
 void update_info_win(const Mode_ID current_mode, const int x, const int y,
                      const int w, const int h);
-void draw_collab_cursors(State *state);
+void draw_collab_cursors(collab_list_t *collab_list);
 #endif
