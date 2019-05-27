@@ -546,6 +546,8 @@ void redraw_canvas_win() {
 }
 
 /* Draw all visible collaborator cursors on the canvas.
+ *
+ * Collaborator cursor colors are from `cursors_colors` and set by uid.
  */
 void draw_collab_cursors(collab_list_t *collab_list) {
   collab_t *c = NULL;
@@ -555,6 +557,7 @@ void draw_collab_cursors(collab_list_t *collab_list) {
   const int max_y = min(view_max_y, view->canvas->num_rows - view->y);
   for (int i = 0; i < collab_list->len; i++) {
     c = collab_list->list[i];
+    // only draw cursors that exist and are visible on the screen
     if (c != NULL && (c->x >= min_x && c->y <= max_x) &&
         (c->y >= min_y && c->y <= max_y)) {
       logd("Drawing collab %i\n", c->uid);
