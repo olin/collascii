@@ -4,7 +4,11 @@
 
 _A collaborative ascii canvas_
 
-[![asciicast](https://asciinema.org/a/248508.svg)](https://asciinema.org/a/248508)
+<p align="center">
+  <a href="https://asciinema.org/a/248508" target="_blank">
+    <img src="https://asciinema.org/a/248508.svg"/>
+  </a>
+</p>
 
 For more examples of what's possible, [check out issue #21](https://github.com/olin/SoftSysCollascii/issues/21#partial-timeline).
 Add your own creations!
