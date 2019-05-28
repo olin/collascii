@@ -45,6 +45,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "lib/argtable3.h"
+
 #include "canvas.h"
 #include "cursor.h"
 #include "fe_modes.h"
@@ -96,13 +98,12 @@ FILE *logfile = NULL;
 
 //// ARGP CONFIG
 // globals for argp
-const char *argp_program_version = "collascii-" VERSION;
-const char *argp_program_bug_address =
-    "<https://github.com/olin/collascii/issues/>";
+const char *program_name = "collascii";
+const char *program_version = VERSION;
+const char *program_bug_address = "<https://github.com/olin/collascii/issues/>";
 // doc strings
-static char doc[] =
-    "collascii -- a collaborative ascii editor\v"
-    // everything after the vertical tab comes after the usage info
+const char *program_description = "a collaborative ascii editor";
+const char *program_doc =
     "COLLASCII\n\n"
     "\"The Future Editor of Yesterday, Tomorrow!\"\n\n"
     "By Matthew Beaudouin-Lafon, Evan New-Schmidt, and Adam Novotny\n\n"
@@ -115,7 +116,6 @@ static char doc[] =
     "- <CTRL-S> to write to the file\n"
     "- <PGUP>/<PGDOWN> move up/down a screen height\n"
     "- <SHIFT-LEFT>/<SHIFT-RIGHT> move left/right a screen width\n";
-static char args_doc[] = "[FILE]";  // optional file argument usage string
 // commandline options
 static struct argp_option options[] = {
     // filename (not a flag)
@@ -206,7 +206,89 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
   }
   return 0;
 }
-static struct argp argp = {options, parse_opt, args_doc, doc};
+// static struct argp argp = {options, parse_opt, args_doc, doc};
+
+void parse_args(int argc, char *argv[], arguments_t *arguments) {
+  struct arg_lit *help, *version, *usage;
+  struct arg_int *width, *height;
+  struct arg_file *file;
+  struct arg_str *server, *port;
+  struct arg_end *end;
+
+  void *argtable[] = {
+      help = arg_litn(NULL, "help", 0, 1, "display this help and exit"),
+      usage =
+          arg_litn(NULL, "usage", 0, 1, "display brief usage info and exit"),
+      version =
+          arg_litn(NULL, "version", 0, 1, "display version info and exit"),
+      width = arg_intn("w", "width", "<n>", 0, 1, "initial width of canvas"),
+      height = arg_intn("h", "height", "<n>", 0, 1, "initial height of canvas"),
+      server = arg_strn("s", "server", "<SERVER>", 0, 1,
+                        "address of server to connect to"),
+      port = arg_strn("p", "port", "<PORT>", 0, 1,
+                      "port of server to connect to (default 5000)"),
+      file = arg_filen(NULL, NULL, "[FILE]", 0, 1,
+                       "filepath for read/write ('-' to read from stdin)"),
+      end = arg_end(20),
+  };
+
+  int nerrors = arg_parse(argc, argv, argtable);
+
+  if (help->count > 0) {
+    printf("Usage: %s [OPTION...] [FILE]\n", program_name);
+    printf("%s -- %s\n\n", program_name, program_description);
+    arg_print_glossary(stdout, argtable, "  %-25s %s\n");
+    printf("\n%s\n", program_doc);
+    printf("Report bugs to %s.\n", program_bug_address);
+    exit(0);
+  }
+
+  if (usage->count > 0) {
+    printf("Usage: %s", program_name);
+    arg_print_syntax(stdout, argtable, "\n");
+    exit(0);
+  }
+
+  if (version->count > 0) {
+    printf("%s-%s\n", program_name, program_version);
+    exit(0);
+  }
+
+  if (nerrors > 0) {
+    // Display the error details contained in the arg_end struct.
+    arg_print_errors(stdout, end, program_name);
+    printf("Try '%s --help' for more information.\n", program_name);
+    exit(0);
+  }
+
+  if (nerrors == 0) {
+    if (width->count > 0) {
+      arguments->width = width->ival[0];
+    }
+    if (height->count > 0) {
+      arguments->height = height->ival[0];
+    }
+    if (server->count > 0) {
+      arguments->connect_remote = true;
+      arguments->remote_host = strdup(server->sval[0]);
+    }
+    if (port->count > 0) {
+      arguments->remote_host = strdup(server->sval[0]);
+    }
+    if (file->count > 0) {
+      const char *arg = file->filename[0];
+      if (strcmp(arg, "-") == 0) {
+        arguments->use_stdin = true;
+      } else {
+        arguments->filename = strdup(arg);
+        arguments->load_file = true;
+      }
+    }
+    validate_arguments(arguments);
+  }
+
+  arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));
+}
 
 /* Initialize state based on arguments.
  *
@@ -317,7 +399,8 @@ int main(int argc, char *argv[]) {
   };
 
   // parse arguments, init state
-  argp_parse(&argp, argc, argv, 0, 0, &arguments);
+  // argp_parse(&argp, argc, argv, 0, 0, &arguments);
+  parse_args(argc, argv, &arguments);
   State *state = malloc(sizeof(State));
   init_state(state, &arguments);
 
