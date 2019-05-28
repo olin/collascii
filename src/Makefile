@@ -57,7 +57,7 @@ test: $(patsubst %.c, .run-%.c, $(wildcard *_test.c))
 # add flags for minunit libraries, works with `make test_foo` too
 %_test: LDLIBS+=-lrt -lm
 # require foo.c, foo_test, and minunit.h for foo_test
-%_test: %.o %_test.c minunit.h
+%_test: %.o %_test.c lib/minunit.h
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 clean:

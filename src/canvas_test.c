@@ -1,5 +1,5 @@
 #include "canvas.h"
-#include "minunit.h"
+#include "lib/minunit.h"
 #include "util.h"
 
 static int cols = 2;
