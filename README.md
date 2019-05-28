@@ -15,7 +15,7 @@ You can **download a `collascii` executable from the [Releases page](https://git
 or build your own version locally (see [Building](#building)).
 
 COLLASCII currently supports Linux and MacOS (and Windows, using [WSL](https://docs.microsoft.com/en-us/windows/wsl/about)),
-but it should run anywhere that NCURSES and POSIX threads do.
+but it should run anywhere that NCURSES, BSD sockets, and POSIX threads do.
 
 ### Usage
 
