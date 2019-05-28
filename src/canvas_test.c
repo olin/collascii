@@ -179,12 +179,6 @@ MU_TEST(test_canvas_cpy_p1p2) {
 
   c4 = canvas_cpy_p1p2(c3, 1, 1, c3->num_rows - 1, c3->num_cols - 1);
 
-  printf("\nc3\n");
-  canvas_print(c3);
-
-  printf("\nc4\n");
-  canvas_print(c4);
-
   mu_assert_int_eq(2, c4->num_cols);
   mu_assert_int_eq(2, c4->num_rows);
   mu_assert_int_eq(canvas_gcharyx(c3, 1, 1), canvas_gcharyx(c4, 0, 0));
@@ -195,12 +189,6 @@ MU_TEST(test_canvas_ldcanvasyx) {
   // copy the left column of c1 into the right column of c2, shifted down 1
   int res = canvas_ldcanvasyx(c2, c1, 1, 1);
   mu_assert_int_eq(1, res);
-
-  // printf("c1\n");
-  // canvas_print(c1);
-
-  // printf("c2\n");
-  // canvas_print(c2);
 
   mu_assert(!canvas_eq(c1, c2), "Canvases should not be equal");
 
@@ -224,12 +212,6 @@ MU_TEST(test_canvas_ldcanvasyxc) {
   int res = canvas_ldcanvasyxc(c2, c1, 1, 1, '2');
   mu_assert_int_eq(1, res);
 
-  // printf("c1\n");
-  // canvas_print(c1);
-
-  // printf("c2\n");
-  // canvas_print(c2);
-
   mu_assert(!canvas_eq(c1, c2), "Canvases should not be equal");
 
   // check left column
@@ -250,20 +232,11 @@ MU_TEST(test_canvas_trimc) {
   canvas_fill(c2, ' ');
   canvas_ldcanvasyx(c2, c1, 1, 1);
 
-  printf("\nc1\n");
-  canvas_print(c1);
-  printf("\nc2\n");
-  canvas_print(c2);
-
   Canvas *c3 = canvas_trimc(c2, ' ', true, true, true, true);
-  printf("\nc3\n");
-  canvas_print(c3);
   mu_assert_int_eq(1, c3->num_cols);
   mu_assert_int_eq(2, c3->num_rows);
 
   Canvas *c4 = canvas_cpy_p1p2(c2, 1, 1, c3->num_cols - 1, c3->num_rows - 1);
-  printf("\nc4\n");
-  canvas_print(c4);
 
   canvas_free(c2);
   canvas_free(c3);
