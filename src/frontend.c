@@ -36,7 +36,6 @@
 
 #include "frontend.h"
 
-#include <argp.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -96,12 +95,10 @@ FILE *logfile = NULL;
 #define VERSION "unknown"
 #endif
 
-//// ARGP CONFIG
-// globals for argp
+// cli pieces
 const char *program_name = "collascii";
 const char *program_version = VERSION;
 const char *program_bug_address = "<https://github.com/olin/collascii/issues/>";
-// doc strings
 const char *program_description = "a collaborative ascii editor";
 const char *program_doc =
     "COLLASCII\n\n"
@@ -116,19 +113,6 @@ const char *program_doc =
     "- <CTRL-S> to write to the file\n"
     "- <PGUP>/<PGDOWN> move up/down a screen height\n"
     "- <SHIFT-LEFT>/<SHIFT-RIGHT> move left/right a screen width\n";
-// commandline options
-static struct argp_option options[] = {
-    // filename (not a flag)
-    {"FILE", 0, 0, OPTION_DOC,
-     "filepath for read/write ('-' to read from stdin)", 1},
-    // canvas dimensions
-    {"width", 'w', "WIDTH", 0, "initial width of canvas", 2},
-    {"height", 'h', "HEIGHT", 0, "initial height of canvas"},
-    // remote connections
-    {"server", 's', "SERVER", 0, "address of server to connect to", 3},
-    {"port", 'p', "PORT", 0, "port of server to connect to (default 5000)"},
-    {0}  // terminating entry
-};
 
 // representation of desired state from the cmdline interface
 // see the creatively-named "arguments" struct in `main` for the defaults
@@ -143,29 +127,6 @@ typedef struct {
   char *remote_port;
 } arguments_t;
 
-/* Get a positive int from a string.
- *
- * Stores the parsed value from arg in val.
- *
- * Return values are meant for an argp parser function.
- */
-int parse_int(int *val, const char *const arg) {
-  // set errno to 0 to know if strtol sets it (recommended by 9/10 docs)
-  errno = 0;
-  long res = strtol(arg, NULL, 10);
-  // return strtol errors
-  if (errno != 0) {
-    return errno;
-  }
-  // break if negative value is parsed
-  if (res < 0) {
-    return EINVAL;
-  }
-  // otherwise store and return normally
-  *val = (int)res;
-  return 0;
-}
-
 /* Make sure the arguments struct is valid and in a non-conflicting state.
  *
  * Return values are meant for an argp parser function.
@@ -173,40 +134,6 @@ int parse_int(int *val, const char *const arg) {
  * TODO: fill this out
  */
 int validate_arguments(arguments_t *arguments) { return 0; }
-
-// function for parse loop
-static error_t parse_opt(int key, char *arg, struct argp_state *state) {
-  // extract arguments from state
-  arguments_t *arguments = state->input;
-
-  switch (key) {
-    case 'w':
-      return parse_int(&(arguments->width), arg);
-    case 'h':
-      return parse_int(&(arguments->height), arg);
-    case 's':
-      arguments->remote_host = arg;
-      arguments->connect_remote = true;
-      return 0;
-    case 'p':
-      arguments->remote_port = arg;
-      return 0;
-    case ARGP_KEY_ARG:
-      if (strcmp(arg, "-") == 0) {
-        arguments->use_stdin = true;
-      } else {
-        arguments->filename = arg;
-        arguments->load_file = true;
-      }
-      return 0;
-    case ARGP_KEY_END:
-      return validate_arguments(arguments);
-    default:
-      return ARGP_ERR_UNKNOWN;
-  }
-  return 0;
-}
-// static struct argp argp = {options, parse_opt, args_doc, doc};
 
 void parse_args(int argc, char *argv[], arguments_t *arguments) {
   struct arg_lit *help, *version, *usage;
@@ -399,7 +326,6 @@ int main(int argc, char *argv[]) {
   };
 
   // parse arguments, init state
-  // argp_parse(&argp, argc, argv, 0, 0, &arguments);
   parse_args(argc, argv, &arguments);
   State *state = malloc(sizeof(State));
   init_state(state, &arguments);
