@@ -551,10 +551,11 @@ void redraw_canvas_win() {
  */
 void draw_collab_cursors(collab_list_t *collab_list) {
   collab_t *c = NULL;
+  // calculate visible bounds (in canvas coordinates)
   const int min_x = view->x;
   const int min_y = view->y;
-  const int max_x = min(view_max_x, view->canvas->num_cols - view->x);
-  const int max_y = min(view_max_y, view->canvas->num_rows - view->y);
+  const int max_x = min(view->canvas->num_cols, view->x + view_max_x) - 1;
+  const int max_y = min(view->canvas->num_rows, view->y + view_max_y) - 1;
   for (int i = 0; i < collab_list->len; i++) {
     c = collab_list->list[i];
     // only draw cursors that exist and are visible on the screen
