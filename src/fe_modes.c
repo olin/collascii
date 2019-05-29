@@ -135,6 +135,19 @@ Mode_ID next_canvas_mode(Mode_ID mode) {
   return ((mode - mode_first) + 1) % (mode_list_end - mode_first) + mode_first;
 }
 
+Mode_ID previous_canvas_mode(Mode_ID mode) {
+  int mode_first = MODE_PICKER + 1;  // beginning of selectable modes
+  int mode_list_end = LAST;          // length of total mode list
+
+  if (mode < mode_first || mode_list_end <= mode) {
+    logd("mode \"%s\" is not a canvas mode", mode);
+    return mode;
+  }
+
+  // loop properly between mode_first and last mode
+  return ((mode - mode_first) - 1) % (mode_list_end - mode_first) + mode_first;
+}
+
 /* Handler run in frontend main loop.
  *
  * Interprets keypresses, manages global keys, and passes data to modes.
@@ -161,13 +174,26 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   } else if (c == KEY_TAB) {  // switching modes
     if (state->current_mode == MODE_PICKER &&
         state->last_canvas_mode != MODE_PICKER) {
-      // logd("Reverting to last mode\n");
-      // switch_mode(state->last_canvas_mode, state);
       state->last_canvas_mode = next_canvas_mode(state->last_canvas_mode);
+
+      // update mode_picker() to redraw the highlight
+      state->ch_in = c;
+      call_mode(state->current_mode, NEW_KEY, state);
     } else {
       switch_mode(MODE_PICKER, state);
     }
     return 0;
+  } else if (c == KEY_SHIFT_TAB) {
+    if (state->current_mode == MODE_PICKER &&
+        state->last_canvas_mode != MODE_PICKER) {
+      state->last_canvas_mode = previous_canvas_mode(state->last_canvas_mode);
+
+      // update mode_picker() to redraw the highlight
+      state->ch_in = c;
+      call_mode(state->current_mode, NEW_KEY, state);
+    } else {
+      switch_mode(MODE_PICKER, state);
+    }
   } else if (c == KEY_NPAGE || c == KEY_PPAGE || c == KEY_SLEFT ||
              c == KEY_SRIGHT) {
     // shift view down/up/left/right
