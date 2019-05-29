@@ -122,7 +122,7 @@ void switch_mode(Mode_ID new_mode, State *state) {
   refresh_screen();
 }
 
-Mode_ID next_canvas_mode(Mode_ID mode) {
+Mode_ID add_mod_canvas_mode(Mode_ID mode, int n) {
   int mode_first = MODE_PICKER + 1;  // beginning of selectable modes
   int mode_list_end = LAST;          // length of total mode list
 
@@ -132,20 +132,13 @@ Mode_ID next_canvas_mode(Mode_ID mode) {
   }
 
   // loop properly between mode_first and last mode
-  return ((mode - mode_first) + 1) % (mode_list_end - mode_first) + mode_first;
+  return ((mode - mode_first) + n) % (mode_list_end - mode_first) + mode_first;
 }
 
+Mode_ID next_canvas_mode(Mode_ID mode) { return add_mod_canvas_mode(mode, 1); }
+
 Mode_ID previous_canvas_mode(Mode_ID mode) {
-  int mode_first = MODE_PICKER + 1;  // beginning of selectable modes
-  int mode_list_end = LAST;          // length of total mode list
-
-  if (mode < mode_first || mode_list_end <= mode) {
-    logd("mode \"%s\" is not a canvas mode", mode);
-    return mode;
-  }
-
-  // loop properly between mode_first and last mode
-  return ((mode - mode_first) - 1) % (mode_list_end - mode_first) + mode_first;
+  return add_mod_canvas_mode(mode, -1);
 }
 
 /* Handler run in frontend main loop.
