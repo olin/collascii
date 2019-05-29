@@ -104,7 +104,8 @@ int call_mode(Mode_ID mode, reason_t reason, State *state) {
  */
 inline void update_info_win_state(State *state) {
   update_info_win(state->current_mode, state->view->x + state->cursor->x,
-                  state->view->y + state->cursor->y);
+                  state->view->y + state->cursor->y,
+                  state->view->canvas->num_cols, state->view->canvas->num_rows);
 }
 
 /* Switch to a different mode.
@@ -153,23 +154,37 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
       switch_mode(MODE_PICKER, state);
     }
     return 0;
-  } else if (c == KEY_NPAGE || c == KEY_PPAGE) {
-    // shift view down
+  } else if (c == KEY_NPAGE || c == KEY_PPAGE || c == KEY_SLEFT ||
+             c == KEY_SRIGHT) {
+    // shift view down/up/left/right
+    // renaming for ease of use
     const int h = getmaxy(canvas_win) - 2;  // height of visible canvas
+    const int w = getmaxx(canvas_win) - 2;  // width
     const int vy = state->view->y;
+    const int vx = state->view->x;
     const int ch = state->view->canvas->num_rows;
-    int new_vy;
-    if (c == KEY_NPAGE) {
-      // stop with last of canvas still visible
-      new_vy = min(vy + h, ch - h);
-    } else {
-      new_vy = max(0, vy - h);
+    const int cw = state->view->canvas->num_cols;
+    int new_vy = vy;
+    int new_vx = vx;
+    // calc shift based on key
+    switch (c) {
+      case KEY_NPAGE:  // down
+        new_vy = min(vy + h, ch - h);
+        break;
+      case KEY_PPAGE:  // up
+        new_vy = max(0, vy - h);
+        break;
+      case KEY_SRIGHT:
+        new_vx = min(vx + w, cw - w);
+        break;
+      case KEY_SLEFT:
+        new_vx = max(0, vx - w);
     }
     // shift view
     state->view->y = new_vy;
+    state->view->x = new_vx;
     redraw_canvas_win();
-  } else if (c == KEY_PPAGE) {
-    // shift view up
+    update_info_win_state(state);
   } else if (c == KEY_CTRL('r')) {
     cmd_read_from_file(state);
     print_msg_win("Read from file '%s'\n", state->filepath);

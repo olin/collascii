@@ -100,7 +100,7 @@ int net_handler(View *view) {
   logd("receiving: ");
   getline(&msg_buf, &msg_size, sockstream);
   logd("[%li]", msg_size);
-  logd(msg_buf);
+  logd("rec buffer: '%s'", msg_buf);
   char ch = msg_buf[strlen(msg_buf) - 2];  // -2 for '\n'
 
   char *command = strtok(msg_buf, " \n");
@@ -126,7 +126,7 @@ int net_handler(View *view) {
 int net_send_char(int y, int x, char ch) {
   char send_buf[50];
   snprintf(send_buf, 50, "s %d %d %c\n", y, x, ch);
-  logd(send_buf);
+  logd("send buffer: '%s'\n", send_buf);
   if (write(sockfd, send_buf, strlen(send_buf)) < 0) {
     logd("write error");
     return -1;

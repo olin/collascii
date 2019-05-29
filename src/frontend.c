@@ -1,29 +1,37 @@
-/*
+/* Collascii - a canvas-based collaborative ascii text editor.
+ *
  *   ___ ___  _    _      _   ___  ___ ___ ___
  *  / __/ _ \| |  | |    /_\ / __|/ __|_ _|_ _|
  * | (_| (_) | |__| |__ / _ \\__ \ (__ | | | |
  *  \___\___/|____|____/_/ \_\___/\___|___|___|
  *
- *   Yesterday's future, tomorrow!
+ * The Future Editor of Yesterday, Tomorrow!
  *
- * A collaborative ASCII editor, in your terminal.
+ * By Matthew Beaudouin-Lafon, Evan New-Schmidt, Adam Novotny
  *
- * By Matthew Beaudouin, Evan New-Schmidt, Adam Novotny
+ * General layout of interface:
+ * +------------------------------------------+ canvas_win
+ * | 0 -- X, COLS                             |
+ * | |                                        |
+ * | Y, ROWS                                  |
+ * |                                          |
+ * |                                          |
+ * |                                          |
+ * |                                          |
+ * |                                          |
+ * |                                          |
+ * +------------------------------------------+ status_interface/status_win:
+ * |Saved to file "art.txt"   [INSERT](2,6)WxH| msg_win                info_win
+ * |step: ON, transparent: OFF                | mode_win
+ * +------------------------------------------+
  *
- * +---------------------------------------+ canvas window:
- * | 0 -- X, COLS                          |
- * | |                                     |
- * | Y, ROWS                               |
- * |                                       |
- * |                                       |
- * |                                       |
- * |                                       |
- * |                                       |
- * |                                       |
- * +---------------------------------------+ status window:
- * |Saved to file "art.txt"   [INSERT](2,6)| Message               Info
- * |step: ON, TRANSPARENT: OFF             | Mode
- * +---------------------------------------+
+ * What all these "wins" are:
+ * - canvas_win: where the ascii canvas is drawn
+ * - status_interface: grouping of all status-related wins, which live in
+ * - status_win:
+ *   - msg_win: displays general messages to user
+ *   - info_win: state-specific info (see update_info_win)
+ *   - mode_win: mode-specific information
  */
 
 #include "frontend.h"
@@ -49,6 +57,8 @@ status_interface_t *status_interface;
 Cursor *cursor;
 View *view;
 bool networked = false;
+
+int INFO_WIDTH = 24;  // max width of the info window
 
 char *DEFAULT_FILEPATH = "art.txt";
 
@@ -420,8 +430,6 @@ WINDOW *create_status_win() {
   return local_win;
 }
 
-int INFO_WIDTH = 18;
-
 WINDOW *create_msg_win(WINDOW *status_win) {
   int sw = getmaxx(status_win) + 1;
   int x, y;
@@ -522,13 +530,18 @@ int print_mode_win(char *format, ...) {
 
 /* Update the info subwindow in status_win with relevant info.
  *
- * Prints the current mode and cursor coordinates, right-aligned.
+ * Prints the current mode, cursor coordinates, and canvas dimensions
+ * right-aligned.
+ *
+ * "[MODE] (X,Y) WxH"
  */
-void update_info_win(Mode_ID current_mode, int x, int y) {
+void update_info_win(const Mode_ID current_mode, const int x, const int y,
+                     const int w, const int h) {
   WINDOW *mw = status_interface->info_win;
   char buffer[INFO_WIDTH + 1];
-  char *mode_name = modes[current_mode].name;
-  int width = snprintf(buffer, INFO_WIDTH + 1, "[%s](%i,%i)", mode_name, x, y);
+  const char *mode_name = modes[current_mode].name;
+  int width = snprintf(buffer, INFO_WIDTH + 1, "[%s](%i,%i)%ix%i", mode_name, x,
+                       y, w, h);
   wclear(mw);
   wmove(mw, 0, INFO_WIDTH - width);
   waddnstr(mw, buffer, INFO_WIDTH);
