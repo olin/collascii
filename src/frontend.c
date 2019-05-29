@@ -528,10 +528,10 @@ int print_mode_win(char *format, ...) {
   return res;
 }
 
-/* Change the mode attribute
+/* Reverse-video the text starting at x in mode window, for num_ch characters.
  */
-int change_mode_attribute(int y, int x, int num_ch, attr_t attribute) {
-  mvwchgat(status_interface->mode_win, y, x, num_ch, attribute, 0, NULL);
+void highlight_mode_text(int x, int num_ch) {
+  mvwchgat(status_interface->mode_win, 0, x, num_ch, A_REVERSE, 0, NULL);
 }
 
 /* Update the info subwindow in status_win with relevant info.

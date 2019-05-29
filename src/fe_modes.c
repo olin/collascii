@@ -122,6 +122,19 @@ void switch_mode(Mode_ID new_mode, State *state) {
   refresh_screen();
 }
 
+Mode_ID next_canvas_mode(Mode_ID mode) {
+  int mode_first = MODE_PICKER + 1;  // beginning of selectable modes
+  int mode_list_end = LAST;          // length of total mode list
+
+  if (mode < mode_first || mode_list_end <= mode) {
+    logd("mode \"%s\" is not a canvas mode", mode);
+    return mode;
+  }
+
+  // loop properly between mode_first and last mode
+  return ((mode - mode_first) + 1) % (mode_list_end - mode_first) + mode_first;
+}
+
 /* Handler run in frontend main loop.
  *
  * Interprets keypresses, manages global keys, and passes data to modes.
@@ -148,8 +161,9 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
   } else if (c == KEY_TAB) {  // switching modes
     if (state->current_mode == MODE_PICKER &&
         state->last_canvas_mode != MODE_PICKER) {
-      logd("Reverting to last mode\n");
-      switch_mode(state->last_canvas_mode, state);
+      // logd("Reverting to last mode\n");
+      // switch_mode(state->last_canvas_mode, state);
+      state->last_canvas_mode = next_canvas_mode(state->last_canvas_mode);
     } else {
       switch_mode(MODE_PICKER, state);
     }
@@ -270,8 +284,6 @@ int mode_picker(reason_t reason, State *state) {
   char msg[128] = "";
   int num_left = sizeof(msg) / sizeof(char);
 
-  int write_x = 0;
-
   char buffer[16];
 
   // these variables are used to reverse-video the current canvas mode
@@ -304,7 +316,7 @@ int mode_picker(reason_t reason, State *state) {
 
   // Reverse-video the current canvas mode
   if (selected_num_char != -1) {
-    change_mode_attribute(0, selected_x + 1, selected_num_char - 1, A_REVERSE);
+    highlight_mode_text(selected_x, selected_num_char);
   }
 
   // INTERPRET KEYS
@@ -314,6 +326,9 @@ int mode_picker(reason_t reason, State *state) {
         state->ch_in < '1' + mode_list_end - mode_first) {
       Mode_ID new_mode = mode_first + state->ch_in - '1';
       switch_mode(new_mode, state);
+      return 0;
+    } else if (state->ch_in == KEY_ENTER) {
+      switch_mode(state->last_canvas_mode, state);
       return 0;
     }
   }
