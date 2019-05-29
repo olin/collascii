@@ -270,18 +270,42 @@ int mode_picker(reason_t reason, State *state) {
   char msg[128] = "";
   int num_left = sizeof(msg) / sizeof(char);
 
+  int write_x = 0;
+
   char buffer[16];
+
+  // these variables are used to reverse-video the current canvas mode
+  int selected_x = 0;
+  int selected_num_char = -1;
+  bool found_selected = FALSE;
   for (int i = mode_first; i < mode_list_end; i++) {
     int num_to_write = snprintf(buffer, sizeof(buffer) / sizeof(char),
-                                "%i: %s|", i - mode_first + 1, modes[i].name);
+                                " [%i] %s ", i - mode_first + 1, modes[i].name);
+
     if (num_left - num_to_write < 0) {
       break;
     }
     strncat(msg, buffer, num_to_write);
     num_left -= num_to_write;
+
+    // Find the current canvas mode
+    if (state->last_canvas_mode == i) {
+      found_selected = TRUE;
+      selected_num_char = num_to_write;
+    }
+
+    // Keep track of where the selected mode text starts in the window
+    if (!found_selected) {
+      selected_x += num_to_write;
+    }
   }
 
   print_mode_win(msg);
+
+  // Reverse-video the current canvas mode
+  if (selected_num_char != -1) {
+    change_mode_attribute(0, selected_x + 1, selected_num_char - 1, A_REVERSE);
+  }
 
   // INTERPRET KEYS
   if (reason == NEW_KEY) {

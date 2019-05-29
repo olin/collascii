@@ -528,6 +528,12 @@ int print_mode_win(char *format, ...) {
   return res;
 }
 
+/* Change the mode attribute
+ */
+int change_mode_attribute(int y, int x, int num_ch, attr_t attribute) {
+  mvwchgat(status_interface->mode_win, y, x, num_ch, attribute, 0, NULL);
+}
+
 /* Update the info subwindow in status_win with relevant info.
  *
  * Prints the current mode, cursor coordinates, and canvas dimensions
