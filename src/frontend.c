@@ -571,7 +571,7 @@ void finish(int sig) {
   }
 #endif
 
-  /* do your non-curses wrapup here */
+/* do your non-curses wrapup here */
 #ifdef LOG_TO_FILE
   if (logfile != NULL) {
     fclose(logfile);

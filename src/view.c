@@ -65,4 +65,6 @@ void view_pan_ch(int arrow, View *view) {
   }
 }
 
-void view_free(View *view) { free(view); }
+void view_free(View *view) {
+  free(view);
+}
