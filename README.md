@@ -32,6 +32,9 @@ Run the executable:
 This will open the editor view. Move the cursor with the arrow keys, and type to
 insert text. Switch between input modes with `<TAB>`, and exit with `<CTRL+C>`.
 
+COLLASCII also offers a command line interface - run `./collascii --help` for
+more information on the CLI and using COLLASCII itself.
+
 To export your art, you can save it a file with `<CTRL+S>`, or copy it off of
 the screen. Most terminals support some sort of block select, which makes this a
 little easier.

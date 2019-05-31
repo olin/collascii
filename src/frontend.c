@@ -148,8 +148,10 @@ void parse_args(int argc, char *argv[], arguments_t *arguments) {
           arg_litn(NULL, "usage", 0, 1, "display brief usage info and exit"),
       version =
           arg_litn(NULL, "version", 0, 1, "display version info and exit"),
-      width = arg_intn("w", "width", "<n>", 0, 1, "initial width of canvas"),
-      height = arg_intn("h", "height", "<n>", 0, 1, "initial height of canvas"),
+      width = arg_intn("w", "width", "<n>", 0, 1,
+                       "initial width of canvas (default 100)"),
+      height = arg_intn("h", "height", "<n>", 0, 1,
+                        "initial height of canvas (default 100)"),
       server = arg_strn("s", "server", "<SERVER>", 0, 1,
                         "address of server to connect to"),
       port = arg_strn("p", "port", "<PORT>", 0, 1,
