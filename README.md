@@ -45,6 +45,15 @@ For `gnome-terminal` on Ubuntu (and some others):
 - `CTRL+SHIFT+C` to copy to your clipboard
 - paste it wherever you want! (including within COLLASCII)
 
+#### Server
+
+The networking as a whole is slightly rougher around the edges than the rest of
+this project, but you can build the server right now with
+`make server.out`.
+
+Run it with an optional file to load from:
+`./server.out art.txt`
+
 ### Installing Dependencies
 
 Building and using COLLASCII requires [the NCURSES library](https://invisible-island.net/ncurses/).
