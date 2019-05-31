@@ -30,6 +30,7 @@ void destroy_win();
 
 int print_msg_win(char *format, ...);
 int print_info_win(char *format, ...);
+void highlight_mode_text(int x, int num_ch);
 int print_mode_win(char *format, ...);
 void update_info_win(const Mode_ID current_mode, const int x, const int y,
                      const int w, const int h);

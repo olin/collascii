@@ -528,6 +528,12 @@ int print_mode_win(char *format, ...) {
   return res;
 }
 
+/* Reverse-video the text starting at x in mode window, for num_ch characters.
+ */
+void highlight_mode_text(int x, int num_ch) {
+  mvwchgat(status_interface->mode_win, 0, x, num_ch, A_REVERSE, 0, NULL);
+}
+
 /* Update the info subwindow in status_win with relevant info.
  *
  * Prints the current mode, cursor coordinates, and canvas dimensions
