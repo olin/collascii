@@ -129,11 +129,29 @@ typedef struct {
 
 /* Make sure the arguments struct is valid and in a non-conflicting state.
  *
- * Return values are meant for an argp parser function.
- *
- * TODO: fill this out
+ * If errors are found, a brief message is printed and `exit` is called.
  */
-int validate_arguments(arguments_t *arguments) { return 0; }
+void validate_arguments(arguments_t *arguments) {
+  char *errmsg = NULL;
+  if (arguments->width < 0 || arguments->height < 0) {
+    errmsg = "width and height settings must be positive";
+  }
+  if (arguments->remote_port != '\0' && arguments->remote_host == '\0') {
+    errmsg = "server address must be specified";
+  }
+  if (arguments->connect_remote && arguments->load_file) {
+    errmsg = "cannot connect to server and read from file";
+  }
+  if ((arguments->width > 0 || arguments->height > 0) &&
+      arguments->connect_remote) {
+    errmsg = "cannot connect to server and set canvas size";
+  }
+
+  if (errmsg != NULL) {
+    eprintf("%s: %s\n", program_name, errmsg);
+    exit(1);
+  }
+}
 
 void parse_args(int argc, char *argv[], arguments_t *arguments) {
   struct arg_lit *help, *version, *usage;
@@ -187,7 +205,7 @@ void parse_args(int argc, char *argv[], arguments_t *arguments) {
     // Display the error details contained in the arg_end struct.
     arg_print_errors(stdout, end, program_name);
     printf("Try '%s --help' for more information.\n", program_name);
-    exit(0);
+    exit(1);
   }
 
   if (nerrors == 0) {
