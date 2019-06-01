@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS+=-Wall -std=gnu99
 
 version = $(shell git describe --always --tags --dirty)
-CFLAGS+="-DVERSION=version"
+CFLAGS+="-DVERSION=\"$(version)\""
 
 # add debug annotations, turn off optimizations, and #define DEBUG
 # use in bash with `DEBUG=1 make <foo>`
@@ -30,8 +30,8 @@ endif
 collascii: frontend.out
 	mv frontend.out collascii
 
-frontend.out: LDLIBS +=-lncurses
-frontend.out: cursor.o fe_modes.o canvas.o view.o network.o
+frontend.out: LDLIBS +=-lncurses -lm
+frontend.out: cursor.o fe_modes.o canvas.o view.o network.o lib/argtable3.o
 
 server.out: LDLIBS +=-lpthread
 server.out: canvas.o
@@ -57,7 +57,7 @@ test: $(patsubst %.c, .run-%.c, $(wildcard *_test.c))
 # add flags for minunit libraries, works with `make test_foo` too
 %_test: LDLIBS+=-lrt -lm
 # require foo.c, foo_test, and minunit.h for foo_test
-%_test: %.o %_test.c minunit.h
+%_test: %.o %_test.c lib/minunit.h
 	$(LINK.c) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 clean:

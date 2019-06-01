@@ -32,6 +32,9 @@ Run the executable:
 This will open the editor view. Move the cursor with the arrow keys, and type to
 insert text. Switch between input modes with `<TAB>`, and exit with `<CTRL+C>`.
 
+COLLASCII also offers a command line interface - run `./collascii --help` for
+more information on the CLI and using COLLASCII itself.
+
 To export your art, you can save it a file with `<CTRL+S>`, or copy it off of
 the screen. Most terminals support some sort of block select, which makes this a
 little easier.
@@ -41,6 +44,15 @@ For `gnome-terminal` on Ubuntu (and some others):
 - `CTRL+click`, drag, and release to highlight a block of text
 - `CTRL+SHIFT+C` to copy to your clipboard
 - paste it wherever you want! (including within COLLASCII)
+
+#### Server
+
+The networking as a whole is slightly rougher around the edges than the rest of
+this project, but you can build the server right now with
+`make server.out`.
+
+Run it with an optional file to load from:
+`./server.out art.txt`
 
 ### Installing Dependencies
 
