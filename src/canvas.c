@@ -354,7 +354,8 @@ Canvas *canvas_trimc(Canvas *orig, char ignore, bool right, bool bottom,
 }
 
 inline Canvas *canvas_trim(Canvas *orig, int right, int bottom, int left,
-                           int top) {}
+                           int top) {
+}
 
 /* Set a single character at position (x, y)
  *
@@ -567,7 +568,9 @@ int canvas_fprint_trim(FILE *stream, Canvas *canvas) {
  * Returns: the number of characters printed if successful, or a negative
  * value on output error from fprintf
  */
-int canvas_print(Canvas *canvas) { return canvas_fprint(stdout, canvas); }
+int canvas_print(Canvas *canvas) {
+  return canvas_fprint(stdout, canvas);
+}
 
 /* Create a canvas from a text file object.
  *

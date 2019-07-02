@@ -111,7 +111,9 @@ void test_setup(void) {
   canvas_load_str(c1, load_str);
 }
 
-void test_teardown(void) { canvas_free(c1); }
+void test_teardown(void) {
+  canvas_free(c1);
+}
 
 MU_TEST(test_canvas_gcharyx) {
   mu_check(c1->rows[2][1] == canvas_gcharyx(c1, 2, 1));

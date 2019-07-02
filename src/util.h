@@ -22,7 +22,9 @@
  * https://stackoverflow.com/a/1932371
  * https://stackoverflow.com/q/7762731
  */
-static inline void _log_unused(const int dummy, ...) { (void)dummy; }
+static inline void _log_unused(const int dummy, ...) {
+  (void)dummy;
+}
 
 #ifdef DEBUG
 // log to stderr if DEBUG is defined

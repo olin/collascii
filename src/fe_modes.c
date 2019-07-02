@@ -47,13 +47,10 @@ typedef struct {
 } mode_brush_config_t;
 
 mode_brush_config_t mode_brush_config = {
-    .pattern = 'B',
-    .state = PAINT_OFF,
+    .pattern = 'B', .state = PAINT_OFF,
 };
 
-typedef struct {
-  Cursor *last_dir_change;
-} mode_insert_config_t;
+typedef struct { Cursor *last_dir_change; } mode_insert_config_t;
 
 mode_insert_config_t mode_insert_config = {NULL};
 
@@ -135,7 +132,9 @@ Mode_ID add_mod_canvas_mode(Mode_ID mode, int n) {
   return ((mode - mode_first) + n) % (mode_list_end - mode_first) + mode_first;
 }
 
-Mode_ID next_canvas_mode(Mode_ID mode) { return add_mod_canvas_mode(mode, 1); }
+Mode_ID next_canvas_mode(Mode_ID mode) {
+  return add_mod_canvas_mode(mode, 1);
+}
 
 Mode_ID previous_canvas_mode(Mode_ID mode) {
   return add_mod_canvas_mode(mode, -1);

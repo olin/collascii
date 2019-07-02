@@ -11,7 +11,9 @@
  *
  * Initialized to (0, 0).
  */
-Cursor *cursor_new() { return cursor_newyx(0, 0); }
+Cursor *cursor_new() {
+  return cursor_newyx(0, 0);
+}
 
 /* Make a new cursor at a given position.
  */
@@ -69,9 +71,13 @@ void cursor_move_right(Cursor *cursor, View *view) {
   cursor->x++;
 }
 
-int cursor_x_to_canvas(Cursor *cursor) { return cursor->x + 1; }
+int cursor_x_to_canvas(Cursor *cursor) {
+  return cursor->x + 1;
+}
 
-int cursor_y_to_canvas(Cursor *cursor) { return cursor->y + 1; }
+int cursor_y_to_canvas(Cursor *cursor) {
+  return cursor->y + 1;
+}
 
 void cursor_key_to_move(int arrow, Cursor *cursor, View *view) {
   switch (arrow) {
@@ -104,4 +110,6 @@ int cursor_opposite_dir(int arrow) {
   return -1;
 }
 
-void cursor_free(Cursor *cursor) { free(cursor); }
+void cursor_free(Cursor *cursor) {
+  free(cursor);
+}
