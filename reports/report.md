@@ -36,6 +36,7 @@ These are a few applications that interface well with collascii:
 * [Figlet](https://www.askapache.com/online-tools/figlet-ascii/)
 * [Svgbob](https://github.com/ivanceras/svgbob)
 * [Asciifier](https://github.com/newsch/asciifier)
+* [MapSCII](https://github.com/rastapasta/mapscii)
 
 Please let us know of any projects that we should know about.
 
