@@ -14,9 +14,7 @@ impl Canvas {
         let mut rows = Vec::with_capacity(height as usize);
         for _ in 0..height {
             let mut v = Vec::with_capacity(width as usize);
-            for _ in 0..width {
-                v.push(fill);
-            }
+            v.resize(width, fill);
             rows.push(v);
         }
         Canvas {
