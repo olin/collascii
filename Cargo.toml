@@ -1,5 +1,5 @@
 [package]
-name = "collascii-server"
+name = "collascii"
 version = "0.1.0"
 authors = ["Evan New-Schmidt <evan@new-schmidt.com>"]
 edition = "2018"
