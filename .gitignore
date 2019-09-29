@@ -1,12 +1,9 @@
 ## Project-Related
-collascii
-*.out
 *.txt
 
-## C-Related
-*.o
-*.a
-*.lib
+## Rust-Related
+/target
+**/*.rs.bk
 
 ## VS Code
 .vscode/
