@@ -741,3 +741,27 @@ int canvas_eq(Canvas *a, Canvas *b) {
   // return 1 if both pass
   return 1;
 }
+
+int canvas_irow(Canvas *c, int idx, int num) {
+  char **new_rows = malloc(sizeof(char *)*(c->num_rows+num));
+  // copy prior to the inserstion
+  for (int i = 0; i < idx; i++) {
+    new_rows[i] = c->rows[i];
+  }
+  // alloc new rows
+  for (int n = idx; n < idx+num; n++) {
+    new_rows[n] = malloc(sizeof(char)*c->num_cols);
+  }
+  // copy after the insertion
+  for (int i = idx; i < c->num_rows; i++) {
+    new_rows[i+num] = c->rows[i];
+  }
+  
+  char** old_rows = c->old_rows;
+  c->rows = new_rows;
+  free(old_rows);
+}
+
+int canvas_icol(Canvas *c, int idx, int num) {
+  
+}
