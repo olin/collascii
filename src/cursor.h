@@ -10,6 +10,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 
+// A coordinate pair
 typedef struct CURSOR {
   int x;
   int y;
