@@ -2,6 +2,7 @@
 #include <ncurses.h>
 #include <stdlib.h>
 #include "frontend.h"
+#include "util.h"
 
 /* The Cursor struct helps with controls.
  * It also maps the drawing area to the canvas nicely.
@@ -21,6 +22,10 @@ Cursor *cursor_newyx(int y, int x) {
   cursor->y = y;
   return cursor;
 }
+
+/* Make a new cursor at the position of an ncurses mouse event.
+ */
+Cursor *cursor_newmouse(MEVENT *m) { return cursor_newyx(m->y - 1, m->x - 1); }
 
 /* Make a copy of an existing cursor.
  *
@@ -73,6 +78,7 @@ int cursor_x_to_canvas(Cursor *cursor) { return cursor->x + 1; }
 
 int cursor_y_to_canvas(Cursor *cursor) { return cursor->y + 1; }
 
+// Move cursor based on arrow keys
 void cursor_key_to_move(int arrow, Cursor *cursor, View *view) {
   switch (arrow) {
     case KEY_LEFT:
@@ -88,6 +94,12 @@ void cursor_key_to_move(int arrow, Cursor *cursor, View *view) {
       cursor_move_down(cursor, view);
       break;
   }
+}
+
+// move cursor to mouse event, bounded to view
+void cursor_mouse_to_move(MEVENT *mevent, Cursor *cursor, View *view) {
+  cursor->x = min(view_max_x, max(0, mevent->x - 1));
+  cursor->y = min(view_max_y, max(0, mevent->y - 1));
 }
 
 int cursor_opposite_dir(int arrow) {

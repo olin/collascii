@@ -98,6 +98,83 @@ void cmd_trim_canvas(State *state) {
   redraw_canvas_win();
 }
 
+// Draws a straight line between two points
+// TODO: fix broken lines on reverse angles (possibly the switching logic?)
+void draw_line(Canvas *c, int x1, int y1, int x2, int y2) {
+  const char stroke = '+';
+  // interpolate between points, with Bresenham's line algorithm
+  int dx = x2 - x1;
+  int dy = y2 - y1;
+
+  // short-circuit if horizontal or vertical
+  if (dy == 0) {
+    const int y = y1;
+    for (int x = min(x1, x2); x <= max(x1, x2); x++) {
+      canvas_scharyx(c, y, x, stroke);
+    }
+    return;
+  } else if (dx == 0) {
+    const int x = x1;
+    for (int y = min(y1, y2); y <= max(y1, y2); y++) {
+      canvas_scharyx(c, y, x, stroke);
+    }
+    return;
+  }
+
+  // swap points if necessary to keep line left-to-right/bottom-to-top
+  if ((dy < 0 && dx < 0)) {
+    logd("Swapping points\n");
+    int sx = x1;
+    int sy = y1;
+    x1 = x2;
+    y1 = y2;
+    x2 = sx;
+    y2 = sy;
+    dy = -dy;
+    dx = -dx;
+  }
+
+  const float m = (float)dy / dx;
+
+  float error = 0.0;
+
+  if (abs(m) < 1) {
+    logd("Drawing m < 1:");
+    // for |m| < 1, f(x) = y
+    const int dysign = (int)(abs(dy) / dy);
+    int y = y1;
+    for (int x = x1; x <= x2; x++) {
+      canvas_scharyx(c, y, x, stroke);
+      error = error + m;
+      logd("%f", error);
+      if (abs(error) >= 0.5) {
+        y = y + dysign;
+        error = error - dysign;
+        logd("r");
+      }
+      logd(".");
+    }
+    logd("Done\n");
+  } else {
+    logd("Drawing m > 1:");
+    // for |m| > 1, f(y) = x
+    const int dxsign = (int)(abs(dx) / dx);
+    int x = x1;
+    for (int y = y1; y <= y2; y++) {
+      canvas_scharyx(c, y, x, stroke);
+      error = error + m;
+      logd("%f", error);
+      if (abs(error) >= 0.5) {
+        x = x + dxsign;
+        error = error - dxsign;
+        logd("r");
+      }
+      logd(".");
+    }
+    logd("Done\n");
+  }
+}
+
 /* Call a mode given its Mode_ID.
  *
  * This makes sure info_win is always updated.
@@ -453,6 +530,8 @@ int mode_pan(reason_t reason, State *state) {
 /* mode_line
  *
  * Draw straight lines between two points.
+ *
+ * TODO: fix drawing view position != canvas position
  */
 int mode_line(reason_t reason, State *state) {
   mode_line_config_t *mode_cfg = &mode_line_config;
@@ -460,122 +539,76 @@ int mode_line(reason_t reason, State *state) {
   // reset state when switched into
   if (reason == START) {
     mode_cfg->state = SELECT_FIRST;
-    return 0;
-  }
-
-  if (reason != NEW_KEY) {
-    return 0;
-  }
-
-  if (state->ch_in == KEY_ENTER) {
-    switch (mode_cfg->state) {
-      case SELECT_FIRST:
-        // set first position
-        mode_cfg->first_position = cursor_copy(state->cursor);
-        mode_cfg->state = SELECT_SECOND;
-        return 0;
-        break;
-      case SELECT_SECOND: {
-        // draw line from previous point to current
-        const int x1 = mode_cfg->first_position->x;
-        const int y1 = mode_cfg->first_position->y;
-        const int x2 = state->cursor->x;
-        const int y2 = state->cursor->y;
-        draw_line(state->view->canvas, x1, y1, x2, y2);
-        // TODO: update view only at positions drawn
-        redraw_canvas_win();
-        mode_cfg->state = SELECT_FIRST;
-      }
-      default:
-        break;
+    if (mode_cfg->first_position == NULL) {
+      mode_cfg->first_position =
+          cursor_copy(state->cursor);  // make sure position is not NULL
     }
     return 0;
   }
 
-  // free line behavior
-  if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
-      (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
-    int current_arrow = state->ch_in;
-    cursor_key_to_move(current_arrow, state->cursor, state->view);
+  bool should_draw = false;
+
+  if (reason == NEW_KEY) {
+    // KEYBOARD BEHAVIOR
+    // press ENTER to set start and end points, move with keys
+    if (state->ch_in == KEY_ENTER) {
+      switch (mode_cfg->state) {
+        case SELECT_FIRST: {
+          // set first position
+          Cursor *old_cursor = mode_cfg->first_position;
+          mode_cfg->first_position = cursor_copy(state->cursor);
+          cursor_free(old_cursor);
+          mode_cfg->state = SELECT_SECOND;
+          return 0;
+          break;
+        }
+        case SELECT_SECOND: {
+          // draw line from previous point to current
+          should_draw = true;
+        }
+        default:
+          break;
+      }
+    } else if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
+               (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
+      // move cursor with keys
+      int current_arrow = state->ch_in;
+      cursor_key_to_move(current_arrow, state->cursor, state->view);
+    }
+  } else if (reason == NEW_MOUSE) {
+    // MOUSE BEHAVIOR
+    // click and drag to draw a line, or click two points
+    MEVENT *m = state->mevent_in;
+    if (m->bstate & BUTTON1_PRESSED && mode_cfg->state == SELECT_FIRST) {
+      // set position 1 on mouse down
+      mode_cfg->state = SELECT_SECOND;
+      Cursor *old_cursor = mode_cfg->first_position;
+      mode_cfg->first_position = cursor_newmouse(m);
+      cursor_free(old_cursor);
+    } else if (m->bstate & BUTTON1_RELEASED) {
+      if (mode_cfg->state == SELECT_SECOND &&
+          (m->y != mode_cfg->first_position->y ||
+           m->x != mode_cfg->first_position->x)) {
+        // only draw new line if mouse has moved
+        should_draw = true;
+      }
+    }
+    cursor_mouse_to_move(m, state->cursor, state->view);
   }
+
+  if (should_draw) {
+    // draws from mode_cfg->first_position to state->cursor
+    const int x1 = mode_cfg->first_position->x;
+    const int y1 = mode_cfg->first_position->y;
+    const int x2 = state->cursor->x;
+    const int y2 = state->cursor->y;
+    draw_line(state->view->canvas, x1, y1, x2, y2);
+    // TODO: update view only at positions drawn
+    redraw_canvas_win();
+    mode_cfg->state = SELECT_FIRST;
+  }
+
   return 0;
-}
-
-// Draws a straight line between two points
-// TODO: fix broken lines on reverse angles (posibly the switching logic?)
-void draw_line(Canvas *c, int x1, int y1, int x2, int y2) {
-  const char stroke = '+';
-  // interpolate between points, with Bresenham's line algorithm
-  int dx = x2 - x1;
-  int dy = y2 - y1;
-
-  // short-circuit if horizontal or vertical
-  if (dy == 0) {
-    const int y = y1;
-    for (int x = min(x1, x2); x <= max(x1, x2); x++) {
-      canvas_scharyx(c, y, x, stroke);
-    }
-    return;
-  } else if (dx == 0) {
-    const int x = x1;
-    for (int y = min(y1, y2); y <= max(y1, y2); y++) {
-      canvas_scharyx(c, y, x, stroke);
-    }
-    return;
-  }
-
-  // swap points if necessary to keep line left-to-right/bottom-to-top
-  if ((dy < 0 && dx < 0)) {
-    logd("Swapping points\n");
-    int sx = x1;
-    int sy = y1;
-    x1 = x2;
-    y1 = y2;
-    x2 = sx;
-    y2 = sy;
-    dy = -dy;
-    dx = -dx;
-  }
-
-  const float m = (float)dy / dx;
-
-  float error = 0.0;
-
-  if (abs(m) < 1) {
-    logd("Drawing m < 1:");
-    // for |m| < 1, f(x) = y
-    const int dysign = (int)(abs(dy) / dy);
-    int y = y1;
-    for (int x = x1; x <= x2; x++) {
-      canvas_scharyx(c, y, x, stroke);
-      error = error + m;
-      logd("%f", error);
-      if (abs(error) >= 0.5) {
-        y = y + dysign;
-        error = error - dysign;
-        logd("r");
-      }
-      logd(".");
-    }
-    logd("Done\n");
-  } else {
-    logd("Drawing m > 1:");
-    // for |m| > 1, f(y) = x
-    const int dxsign = (int)(abs(dx) / dx);
-    int x = x1;
-    for (int y = y1; y <= y2; y++) {
-      canvas_scharyx(c, y, x, stroke);
-      error = error + m;
-      logd("%f", error);
-      if (abs(error) >= 0.5) {
-        x = x + dxsign;
-        error = error - dxsign;
-        logd("r");
-      }
-      logd(".");
-    }
-    logd("Done\n");
-  }
 }
 
 /* mode_free_line
