@@ -587,8 +587,8 @@ int mode_line(reason_t reason, State *state) {
       cursor_free(old_cursor);
     } else if (m->bstate & BUTTON1_RELEASED) {
       if (mode_cfg->state == SELECT_SECOND &&
-          (m->y != mode_cfg->first_position->y ||
-           m->x != mode_cfg->first_position->x)) {
+          ((m->y - 1) != mode_cfg->first_position->y ||
+           (m->x - 1) != mode_cfg->first_position->x)) {
         // only draw new line if mouse has moved
         should_draw = true;
       }
