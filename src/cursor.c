@@ -25,7 +25,10 @@ Cursor *cursor_newyx(int y, int x) {
 
 /* Make a new cursor at the position of an ncurses mouse event.
  */
-Cursor *cursor_newmouse(MEVENT *m) { return cursor_newyx(m->y - 1, m->x - 1); }
+Cursor *cursor_newmouse(MEVENT *m) {
+  return cursor_newyx(min(view_max_y, max(0, m->y - 1)),
+                      min(view_max_x, max(0, m->x - 1)));
+}
 
 /* Make a copy of an existing cursor.
  *

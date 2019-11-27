@@ -98,13 +98,19 @@ void cmd_trim_canvas(State *state) {
   redraw_canvas_win();
 }
 
-// Draws a straight line between two points
-// TODO: fix broken lines on reverse angles (possibly the switching logic?)
+/* Draws a straight line between two points with Bresenham's line algorithm.
+ *
+ * The relative position of the points does not matter, but they should be valid
+ * coordinates for the canvas.
+ */
 void draw_line(Canvas *c, int x1, int y1, int x2, int y2) {
+  // logd("Drawing (%d,%d) to (%d,%d)\n", x1, y1, x2, y2);
   const char stroke = '+';
-  // interpolate between points, with Bresenham's line algorithm
   int dx = x2 - x1;
   int dy = y2 - y1;
+  const float m = (float)dy / dx;  // line slope
+
+  // logd("dx: %d\tdy: %d\tm: %f\n", dx, dy, m);
 
   // short-circuit if horizontal or vertical
   if (dy == 0) {
@@ -121,9 +127,12 @@ void draw_line(Canvas *c, int x1, int y1, int x2, int y2) {
     return;
   }
 
-  // swap points if necessary to keep line left-to-right/bottom-to-top
-  if ((dy < 0 && dx < 0)) {
-    logd("Swapping points\n");
+  // swap points if necessary to keep line-drawing left-to-right/bottom-to-top
+  // if we're drawing y based on x and dx < 0, swap points
+  // if we're drawing x based on y and dy < 0, swap points
+
+  if ((abs(m) < 1 && dx < 0) || (abs(m) >= 1 && dy < 0)) {
+    // logd("Swapping points\n");
     int sx = x1;
     int sy = y1;
     x1 = x2;
@@ -134,44 +143,44 @@ void draw_line(Canvas *c, int x1, int y1, int x2, int y2) {
     dx = -dx;
   }
 
-  const float m = (float)dy / dx;
-
   float error = 0.0;
 
   if (abs(m) < 1) {
-    logd("Drawing m < 1:");
+    // logd("m < 1:");
     // for |m| < 1, f(x) = y
     const int dysign = (int)(abs(dy) / dy);
     int y = y1;
     for (int x = x1; x <= x2; x++) {
+      // logd("(%d,%d)", x, y);
       canvas_scharyx(c, y, x, stroke);
       error = error + m;
-      logd("%f", error);
+      // logd("%f", error);
       if (abs(error) >= 0.5) {
         y = y + dysign;
         error = error - dysign;
-        logd("r");
+        // logd("r");
       }
-      logd(".");
+      // logd(",");
     }
-    logd("Done\n");
+    // logd("Done\n");
   } else {
-    logd("Drawing m > 1:");
+    // logd("m > 1:");
     // for |m| > 1, f(y) = x
     const int dxsign = (int)(abs(dx) / dx);
     int x = x1;
     for (int y = y1; y <= y2; y++) {
+      // logd("(%d,%d)", x, y);
       canvas_scharyx(c, y, x, stroke);
-      error = error + m;
-      logd("%f", error);
+      error = error + 1 / m;
+      // logd("%f", error);
       if (abs(error) >= 0.5) {
         x = x + dxsign;
         error = error - dxsign;
-        logd("r");
+        // logd("r");
       }
-      logd(".");
+      // logd(",");
     }
-    logd("Done\n");
+    // logd("Done\n");
   }
 }
 
