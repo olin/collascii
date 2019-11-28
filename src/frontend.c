@@ -733,7 +733,7 @@ void update_info_win(const Mode_ID current_mode, const int x, const int y,
 
 /* Signal handler for exiting
  *
- * Turns of ncurses, disables mouse moves commands, closes the logfile.
+ * Turns off ncurses, disables mouse moves commands, closes the logfile.
  *
  * If sig is 0 or SIGINT, exits normally, otherwise prints the signal
  * information to stderr and exits with sig.
