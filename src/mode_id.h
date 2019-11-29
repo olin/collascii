@@ -7,7 +7,9 @@
  * This enum is used to index into the modes array.
  */
 typedef enum {
-  MODE_PICKER,
+  MODE_PICKER = 1,
+  MODE_GOTO,
+  USER_MODES,  // empty start of user modes
   MODE_INSERT,
   MODE_PAN,
   MODE_FREE_LINE,
@@ -15,7 +17,6 @@ typedef enum {
 
   // ^ add your mode above
   LAST,  // used to get number of elements
-  MODE_GOTO,
 } Mode_ID;
 
 #endif

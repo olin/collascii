@@ -35,13 +35,15 @@
 // #define LOG_KEY_EVENTS  // `logd` new mouse and key events
 
 editor_mode_t modes[] = {
+    {"", "", NULL},  // empty (0)
     {"Switcher", "Switch to another mode", mode_picker},
+    {"GOTO", "", mode_goto},
+    {"", "", NULL},  // USER_MODES
     {"Insert", "Insert characters", mode_insert},
     {"Pan", "Pan around the canvas", mode_pan},
     {"Free-Line", "Draw a line with your arrow keys", mode_free_line},
     {"Brush", "Paint with arrow keys and mouse", mode_brush},
-    {"", "", NULL},
-    {"GOTO", "", mode_goto},
+    {"", "", NULL},  // END
 };
 
 typedef struct {
@@ -312,8 +314,8 @@ int mode_picker(reason_t reason, State *state) {
   }
 
   // get bounds of switchable modes in enum array (DON'T include mode_picker)
-  int mode_first = MODE_PICKER + 1;  // beginning of selectable modes
-  int mode_list_end = LAST;          // length of total mode list
+  int mode_first = USER_MODES + 1;  // beginning of selectable modes
+  int mode_list_end = LAST;         // length of total mode list
 
   // BUILD MODE INFO MESSAGE
   char msg[128] = "";

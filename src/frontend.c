@@ -304,6 +304,7 @@ void init_state(State *state, const arguments_t *const arguments) {
 
       .last_arrow_direction = KEY_RIGHT,
       .last_canvas_mode = MODE_INSERT,
+      .override_mode = 0,
       .view = view,
       .last_cursor = cursor_newyx(arguments->y, arguments->x),
       .filepath = arguments->filename,
