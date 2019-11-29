@@ -23,6 +23,7 @@
 
 #include "fe_modes.h"
 
+#include <errno.h>
 #include <string.h>
 
 #include <ncurses.h>
@@ -39,6 +40,8 @@ editor_mode_t modes[] = {
     {"Pan", "Pan around the canvas", mode_pan},
     {"Free-Line", "Draw a line with your arrow keys", mode_free_line},
     {"Brush", "Paint with arrow keys and mouse", mode_brush},
+    {"", "", NULL},
+    {"GOTO", "", mode_goto},
 };
 
 typedef struct {
@@ -56,6 +59,14 @@ typedef struct {
 } mode_insert_config_t;
 
 mode_insert_config_t mode_insert_config = {NULL};
+
+typedef struct {
+  enum { ENTER_FIRST, ENTER_SECOND } state;
+  char buffer[8];
+  int xpos, ypos;
+} mode_goto_config_t;
+
+mode_goto_config_t mode_goto_config = {ENTER_FIRST, "", 0, 0};
 
 ///////////////////////
 // GENERAL FUNCTIONS //
@@ -226,6 +237,8 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     print_msg_win("Saved to file '%s'\n", state->filepath);
   } else if (c == KEY_CTRL('t')) {
     cmd_trim_canvas(state);
+  } else if (c == KEY_CTRL('g')) {
+    switch_mode(MODE_GOTO, state);
   } else {
     // pass character on to mode
     state->ch_in = c;
@@ -531,5 +544,91 @@ int mode_brush(reason_t reason, State *state) {
                  ((mode_cfg->state == PAINT_OFF) ? "OFF" : "ON"),
                  mode_cfg->pattern);
 
+  return 0;
+}
+
+int update_pos_value(mode_goto_config_t *mode_cfg) {
+  int *pos;
+  switch (mode_cfg->state) {
+    case ENTER_FIRST:
+      pos = &(mode_cfg->xpos);
+      break;
+    case ENTER_SECOND:
+      pos = &(mode_cfg->ypos);
+  }
+  char *buff = mode_cfg->buffer;
+  // parse buffer value
+  errno = 0;
+  int val = (int)strtol(buff, NULL, 10);
+  if (errno != 0) {
+    perror("update_pos_value strtol");
+    print_mode_win("Invalid number");
+    return 1;
+  }
+  // move relative if sign is present
+  switch (buff[0]) {
+    case '-':
+    case '+':
+      *pos = *pos + val;
+      break;
+    default:
+      *pos = val;
+      break;
+  }
+  return 0;
+}
+
+/* mode_goto
+ *
+ * Move the cursor to a position entered on the keyboard.
+ */
+int mode_goto(reason_t reason, State *state) {
+  mode_goto_config_t *mode_cfg = &mode_goto_config;
+  char *buff = mode_cfg->buffer;
+  if (reason == START) {
+    // reset mode state
+    mode_cfg->state = ENTER_FIRST;
+    mode_cfg->xpos = state->view->x + state->cursor->x;
+    mode_cfg->ypos = state->view->y + state->cursor->y;
+    memset(buff, 0, 8);
+  }
+  if (reason != NEW_KEY) {
+    return 0;
+  }
+
+  switch (state->ch_in) {
+    case ',':
+      // parse, switch to second value
+      update_pos_value(mode_cfg);
+      memset(buff, 0, 8);  // reset buffer
+      mode_cfg->state = ENTER_SECOND;
+      break;
+    case KEY_ENTER:
+      // parse, set cursor location and return to last mode
+      update_pos_value(mode_cfg);
+      memset(buff, 0, 8);  // reset buffer
+      state->cursor->x = mode_cfg->xpos - state->view->x;
+      state->cursor->y = mode_cfg->ypos - state->view->y;
+      // TODO: return somehow
+      break;
+    case KEY_BACKSPACE: {
+      // remove last char in buffer
+      int l = strlen(buff);
+      if (l > 0) {
+        buff[l] = '\0';
+      }
+    }
+    default: {
+      // check if valid and add to buffer
+      // TODO: check for validity
+      int l = strlen(buff);
+      if (l < 8 - 1) {
+        buff[l] = state->ch_in;
+      }
+      break;
+    }
+  }
+
+  print_mode_win("Go to pos: (%i, %i)", mode_cfg->xpos, mode_cfg->ypos);
   return 0;
 }

@@ -18,6 +18,8 @@ mode_function_t mode_pan;
 mode_function_t mode_free_line;
 mode_function_t mode_brush;
 
+mode_function_t mode_goto;
+
 typedef struct {
   char *name;
   char *description;

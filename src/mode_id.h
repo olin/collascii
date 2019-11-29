@@ -15,6 +15,7 @@ typedef enum {
 
   // ^ add your mode above
   LAST,  // used to get number of elements
+  MODE_GOTO,
 } Mode_ID;
 
 #endif
