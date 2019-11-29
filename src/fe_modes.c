@@ -128,7 +128,7 @@ inline void update_info_win_state(State *state) {
  *
  * It sends END to the old mode and then START to the new mode
  */
-void switch_mode(Mode_ID new_mode, State *state) {
+inline void switch_mode(Mode_ID new_mode, State *state) {
   logd("Switching to %s\n", modes[new_mode].name);
   call_mode(state->current_mode, END, state);
   state->last_canvas_mode = state->current_mode;
@@ -136,6 +136,32 @@ void switch_mode(Mode_ID new_mode, State *state) {
   print_mode_win("");  // clear mode window;
   call_mode(new_mode, START, state);
   refresh_screen();
+}
+
+// switch from normal mode operation to an overridden mode
+void enter_override_mode(Mode_ID override_mode, State *state) {
+  state->override_mode = override_mode;
+  call_mode(state->override_mode, START, state);
+}
+
+// return control from override mode to normal mode
+void exit_override_mode(State *state) {
+  call_mode(state->override_mode, END, state);
+  state->override_mode = 0;
+  // TODO: "redraw" old mode
+}
+
+// TODO: better name
+void handle_mode(reason_t reason, State *state) {
+  if (state->override_mode != 0) {
+    int res = call_mode(state->override_mode, reason, state);
+    if (res & RESP_EXIT) {
+      logd("Exiting override mode %s\n", modes[state->override_mode].name);
+      exit_override_mode(state);
+    }
+  } else {
+    call_mode(state->current_mode, reason, state);
+  }
 }
 
 Mode_ID add_mod_canvas_mode(Mode_ID mode, int n) {
@@ -178,31 +204,17 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
       // https://invisible-island.net/ncurses/man/curs_mouse.3x.html
       state->ch_in = c;
       state->mevent_in = &event;
-      call_mode(state->current_mode, NEW_MOUSE, state);
-    }
-  } else if (c == KEY_TAB) {  // switching modes
-    if (state->current_mode == MODE_PICKER &&
-        state->last_canvas_mode != MODE_PICKER) {
-      state->last_canvas_mode = next_canvas_mode(state->last_canvas_mode);
-
-      // update mode_picker() to redraw the highlight
-      state->ch_in = c;
-      call_mode(state->current_mode, NEW_KEY, state);
-    } else {
-      switch_mode(MODE_PICKER, state);
+      handle_mode(NEW_MOUSE, state);
     }
     return 0;
-  } else if (c == KEY_SHIFT_TAB) {
-    if (state->current_mode == MODE_PICKER &&
-        state->last_canvas_mode != MODE_PICKER) {
-      state->last_canvas_mode = previous_canvas_mode(state->last_canvas_mode);
-
-      // update mode_picker() to redraw the highlight
-      state->ch_in = c;
-      call_mode(state->current_mode, NEW_KEY, state);
-    } else {
-      switch_mode(MODE_PICKER, state);
+  } else if (c == KEY_TAB) {  // switch modes
+    if (state->override_mode != MODE_PICKER) {
+      enter_override_mode(MODE_PICKER, state);
+      return 0;
     }
+  } else if (c == KEY_CTRL('g')) {  // goto pos
+    enter_override_mode(MODE_GOTO, state);
+    return 0;
   } else if (c == KEY_NPAGE || c == KEY_PPAGE || c == KEY_SLEFT ||
              c == KEY_SRIGHT) {
     // shift view down/up/left/right
@@ -234,21 +246,22 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     state->view->x = new_vx;
     redraw_canvas_win();
     update_info_win_state(state);
+    return 0;
   } else if (c == KEY_CTRL('r')) {
     cmd_read_from_file(state);
     print_msg_win("Read from file '%s'\n", state->filepath);
+    return 0;
   } else if (c == KEY_CTRL('s')) {
     cmd_write_to_file(state);
     print_msg_win("Saved to file '%s'\n", state->filepath);
+    return 0;
   } else if (c == KEY_CTRL('t')) {
     cmd_trim_canvas(state);
-  } else if (c == KEY_CTRL('g')) {
-    switch_mode(MODE_GOTO, state);
-  } else {
-    // pass character on to mode
-    state->ch_in = c;
-    call_mode(state->current_mode, NEW_KEY, state);
+    return 0;
   }
+  // pass character on to mode
+  state->ch_in = c;
+  handle_mode(NEW_KEY, state);
 
   // Move UI cursor to the right place
   wmove(canvas_win, cursor_y_to_canvas(state->cursor),
@@ -317,6 +330,34 @@ int mode_picker(reason_t reason, State *state) {
   int mode_first = USER_MODES + 1;  // beginning of selectable modes
   int mode_list_end = LAST;         // length of total mode list
 
+  // INTERPRET KEYS
+  Mode_ID new_mode = 0;
+  if (reason == NEW_KEY) {
+    // only accept characters within the bounds of the list
+    if (state->ch_in >= '1' &&
+        state->ch_in < '1' + mode_list_end - mode_first) {
+      new_mode = mode_first + state->ch_in - '1';
+    } else if (state->ch_in == KEY_ENTER) {
+      new_mode = state->last_canvas_mode;
+    } else if (state->ch_in == KEY_TAB) {
+      state->last_canvas_mode = next_canvas_mode(state->last_canvas_mode);
+    } else if (state->ch_in == KEY_SHIFT_TAB) {
+      state->last_canvas_mode = previous_canvas_mode(state->last_canvas_mode);
+    }
+  }
+
+  // exit early if switching modes
+  if (new_mode != 0) {
+    // this is a little funky. We can't just return from override mode, because
+    // the new mode isn't initialized, but we can't switch without turning off
+    // override_mode
+    exit_override_mode(state);
+    switch_mode(new_mode, state);
+    return 0;
+  }
+
+  // DRAW INTERFACE
+
   // BUILD MODE INFO MESSAGE
   char msg[128] = "";
   int num_left = sizeof(msg) / sizeof(char);
@@ -354,20 +395,6 @@ int mode_picker(reason_t reason, State *state) {
   // Reverse-video the current canvas mode
   if (selected_num_char != -1) {
     highlight_mode_text(selected_x, selected_num_char);
-  }
-
-  // INTERPRET KEYS
-  if (reason == NEW_KEY) {
-    // only accept characters within the bounds of the list
-    if (state->ch_in >= '1' &&
-        state->ch_in < '1' + mode_list_end - mode_first) {
-      Mode_ID new_mode = mode_first + state->ch_in - '1';
-      switch_mode(new_mode, state);
-      return 0;
-    } else if (state->ch_in == KEY_ENTER) {
-      switch_mode(state->last_canvas_mode, state);
-      return 0;
-    }
   }
   return 0;
 }
