@@ -108,6 +108,9 @@ void cmd_trim_canvas(State *state) {
 int call_mode(Mode_ID mode, reason_t reason, State *state) {
   int res = modes[mode].mode_function(reason, state);
   update_info_win_state(state);
+  if (res & RESP_EXIT) {
+    switch_mode(state->last_canvas_mode, state);
+  }
   return res;
 }
 
@@ -591,41 +594,38 @@ int mode_goto(reason_t reason, State *state) {
     mode_cfg->xpos = state->view->x + state->cursor->x;
     mode_cfg->ypos = state->view->y + state->cursor->y;
     memset(buff, 0, 8);
-  }
-  if (reason != NEW_KEY) {
-    return 0;
-  }
-
-  switch (state->ch_in) {
-    case ',':
-      // parse, switch to second value
-      update_pos_value(mode_cfg);
-      memset(buff, 0, 8);  // reset buffer
-      mode_cfg->state = ENTER_SECOND;
-      break;
-    case KEY_ENTER:
-      // parse, set cursor location and return to last mode
-      update_pos_value(mode_cfg);
-      memset(buff, 0, 8);  // reset buffer
-      state->cursor->x = mode_cfg->xpos - state->view->x;
-      state->cursor->y = mode_cfg->ypos - state->view->y;
-      // TODO: return somehow
-      break;
-    case KEY_BACKSPACE: {
-      // remove last char in buffer
-      int l = strlen(buff);
-      if (l > 0) {
-        buff[l] = '\0';
+  } else if (reason == NEW_KEY) {
+    switch (state->ch_in) {
+      case ',':
+        // parse, switch to second value
+        update_pos_value(mode_cfg);
+        memset(buff, 0, 8);  // reset buffer
+        mode_cfg->state = ENTER_SECOND;
+        break;
+      case KEY_ENTER:
+        // parse, set cursor location and return to last mode
+        update_pos_value(mode_cfg);
+        memset(buff, 0, 8);  // reset buffer
+        state->cursor->x = mode_cfg->xpos - state->view->x;
+        state->cursor->y = mode_cfg->ypos - state->view->y;
+        // TODO: return somehow
+        return RESP_EXIT;
+      case KEY_BACKSPACE: {
+        // remove last char in buffer
+        int l = strlen(buff);
+        if (l > 0) {
+          buff[l] = '\0';
+        }
       }
-    }
-    default: {
-      // check if valid and add to buffer
-      // TODO: check for validity
-      int l = strlen(buff);
-      if (l < 8 - 1) {
-        buff[l] = state->ch_in;
+      default: {
+        // check if valid and add to buffer
+        // TODO: check for validity
+        int l = strlen(buff);
+        if (l < 8 - 1) {
+          buff[l] = state->ch_in;
+        }
+        break;
       }
-      break;
     }
   }
 
