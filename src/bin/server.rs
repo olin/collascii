@@ -5,8 +5,7 @@ use std::thread;
 use std::collections::HashMap;
 use std::fmt;
 
-mod canvas;
-use canvas::Canvas;
+use collascii::canvas::Canvas;
 
 fn main() -> io::Result<()> {
     let mut canvas = Canvas::new(3, 3);
@@ -23,7 +22,7 @@ fn main() -> io::Result<()> {
         let (stream, addr) = listener.accept().unwrap();
         println!("New client: {}", addr);
         let canvas = Arc::clone(&canvas);
-        let uid = clients.add(stream.try_clone().unwrap().shutdown(Shutdown::Read));
+        let uid = clients.lock().unwrap().add(stream.try_clone().unwrap());
         let clients = Arc::clone(&clients);
 
         thread::spawn(move || {
@@ -32,7 +31,10 @@ fn main() -> io::Result<()> {
     }
 }
 
-pub fn handle_stream(mut stream: TcpStream, canvas: &Mutex<Canvas>) {
+fn handle_stream(
+    mut stream: TcpStream,
+    canvas: &Mutex<Canvas>,
+    clients: &Mutex<Clients>) {
     writeln!(stream, "{}", canvas.lock().unwrap()).unwrap();
     canvas.lock().unwrap().set(0, 1, 'X');
     thread::sleep_ms(5000);

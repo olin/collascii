@@ -11,8 +11,8 @@ fn main() -> io::Result<()> {
   // check bounds
   let (rows, cols) = i.size();
   i.window.mvaddch(0, 0, 'A');
-  i.window.mvaddch(0, cols - 1, 'B');
-  i.window.mvaddch(rows - 1, cols - 1, 'C');
+  i.window.mvaddch(0, cols as i32 - 1, 'B');
+  i.window.mvaddch(rows as i32 - 1, cols as i32 - 1, 'C');
   i.window.refresh();
   // wait for input to quit
   i.window.getch();
@@ -22,7 +22,9 @@ fn main() -> io::Result<()> {
 
 struct Interface {
   pub window: Window,
-  status_h: i32,
+  status_h: usize,
+  canvas: Canvas,
+  view: (usize, usize),
 }
 
 impl Interface {
@@ -31,6 +33,8 @@ impl Interface {
     let mut i = Interface {
       window,
       status_h: 2,
+      canvas: Canvas::new(100, 100),
+      view: (0, 0),
     };
 
     i.handle_resize();
@@ -38,20 +42,33 @@ impl Interface {
   }
 
   /// (rows, cols)
-  fn size(&self) -> (i32, i32) {
-    self.window.get_max_yx()
+  fn size(&self) -> (usize, usize) {
+    let (y, x) = self.window.get_max_yx();
+    (y as usize, x as usize)
   }
 
-  fn canvas_bounds(&self) -> (i32, i32) {
+  fn canvas_bounds(&self) -> (usize, usize) {
     let (rows, cols) = self.size();
-    return (rows - (self.status_h + 1), cols)
+    return (
+      rows - (self.status_h + 1),
+      cols)
+  }
+
+  fn draw_canvas(&self) {
+    let (min_y, min_x) = self.view;
+    let (max_y, max_x) = self.canvas_bounds();
+    for y in min_y..max_y {
+      for x in min_x..max_x {
+        self.window.mvaddch(y as i32, x as i32, self.canvas.get(x, y));
+      }
+    }
   }
 
   pub fn redraw(&self) {
     let (rows, cols) = self.size();
     // draw boundary between canvas and status window
-    self.window.mv(rows - self.status_h, 0);
-    self.window.hline('-', cols);
+    self.window.mv((rows - self.status_h) as i32, 0);
+    self.window.hline('-', cols as i32);
     self.window.refresh();
   }
 
