@@ -29,7 +29,7 @@ impl Canvas {
     }
 
     pub fn height(&self) -> usize {
-        self.width
+        self.height
     }
 
     pub fn get(&self, x: usize, y: usize) -> char {
