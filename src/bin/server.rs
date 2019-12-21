@@ -6,6 +6,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 use collascii::canvas::Canvas;
+use collascii::network;
 
 fn main() -> io::Result<()> {
     let mut canvas = Canvas::new(3, 3);
