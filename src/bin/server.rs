@@ -1,9 +1,9 @@
-use std::io::{self, prelude::*};
-use std::net::{TcpListener, TcpStream, Shutdown};
-use std::sync::{Arc, Mutex};
-use std::thread;
 use std::collections::HashMap;
 use std::fmt;
+use std::io::{self, prelude::*};
+use std::net::{Shutdown, TcpListener, TcpStream};
+use std::sync::{Arc, Mutex};
+use std::thread;
 
 use collascii::canvas::Canvas;
 
@@ -31,15 +31,11 @@ fn main() -> io::Result<()> {
     }
 }
 
-fn handle_stream(
-    mut stream: TcpStream,
-    canvas: &Mutex<Canvas>,
-    clients: &Mutex<Clients>) {
+fn handle_stream(mut stream: TcpStream, canvas: &Mutex<Canvas>, clients: &Mutex<Clients>) {
     writeln!(stream, "{}", canvas.lock().unwrap()).unwrap();
     canvas.lock().unwrap().set(0, 1, 'X');
     thread::sleep_ms(5000);
 }
-
 
 /// Unique identifier of a client
 type ClientUid = u8;
@@ -52,7 +48,7 @@ struct Clients {
 impl Clients {
     pub fn new() -> Self {
         Clients {
-            list: HashMap::new()
+            list: HashMap::new(),
         }
     }
 

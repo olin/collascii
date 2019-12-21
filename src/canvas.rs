@@ -1,6 +1,5 @@
-use std::vec::Vec;
 use std::fmt;
-
+use std::vec::Vec;
 
 pub struct Canvas {
     width: usize,
@@ -10,7 +9,7 @@ pub struct Canvas {
 
 impl Canvas {
     pub fn new(width: usize, height: usize) -> Self {
-        let fill = ' ';  // initial character to fill canvas with
+        let fill = ' '; // initial character to fill canvas with
         let mut rows = Vec::with_capacity(height as usize);
         for _ in 0..height {
             let mut v = Vec::with_capacity(width as usize);
@@ -33,12 +32,12 @@ impl Canvas {
     }
 
     pub fn get(&self, x: usize, y: usize) -> char {
-        assert!(self.is_in(x,y));
+        assert!(self.is_in(x, y));
         self.rows[y][x]
     }
 
     pub fn set(&mut self, x: usize, y: usize, val: char) {
-        assert!(self.is_in(x,y));
+        assert!(self.is_in(x, y));
         self.rows[y][x] = val;
     }
 
@@ -116,23 +115,14 @@ mod test {
 
         let mut large = Canvas::new(3, 3);
         assert_eq!(8, large.insert(s));
-        let coords = [
-            ('A', 0, 0),
-            ('C', 2, 0),
-            ('H', 1, 2),
-            (' ', 2, 2),
-        ];
+        let coords = [('A', 0, 0), ('C', 2, 0), ('H', 1, 2), (' ', 2, 2)];
         for &(c, x, y) in coords.into_iter() {
             assert_eq!(c, large.get(x, y), "wrong value at ({}, {})", x, y)
         }
 
         let mut just_right = Canvas::new(4, 2);
         assert_eq!(8, just_right.insert(s));
-        let coords = [
-            ('A', 0, 0),
-            ('C', 2, 0),
-            ('H', 3, 1),
-        ];
+        let coords = [('A', 0, 0), ('C', 2, 0), ('H', 3, 1)];
         for &(c, x, y) in coords.into_iter() {
             assert_eq!(c, just_right.get(x, y), "wrong value at ({}, {})", x, y)
         }
