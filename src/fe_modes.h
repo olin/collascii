@@ -15,6 +15,7 @@ typedef int mode_function_t(reason_t, State *);
 mode_function_t mode_picker;
 mode_function_t mode_insert;
 mode_function_t mode_pan;
+mode_function_t mode_line;
 mode_function_t mode_free_line;
 mode_function_t mode_brush;
 
