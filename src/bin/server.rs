@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::io::{self, prelude::*, BufReader};
 use std::net::{Shutdown, TcpListener, TcpStream};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
@@ -10,8 +11,35 @@ use log::{debug, info, warn};
 
 extern crate env_logger;
 
+extern crate structopt;
+use structopt::StructOpt;
+
 use collascii::canvas::Canvas;
 use collascii::network::Message;
+
+#[derive(Debug, StructOpt)]
+#[structopt(
+    name = "collascii-server",
+    about = "A server for collascii, written in Rust",
+    author
+)]
+struct Opt {
+    /// Width of canvas
+    #[structopt(short, long, default_value = "80")]
+    width: usize,
+
+    /// Height of canvas
+    #[structopt(short, long, default_value = "24")]
+    height: usize,
+
+    /// Port to listen on
+    #[structopt(short, long, default_value = "5000")]
+    port: u16,
+
+    /// IP/hostname to listen on
+    #[structopt(long, default_value = "127.0.0.1")]
+    host: String,
+}
 
 fn main() -> io::Result<()> {
     {
@@ -21,14 +49,18 @@ fn main() -> io::Result<()> {
         builder.init();
     }
 
-    let mut canvas = Canvas::new(3, 3);
+    let opt = Opt::from_args();
+    println!("{:?}", opt);
+
+    let mut canvas = Canvas::new(opt.width, opt.height);
+    info!("Initial canvas size {}x{}", canvas.width(), canvas.height());
 
     canvas.insert("foobar");
 
     let canvas = Arc::new(Mutex::new(canvas));
     let clients = Arc::new(Mutex::new(Clients::new()));
 
-    let listener = TcpListener::bind("127.0.0.1:5000")?;
+    let listener = TcpListener::bind((&opt.host[..], opt.port))?;
 
     info!("Listening at {}", listener.local_addr().unwrap());
 
