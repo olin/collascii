@@ -1,6 +1,7 @@
 use std::fmt;
 use std::vec::Vec;
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct Canvas {
     width: usize,
     height: usize,
@@ -41,7 +42,7 @@ impl Canvas {
         self.rows[y][x] = val;
     }
 
-    fn is_in(&self, x: usize, y: usize) -> bool {
+    pub fn is_in(&self, x: usize, y: usize) -> bool {
         x < self.width && y < self.height
     }
 
@@ -63,9 +64,24 @@ impl Canvas {
         }
         count
     }
+
+    /// Get a string representation of the canvas contents
+    ///
+    /// To deserialize, `insert` a serialized representation into a canvas of
+    /// the original size.
+    pub fn serialize(&self) -> String {
+        let mut buf = String::with_capacity(self.width() * self.height());
+        for y in 0..self.height() {
+            for x in 0..self.width() {
+                buf.push(self.get(x, y));
+            }
+        }
+        return buf;
+    }
 }
 
 impl fmt::Display for Canvas {
+    /// Nicely print the canvas as a grid of characters
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for (i, row) in self.rows.iter().enumerate() {
             for cell in row {

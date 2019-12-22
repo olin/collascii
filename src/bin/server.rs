@@ -1,14 +1,26 @@
 use std::collections::HashMap;
 use std::fmt;
-use std::io::{self, prelude::*};
+use std::io::{self, prelude::*, BufReader};
 use std::net::{Shutdown, TcpListener, TcpStream};
 use std::sync::{Arc, Mutex};
 use std::thread;
 
+extern crate log;
+use log::{debug, info, warn};
+
+extern crate env_logger;
+
 use collascii::canvas::Canvas;
-use collascii::network;
+use collascii::network::Message;
 
 fn main() -> io::Result<()> {
+    {
+        // init logging
+        let mut builder = env_logger::Builder::from_default_env();
+        builder.filter(None, log::LevelFilter::Info);
+        builder.init();
+    }
+
     let mut canvas = Canvas::new(3, 3);
 
     canvas.insert("foobar");
@@ -16,26 +28,82 @@ fn main() -> io::Result<()> {
     let canvas = Arc::new(Mutex::new(canvas));
     let clients = Arc::new(Mutex::new(Clients::new()));
 
-    let listener = TcpListener::bind("127.0.0.1:5555")?;
+    let listener = TcpListener::bind("127.0.0.1:5000")?;
+
+    info!("Listening at {}", listener.local_addr().unwrap());
 
     // accept connections and process them in parallel
     loop {
         let (stream, addr) = listener.accept().unwrap();
-        println!("New client: {}", addr);
-        let canvas = Arc::clone(&canvas);
         let uid = clients.lock().unwrap().add(stream.try_clone().unwrap());
-        let clients = Arc::clone(&clients);
+        info!("New client {} ({})", uid, addr);
+        let canvas = canvas.clone();
+        let clients = clients.clone();
 
         thread::spawn(move || {
-            handle_stream(stream, &canvas, &clients);
+            match handle_stream(uid, stream, &canvas, &clients) {
+                Ok(()) => info!("Client {} left", uid),
+                Err(e) => warn!("Client {} disconnected: {}", uid, e),
+            }
+            clients.lock().unwrap().remove(uid);
         });
     }
 }
 
-fn handle_stream(mut stream: TcpStream, canvas: &Mutex<Canvas>, clients: &Mutex<Clients>) {
-    writeln!(stream, "{}", canvas.lock().unwrap()).unwrap();
-    canvas.lock().unwrap().set(0, 1, 'X');
-    thread::sleep_ms(5000);
+fn handle_stream(
+    uid: ClientUid,
+    mut stream: TcpStream,
+    canvas: &Mutex<Canvas>,
+    clients: &Mutex<Clients>,
+) -> io::Result<()> {
+    // for each client:
+    // - start off by sending canvas
+    // - on message received, interpret, modify, and forward
+
+    // send current canvas to new client
+    {
+        let c = canvas.lock().unwrap();
+        let msg = Message::CanvasUpdate { c: c.clone() };
+        stream.write_fmt(format_args!("{}", msg))?;
+    }
+
+    let mut read_stream = io::BufReader::new(stream.try_clone().unwrap());
+    loop {
+        let msg = Message::from_reader(&mut read_stream)?;
+        debug!("Parsed message from input stream: {:?}", msg);
+        match msg {
+            Message::Quit => {
+                // stop and exit
+                clients.lock().unwrap().remove(uid);
+                info!("Client {} left", uid);
+                return Ok(());
+            }
+            Message::SetChar { y, x, c } => {
+                // update canvas and broadcast to others
+                {
+                    let mut canvas = canvas.lock().unwrap();
+                    if canvas.is_in(x, y) {
+                        canvas.set(x, y, c);
+                        debug!("Set {:?} to {:?} on local canvas", (x, y), c);
+                    } else {
+                        warn!(
+                            "Position {:?} out of bounds for canvas of size {:?}",
+                            (x, y),
+                            (canvas.width(), canvas.height())
+                        );
+                    }
+                }
+
+                let mut clients = clients.lock().unwrap();
+                clients.send(uid, format_args!("{}", msg))?;
+                debug!("Forwarded {:?} to other clients", msg);
+            }
+            Message::CanvasUpdate { c: _ } => {
+                // swap canvas, broadcast to others
+                unimplemented!()
+            }
+        }
+    }
 }
 
 /// Unique identifier of a client
