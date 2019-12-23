@@ -220,7 +220,7 @@ void parse_args(int argc, char *argv[], arguments_t *arguments) {
       arguments->remote_host = strdup(server->sval[0]);
     }
     if (port->count > 0) {
-      arguments->remote_host = strdup(server->sval[0]);
+      arguments->remote_port = strdup(port->sval[0]);
     }
     if (file->count > 0) {
       const char *arg = file->filename[0];

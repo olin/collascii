@@ -124,7 +124,7 @@ Mode_ID add_mod_canvas_mode(Mode_ID mode, int n) {
   int mode_list_end = LAST;          // length of total mode list
 
   if (mode < mode_first || mode_list_end <= mode) {
-    logd("mode \"%s\" is not a canvas mode", mode);
+    logd("mode \"%d\" is not a canvas mode", mode);
     return mode;
   }
 
