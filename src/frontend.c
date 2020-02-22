@@ -136,7 +136,7 @@ void validate_arguments(arguments_t *arguments) {
   if (arguments->width < 0 || arguments->height < 0) {
     errmsg = "width and height settings must be positive";
   }
-  if (arguments->remote_port != '\0' && arguments->remote_host == '\0') {
+  if (arguments->remote_port[0] != '\0' && arguments->remote_host[0] == '\0') {
     errmsg = "server address must be specified";
   }
   if (arguments->connect_remote && arguments->load_file) {
