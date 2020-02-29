@@ -373,7 +373,7 @@ int main(int argc, char *argv[]) {
   mmask |= REPORT_MOUSE_POSITION;
 #endif
   mmask_t return_mask = mousemask(mmask, NULL);
-  logd("Returned mouse mask: %li\n", return_mask);
+  logd("Returned mouse mask: %i\n", return_mask);
   // get mouse updates faster at the expense of not registering "clicks"
   mouseinterval(0);
 #ifdef ENABLE_MOUSE_MOVEMENT
@@ -487,6 +487,9 @@ void setup_colors() {
 /* Update canvas with character at cursor current position.
  *
  * Changes the canvas and updates the ncurses `canvas_win` with the change.
+ *
+ * This will assert the cursor is within canvas bounds in DEBUG mode ONLY, so
+ * bounds checking should be done before calling this.
  */
 void front_setcharcursor(char ch) {
   canvas_scharyx(view->canvas, cursor->y + view->y, cursor->x + view->x, ch);

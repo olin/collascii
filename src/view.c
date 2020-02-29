@@ -68,3 +68,11 @@ void view_pan_ch(int arrow, View *view) {
 void view_free(View *view) {
   free(view);
 }
+
+/* Check if a coordinate is inside of a view.
+ */
+bool view_isin(View *view, int y, int x) {
+  return ((x < view_max_x) && (x >= 0) &&  // horizontal
+          (y < view_max_y) && (y >= 0)     // vertical
+  );
+}
