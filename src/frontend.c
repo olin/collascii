@@ -487,6 +487,9 @@ void setup_colors() {
 /* Update canvas with character at cursor current position.
  *
  * Changes the canvas and updates the ncurses `canvas_win` with the change.
+ *
+ * This will assert the cursor is within canvas bounds in DEBUG mode ONLY, so
+ * bounds checking should be done before calling this.
  */
 void front_setcharcursor(char ch) {
   canvas_scharyx(view->canvas, cursor->y + view->y, cursor->x + view->x, ch);

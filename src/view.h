@@ -24,4 +24,5 @@ void view_move_right(View *view);
 
 void view_pan_ch(int ch, View *view);
 
+bool view_isin(View *view, int y, int x);
 #endif

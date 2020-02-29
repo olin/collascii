@@ -47,10 +47,13 @@ typedef struct {
 } mode_brush_config_t;
 
 mode_brush_config_t mode_brush_config = {
-    .pattern = 'B', .state = PAINT_OFF,
+    .pattern = 'B',
+    .state = PAINT_OFF,
 };
 
-typedef struct { Cursor *last_dir_change; } mode_insert_config_t;
+typedef struct {
+  Cursor *last_dir_change;
+} mode_insert_config_t;
 
 mode_insert_config_t mode_insert_config = {NULL};
 
@@ -497,10 +500,14 @@ int mode_brush(reason_t reason, State *state) {
     } else if (state->mevent_in->bstate & BUTTON1_RELEASED) {
       mode_cfg->state = PAINT_OFF;
     }
-    // only update cursor position on mouse move if we're painting
+    // only update cursor position on mouse move if we're painting and in view
     if (mode_cfg->state == PAINT_ON) {
-      state->cursor->x = state->mevent_in->x - 1;
-      state->cursor->y = state->mevent_in->y - 1;
+      const int x = state->mevent_in->x - 1;
+      const int y = state->mevent_in->y - 1;
+      if (view_isin(state->view, y, x)) {
+        state->cursor->x = x;
+        state->cursor->y = y;
+      }
     }
   } else if (reason == NEW_KEY) {
     if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||

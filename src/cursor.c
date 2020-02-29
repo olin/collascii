@@ -25,10 +25,19 @@ Cursor *cursor_newyx(int y, int x) {
 }
 
 /* Make a copy of an existing cursor.
- *
  */
 Cursor *cursor_copy(Cursor *original) {
   return cursor_newyx(original->y, original->x);
+}
+
+void cursor_free(Cursor *cursor) {
+  free(cursor);
+}
+
+/* Check if a cursor is contained in the view.
+ */
+bool cursor_isin_view(Cursor *cursor, View *view) {
+  return view_isin(view, cursor->y, cursor->x);
 }
 
 void cursor_move_up(Cursor *cursor, View *view) {
@@ -79,6 +88,12 @@ int cursor_y_to_canvas(Cursor *cursor) {
   return cursor->y + 1;
 }
 
+/* Attempt to move the cursor given an arrow key input.
+ *
+ * If the move would push the cursor beyond the current view (the cursor is
+ * at an edge of the screen) the view will be shifted if there is more canvas,
+ * otherwise it is a no-op.
+ */
 void cursor_key_to_move(int arrow, Cursor *cursor, View *view) {
   switch (arrow) {
     case KEY_LEFT:
@@ -108,8 +123,4 @@ int cursor_opposite_dir(int arrow) {
       return KEY_UP;
   }
   return -1;
-}
-
-void cursor_free(Cursor *cursor) {
-  free(cursor);
 }

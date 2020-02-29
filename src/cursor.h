@@ -20,6 +20,8 @@ Cursor *cursor_newyx(int y, int x);
 Cursor *cursor_copy(Cursor *original);
 void cursor_free(Cursor *cursor);
 
+bool cursor_isin_view(Cursor *cursor, View *view);
+
 void cursor_move_up(Cursor *cursor, View *view);
 void cursor_move_down(Cursor *cursor, View *view);
 void cursor_move_left(Cursor *cursor, View *view);
