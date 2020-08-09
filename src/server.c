@@ -171,7 +171,8 @@ void print_client_addr(struct sockaddr_in addr) {
 /* Handle all communication with the client */
 void *handle_client(void *arg) {
   char buff_out[BUFFER_SZ];
-  char buff_in[BUFFER_SZ / 2];
+  char *buff_in;
+  size_t buff_in_size;
   int rlen;
 
   cli_count++;
@@ -181,20 +182,21 @@ void *handle_client(void *arg) {
   print_client_addr(cli->addr);
   printf(" referenced by %d\n", cli->uid);
 
+  FILE *input_stream = fdopen(cli->connfd, "r");
+
   // protocol negotiation
-  if ((rlen = read(cli->connfd, buff_in, sizeof(buff_in) - 1)) < 0) {
+  if ((rlen = getline(&buff_in, &buff_in_size, input_stream)) < 0) {
     printf("version negotation: error reading from socket\n");
     goto CLIENT_CLOSE;
   }
-  buff_in[rlen] = '\0';
   strip_newline(buff_in);
-  char* cmd = strtok(buff_in, " ");
+  char *cmd = strtok(buff_in, " ");
   if (cmd == NULL || cmd[0] != 'v') {
     printf("version negotiation: client command not 'v'\n");
 
     goto CLIENT_CLOSE;
   }
-  char* client_version = strtok(NULL, " ");
+  char *client_version = strtok(NULL, " ");
   if (client_version == NULL) {
     printf("version negotiation: unable to parse client version\n");
     send_message_self("can't parse version\n", cli);
@@ -221,8 +223,7 @@ void *handle_client(void *arg) {
   printf("sent serialized canvas\n");
 
   /* Receive input from client */
-  while ((rlen = read(cli->connfd, buff_in, sizeof(buff_in) - 1)) > 0) {
-    buff_in[rlen] = '\0';
+  while ((rlen = getline(&buff_in, &buff_in_size, input_stream)) > 0) {
     buff_out[0] = '\0';
     strip_newline(buff_in);
 
@@ -277,7 +278,7 @@ void *handle_client(void *arg) {
     }
     free(msg);
   }
-  CLIENT_CLOSE:
+CLIENT_CLOSE:
 
   /* Close connection */
   close(cli->connfd);
