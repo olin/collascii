@@ -29,7 +29,7 @@ struct hostent *hostinfo;
 struct sockaddr_in address;
 struct addrinfo hints, *servinfo;
 
-const char* PROTOCOL_VERSION = "1.0";
+const char *PROTOCOL_VERSION = "1.0";
 
 /* Connects to server and returns its canvas
  *
@@ -67,16 +67,17 @@ Canvas *net_init(char *in_hostname, char *in_port) {
   char version_request_msg[16];
   snprintf(version_request_msg, 16, "v %s\n", PROTOCOL_VERSION);
   if (write(sockfd, version_request_msg, strlen(version_request_msg)) < 0) {
-    eprintf("version negotiation: write error\n");
+    perror("version negotiation: write error");
     exit(1);
   }
 
   if (getline(&msg_buf, &msg_size, sockstream) == -1) {
-    eprintf("version negotiation: read error: the cow says 'moo'\n");
+    perror("version negotiation: read error");
     exit(1);
   }
   if (!(msg_buf[0] == 'v' && msg_buf[1] == 'o' && msg_buf[2] == 'k')) {
-    eprintf("Failed to negotiate protocol version: the server says '%s'\n", msg_buf);
+    eprintf("Failed to negotiate protocol version: the server says '%s'\n",
+            msg_buf);
     exit(1);
   }
 
