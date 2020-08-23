@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS+=-Wall -std=gnu99 -no-pie
+CFLAGS+=-Wall -Wpedantic -std=gnu99 -no-pie
 
 version = $(shell git describe --always --tags --dirty)
 CFLAGS+="-DVERSION=\"$(version)\""
