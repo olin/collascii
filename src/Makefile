@@ -34,7 +34,7 @@ frontend.out: LDLIBS +=-lncurses -lm
 frontend.out: cursor.o fe_modes.o canvas.o view.o network.o lib/argtable3.o
 
 server.out: LDLIBS +=-lpthread
-server.out: canvas.o
+server.out: canvas.o network.o
 
 ## PATTERNS
 

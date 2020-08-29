@@ -21,12 +21,16 @@
 #include <unistd.h>
 
 #include "canvas.h"
+#include "network.h"
+#include "util.h"
 
 static _Atomic unsigned int cli_count = 0;
-static int uid = 10;
+static int uid = 1;  // start uids at 1
 
 #define MAX_CLIENTS 100
 #define BUFFER_SZ 2048
+
+#define LOG_TRAFFIC
 
 /* Client structure */
 typedef struct {
@@ -43,42 +47,73 @@ pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
 Canvas *canvas;
 char *canvas_buf;
 
+bool client_eq(client_t *a, client_t *b) {
+  return a != NULL && b != NULL && a->uid == b->uid;
+}
+
 /* Add client to queue */
 void queue_add(client_t *cl) {
   pthread_mutex_lock(&clients_mutex);
-  for (int i = 0; i < MAX_CLIENTS; ++i) {
+  int i;
+  for (i = 0; i < MAX_CLIENTS; ++i) {
     if (!clients[i]) {
       clients[i] = cl;
+      logd("Stored client %d (%s) at index %d\n", cl->uid, cl->name, i);
       break;
     }
+  }
+  if (i == MAX_CLIENTS) {
+    logd("No room for additional clients!");
   }
   pthread_mutex_unlock(&clients_mutex);
 }
 
+// int write_fd(int fd, const char *s) {
+//   const int len = strlen(s);
+//   const int res = write(fd, s, strlen(s));
+// #ifdef LOG_TRAFFIC
+//   const int errnum = errno;
+//   logd("Wrote %d of %d bytes to descriptor %d: '%s'\n", res, len, fd, s);
+//   errno = errnum;
+// #endif
+//   return res;
+// }
+
+int write_client(client_t *client, const char *s) {
+  int res = write_fd(client->connfd, s);
+  if (res < 0) {
+    perrorf("Write to client %i (%s) failed", client->uid, client->name);
+  }
+  return res;
+}
+
 /* Delete client from queue */
-void queue_delete(int uid) {
+void queue_delete(client_t *client) {
   pthread_mutex_lock(&clients_mutex);
-  for (int i = 0; i < MAX_CLIENTS; ++i) {
+  int i;
+  for (i = 0; i < MAX_CLIENTS; ++i) {
     if (clients[i]) {
-      if (clients[i]->uid == uid) {
+      if (client_eq(clients[i], client)) {
+        logd("queue_delete: removed client %d (%s) from queue\n",
+             clients[i]->uid, clients[i]->name);
         clients[i] = NULL;
         break;
       }
     }
   }
+  if (i == MAX_CLIENTS) {
+    logd("queue_delete: couldn't find client %i in queue\n", uid);
+  }
   pthread_mutex_unlock(&clients_mutex);
 }
 
 /* Send message to all clients but the sender */
-void send_message(char *s, int uid) {
+void send_message(char *s, client_t *client) {
   pthread_mutex_lock(&clients_mutex);
   for (int i = 0; i < MAX_CLIENTS; ++i) {
     if (clients[i]) {
-      if (clients[i]->uid != uid) {
-        if (write(clients[i]->connfd, s, strlen(s)) < 0) {
-          perror("Write to descriptor failed");
-          break;
-        }
+      if (!client_eq(clients[i], client)) {
+        write_client(clients[i], s);
       }
     }
   }
@@ -90,33 +125,25 @@ void broadcast_message(char *s) {
   pthread_mutex_lock(&clients_mutex);
   for (int i = 0; i < MAX_CLIENTS; ++i) {
     if (clients[i]) {
-      if (write(clients[i]->connfd, s, strlen(s)) < 0) {
-        perror("Write to descriptor failed");
-        break;
-      }
+      write_client(clients[i], s);
     }
   }
   pthread_mutex_unlock(&clients_mutex);
 }
 
 /* Send message to sender */
-void send_message_self(const char *s, int connfd) {
-  if (write(connfd, s, strlen(s)) < 0) {
-    perror("Write to descriptor failed");
-    exit(-1);
-  }
+void send_message_self(const char *s, client_t *client) {
+  write_client(client, s);
 }
 
 /* Send message to client */
-void send_message_client(char *s, int uid) {
+void send_message_client(char *s, client_t *client) {
   pthread_mutex_lock(&clients_mutex);
   for (int i = 0; i < MAX_CLIENTS; ++i) {
-    if (clients[i]) {
-      if (clients[i]->uid == uid) {
-        if (write(clients[i]->connfd, s, strlen(s)) < 0) {
-          perror("Write to descriptor failed");
-          break;
-        }
+    if (client_eq(clients[i], client)) {
+      if (write(clients[i]->connfd, s, strlen(s)) < 0) {
+        perror("Write to descriptor failed");
+        break;
       }
     }
   }
@@ -144,7 +171,8 @@ void print_client_addr(struct sockaddr_in addr) {
 /* Handle all communication with the client */
 void *handle_client(void *arg) {
   char buff_out[BUFFER_SZ];
-  char buff_in[BUFFER_SZ / 2];
+  char *buff_in;
+  size_t buff_in_size;
   int rlen;
 
   cli_count++;
@@ -154,18 +182,48 @@ void *handle_client(void *arg) {
   print_client_addr(cli->addr);
   printf(" referenced by %d\n", cli->uid);
 
+  FILE *input_stream = fdopen(cli->connfd, "r");
+
+  // protocol negotiation
+  if ((rlen = getline(&buff_in, &buff_in_size, input_stream)) < 0) {
+    printf("version negotation: error reading from socket\n");
+    goto CLIENT_CLOSE;
+  }
+  strip_newline(buff_in);
+  char *cmd = strtok(buff_in, " ");
+  if (cmd == NULL || cmd[0] != 'v') {
+    printf("version negotiation: client command not 'v'\n");
+
+    goto CLIENT_CLOSE;
+  }
+  char *client_version = strtok(NULL, " ");
+  if (client_version == NULL) {
+    printf("version negotiation: unable to parse client version\n");
+    send_message_self("can't parse version\n", cli);
+    goto CLIENT_CLOSE;
+  }
+  if (strcmp(client_version, PROTOCOL_VERSION) != 0) {
+    printf("version negotiation: unknown client protocol version: '%s'\n",
+           client_version);
+    send_message_self("unknown protocol - supported protocol versions: ", cli);
+    send_message_self(PROTOCOL_VERSION, cli);
+    send_message_self("\n", cli);
+    goto CLIENT_CLOSE;
+  }
+  send_message_self("vok\n", cli);
+
+  // send canvas
   sprintf(buff_out, "cs %d %d\n", canvas->num_rows, canvas->num_cols);
-  send_message_self(buff_out, cli->connfd);
+  send_message_self(buff_out, cli);
   printf("sent canvas size\n");
   canvas_serialize(canvas, canvas_buf);
-  send_message_self(canvas_buf, cli->connfd);
+  send_message_self(canvas_buf, cli);
   sprintf(buff_out, "\n");
-  send_message_self(buff_out, cli->connfd);
+  send_message_self(buff_out, cli);
   printf("sent serialized canvas\n");
 
   /* Receive input from client */
-  while ((rlen = read(cli->connfd, buff_in, sizeof(buff_in) - 1)) > 0) {
-    buff_in[rlen] = '\0';
+  while ((rlen = getline(&buff_in, &buff_in_size, input_stream)) > 0) {
     buff_out[0] = '\0';
     strip_newline(buff_in);
 
@@ -174,14 +232,21 @@ void *handle_client(void *arg) {
       continue;
     }
 
+#ifdef LOG_TRAFFIC
+    logd("Read %d bytes from client %d (%s): '%s'\n", rlen, cli->uid, cli->name,
+         buff_in);
+#endif
+
     /* Process Command */
     char c = buff_in[strlen(buff_in) - 1];
     char *command;
+    char *msg = strndup(buff_in, BUFFER_SZ);
     command = strtok(buff_in, " ");
-    if (!strcmp(command, "q")) {
+    if (strcmp(command, "q") == 0) {
       break;
     }
-    if (!strcmp(command, "s")) {
+
+    if (strcmp(command, "s") == 0) {
       int y = atoi(strtok(NULL, " "));
       int x = atoi(strtok(NULL, " "));
 
@@ -192,19 +257,34 @@ void *handle_client(void *arg) {
         canvas_scharyx(canvas, y, x, c);
 
         sprintf(buff_out, "s %d %d %c\n", y, x, c);
-        send_message(buff_out, cli->uid);
+        send_message(buff_out, cli);
       }
-    } else if (!strcmp(command, "c")) {
+    } else if (strcmp(command, "c") == 0) {
       canvas_serialize(canvas, canvas_buf);
-      send_message_self(canvas_buf, cli->connfd);
+      send_message_self(canvas_buf, cli);
+    } else if (strcmp(command, "p") == 0) {
+      // copy pos message and fill in client id
+      char send_buff[32];
+      int y, x, uid;
+      if (!parse_pos_msg(msg, &y, &x, &uid)) {
+        logd("Warning: parse_pos_msg didn't get all of them\n");
+      }
+      logd("Got (%i, %i) from '%s'\n", x, y, msg);
+      if (build_pos_msg(send_buff, 32, y, x, cli->uid) >= 32) {
+        logd("handle_client: build_pos_msg buffer too small\n");
+      }
+      // send to other clients
+      send_message(send_buff, cli);
     }
+    free(msg);
   }
+CLIENT_CLOSE:
 
   /* Close connection */
   close(cli->connfd);
 
   /* Delete client from queue and yield thread */
-  queue_delete(cli->uid);
+  queue_delete(cli);
   printf("<< quit ");
   print_client_addr(cli->addr);
   printf(" referenced by %d\n", cli->uid);
@@ -275,7 +355,7 @@ int main(int argc, char *argv[]) {
     perror("Socket binding failed");
     serv_addr.sin_port = htons(++port);
   }
-  printf("connected to port %d", port);
+  printf("Connected to port %d\n", port);
 
   /* Listen */
   if (listen(listenfd, 10) < 0) {

@@ -95,6 +95,12 @@ FILE *logfile = NULL;
 #define VERSION "unknown"
 #endif
 
+// colors of collaborator cursors, drawn in order based on uid
+// see `setup_colors` and `draw_collab_cursors`
+const short cursor_colors[] = {
+    COLOR_CYAN, COLOR_YELLOW, COLOR_MAGENTA, COLOR_GREEN, COLOR_RED, COLOR_BLUE,
+};
+
 // cli pieces
 const char *program_name = "collascii";
 const char *program_version = VERSION;
@@ -307,6 +313,7 @@ void init_state(State *state, const arguments_t *const arguments) {
       .view = view,
       .last_cursor = cursor_newyx(arguments->y, arguments->x),
       .filepath = arguments->filename,
+      .collab_list = collab_list_create(NUM_COLLAB),
   };
   *state = new_state;
 }
@@ -442,15 +449,18 @@ int main(int argc, char *argv[]) {
               fd == net_cfg->sockfd) {  // Accept data from open socket
             logd("recv network\n");
             // If server disconnects
-            if (net_handler(view) != 0) {
+            if (net_handler(state) != 0) {
               networked = false;
               print_msg_win("Server Disconnect!");
             };
             redraw_canvas_win();  // TODO: draw single char update
+            draw_collab_cursors(state->collab_list);
             refresh_screen();
           } else if (fd == 0) {  // process keyboard activity
             master_handler(state, canvas_win, status_interface->info_win);
+            draw_collab_cursors(state->collab_list);
             refresh_screen();
+            net_update_pos(state);
           }
         }
       }
@@ -470,18 +480,22 @@ int main(int argc, char *argv[]) {
   finish(0);
 }
 
+/* Initialize ncurses color configurations
+ *
+ * Before using color features elsewhere make sure to check has_colors() first.
+ */
 void setup_colors() {
   start_color();
+  // Use the terminal's prefered color scheme if it supports it
+  // -1 can be used to refer to the prefered background/foreground
+  use_default_colors();
 
-  // TODO: Use #define to get colors for standard uses
-  // Assign color codes
-  init_pair(1, COLOR_RED, COLOR_BLACK);
-  init_pair(2, COLOR_GREEN, COLOR_BLACK);
-  init_pair(3, COLOR_BLUE, COLOR_BLACK);
-  init_pair(4, COLOR_CYAN, COLOR_BLACK);
-  init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
-  init_pair(6, COLOR_YELLOW, COLOR_BLACK);
-  init_pair(7, COLOR_BLACK, COLOR_WHITE);
+  // initialize cursor colors - prefered foreground with colored background
+  // start at index 1 (0 is already default colors)
+  const int start = 1;
+  for (int i = 0; i < sizeof(cursor_colors) / sizeof(short); i++) {
+    init_pair(i + start, -1, cursor_colors[i]);
+  }
 }
 
 /* Update canvas with character at cursor current position.
@@ -527,6 +541,40 @@ void redraw_canvas_win() {
   for (int y = max_y; y < view_max_y; y++) {
     for (int x = 0; x < max_x; x++) {
       mvwaddch(canvas_win, y + 1, x + 1, ACS_CKBOARD);
+    }
+  }
+}
+
+/* Draw all visible collaborator cursors on the canvas.
+ *
+ * Collaborator cursor colors are from `cursors_colors` and set by uid.
+ */
+void draw_collab_cursors(collab_list_t *collab_list) {
+  collab_t *c = NULL;
+  // calculate visible bounds (in canvas coordinates)
+  const int min_x = view->x;
+  const int min_y = view->y;
+  const int max_x = min(view->canvas->num_cols, view->x + view_max_x) - 1;
+  const int max_y = min(view->canvas->num_rows, view->y + view_max_y) - 1;
+  for (int i = 0; i < collab_list->len; i++) {
+    c = collab_list->list[i];
+    // only draw cursors that exist and are visible on the screen
+    if (c != NULL && (c->x >= min_x && c->x <= max_x) &&
+        (c->y >= min_y && c->y <= max_y)) {
+      logd("Drawing collab %i\n", c->uid);
+
+      // pick color based on uid, which starts at 1
+      // if color isn't supported, use normal terminal colors and reverse video
+      const int uid_start = 0;
+      const int color_start = 1;
+      const size_t colors_len = sizeof(cursor_colors) / sizeof(short);
+      const int color =
+          has_colors() ? ((c->uid - uid_start) % colors_len) + color_start : 0;
+      const int attr = has_colors() ? 0 : A_REVERSE;
+      // TODO: blink cursor with A_BLINK attribute (needs to pause between
+      // updates/only move on changes?)
+      mvwchgat(canvas_win, c->y - view->y + 1, c->x - view->x + 1, 1, attr,
+               color, NULL);
     }
   }
 }
