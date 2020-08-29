@@ -542,7 +542,7 @@ static unsigned int enhanced_hash(arg_hashtable_t* h, void* k) {
 
 static unsigned int index_for(unsigned int tablelength, unsigned int hashvalue) {
     return (hashvalue % tablelength);
-};
+}
 
 arg_hashtable_t* arg_hashtable_create(unsigned int minsize, unsigned int (*hashfn)(void*), int (*eqfn)(void*, void*)) {
     arg_hashtable_t* h;

@@ -44,19 +44,8 @@ static inline void _log_unused(const int dummy, ...) {
 // min/max macros
 // from https://stackoverflow.com/questions/3437404/min-and-max-in-c
 
-#define max(a, b)           \
-  ({                        \
-    __typeof__(a) _a = (a); \
-    __typeof__(b) _b = (b); \
-    _a > _b ? _a : _b;      \
-  })
-
-#define min(a, b)           \
-  ({                        \
-    __typeof__(a) _a = (a); \
-    __typeof__(b) _b = (b); \
-    _a < _b ? _a : _b;      \
-  })
+#define max(a,b) ((a) > (b) ? (a) : (b))
+#define min(a,b) ((a) < (b) ? (a) : (b))
 
 // ncurses-compatible CTRL+KEY definition
 // NOTE: c should be lowercase
