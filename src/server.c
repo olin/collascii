@@ -293,7 +293,7 @@ int main(int argc, char *argv[]) {
   pthread_t tid;
 
   /* Socket settings */
-  int port = 5000;
+  const int port = 45011;
   listenfd = socket(AF_INET, SOCK_STREAM, 0);
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);

@@ -19,7 +19,7 @@
 fd_set testfds, clientfds;
 char *msg_buf;
 size_t msg_size;
-int port = 5000;
+int port = 45011;
 int fd;
 int sockfd;
 FILE *sockstream;
