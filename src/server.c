@@ -25,6 +25,8 @@
 static _Atomic unsigned int cli_count = 0;
 static int uid = 10;
 
+const char* PROTOCOL_VERSION = "1.0";
+
 #define MAX_CLIENTS 100
 #define BUFFER_SZ 2048
 
@@ -154,6 +156,35 @@ void *handle_client(void *arg) {
   print_client_addr(cli->addr);
   printf(" referenced by %d\n", cli->uid);
 
+  // protocol negotiation
+  if ((rlen = read(cli->connfd, buff_in, sizeof(buff_in) - 1)) < 0) {
+    printf("version negotation: error reading from socket\n");
+    goto CLIENT_CLOSE;
+  }
+  buff_in[rlen] = '\0';
+  strip_newline(buff_in);
+  char* cmd = strtok(buff_in, " ");
+  if (cmd == NULL || cmd[0] != 'v') {
+    printf("version negotiation: client command not 'v'\n");
+
+    goto CLIENT_CLOSE;
+  }
+  char* client_version = strtok(NULL, " ");
+  if (client_version == NULL) {
+    printf("version negotiation: unable to parse client version\n");
+    send_message_self("can't parse version\n", cli->connfd);
+    goto CLIENT_CLOSE;
+  }
+  if (strcmp(client_version, PROTOCOL_VERSION) != 0) {
+    printf("version negotiation: unknown client protocol version: '%s'\n", client_version);
+    send_message_self("unknown protocol - supported protocol versions: ", cli->connfd);
+    send_message_self(PROTOCOL_VERSION, cli->connfd);
+    send_message_self("\n", cli->connfd);
+    goto CLIENT_CLOSE;
+  }
+  send_message_self("vok\n", cli->connfd);
+  
+  // send canvas
   sprintf(buff_out, "cs %d %d\n", canvas->num_rows, canvas->num_cols);
   send_message_self(buff_out, cli->connfd);
   printf("sent canvas size\n");
@@ -199,6 +230,7 @@ void *handle_client(void *arg) {
       send_message_self(canvas_buf, cli->connfd);
     }
   }
+  CLIENT_CLOSE:
 
   /* Close connection */
   close(cli->connfd);
@@ -261,7 +293,7 @@ int main(int argc, char *argv[]) {
   pthread_t tid;
 
   /* Socket settings */
-  int port = 5000;
+  int port = 45011;
   listenfd = socket(AF_INET, SOCK_STREAM, 0);
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);

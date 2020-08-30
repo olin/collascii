@@ -173,7 +173,7 @@ void parse_args(int argc, char *argv[], arguments_t *arguments) {
       server = arg_strn("s", "server", "<SERVER>", 0, 1,
                         "address of server to connect to"),
       port = arg_strn("p", "port", "<PORT>", 0, 1,
-                      "port of server to connect to (default 5000)"),
+                      "port of server to connect to (default 45011)"),
       file = arg_filen(NULL, NULL, "[FILE]", 0, 1,
                        "filepath for read/write ('-' to read from stdin)"),
       end = arg_end(20),
