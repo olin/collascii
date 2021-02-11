@@ -539,3 +539,17 @@ int mode_brush(reason_t reason, State *state) {
 
   return 0;
 }
+
+int mode_spreadsheet(reason_t reason, State *state) {
+  if (reason != NEW_KEY) {
+    return 0;
+  }
+
+  if ((state->ch_in == KEY_LEFT) || (state->ch_in == KEY_RIGHT) ||
+      (state->ch_in == KEY_UP) || (state->ch_in == KEY_DOWN)) {
+    switch state->ch_in {
+      case KEY_LEFT:
+        canvas_insert_row(canvas, )
+    }
+  }
+}
