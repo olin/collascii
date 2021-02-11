@@ -19,6 +19,7 @@ typedef struct {
   View *view;                // view of the canvas (also holds the canvas)
   Mode_ID current_mode;      // the current mode of the interface
   Mode_ID last_canvas_mode;  // the last mode of the interface
+  Mode_ID override_mode;     // any special mode that should be used instead
   int last_arrow_direction;
   Cursor *last_cursor;
   char *filepath;  // path of savefile

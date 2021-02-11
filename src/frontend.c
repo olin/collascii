@@ -304,6 +304,7 @@ void init_state(State *state, const arguments_t *const arguments) {
 
       .last_arrow_direction = KEY_RIGHT,
       .last_canvas_mode = MODE_INSERT,
+      .override_mode = 0,
       .view = view,
       .last_cursor = cursor_newyx(arguments->y, arguments->x),
       .filepath = arguments->filename,
@@ -736,7 +737,7 @@ void update_info_win(const Mode_ID current_mode, const int x, const int y,
 
 /* Signal handler for exiting
  *
- * Turns of ncurses, disables mouse moves commands, closes the logfile.
+ * Turns off ncurses, disables mouse moves commands, closes the logfile.
  *
  * If sig is 0 or SIGINT, exits normally, otherwise prints the signal
  * information to stderr and exits with sig.
