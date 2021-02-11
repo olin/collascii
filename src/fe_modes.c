@@ -39,6 +39,7 @@ editor_mode_t modes[] = {
     {"Pan", "Pan around the canvas", mode_pan},
     {"Free-Line", "Draw a line with your arrow keys", mode_free_line},
     {"Brush", "Paint with arrow keys and mouse", mode_brush},
+    {"Trim", "Remove empty space", mode_trim},
 };
 
 typedef struct {
@@ -194,26 +195,35 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     // shift view down/up/left/right
     // renaming for ease of use
     const int h = getmaxy(canvas_win) - 2;  // height of visible canvas
-    const int w = getmaxx(canvas_win) - 2;  // width
+    const int w = getmaxx(canvas_win) - 2;  // width of visible canvas
     const int vy = state->view->y;
     const int vx = state->view->x;
-    const int ch = state->view->canvas->num_rows;
-    const int cw = state->view->canvas->num_cols;
+    const int ch = state->view->canvas->num_rows;  // height of total canvas
+    const int cw = state->view->canvas->num_cols;  // width of total canvas
     int new_vy = vy;
     int new_vx = vx;
     // calc shift based on key
     switch (c) {
       case KEY_NPAGE:  // down
-        new_vy = min(vy + h, ch - h);
+        // b/c canvas snaps to the top left corner, we need to be more careful
+        // when moving down or right. Move to either:
+        //           another window height
+        //           |       or the end of the visible canvas
+        //           |       | (when the canvas is smaller than the window, this
+        //           v       v is less than zero, so get the max of the two)
+        new_vy = min(vy + h, max(ch - h, 0));
         break;
       case KEY_PPAGE:  // up
         new_vy = max(0, vy - h);
         break;
-      case KEY_SRIGHT:
-        new_vx = min(vx + w, cw - w);
+      case KEY_SRIGHT:  // right
+        // similar situation to moving down - jump to another window width or
+        // the end of the canvas, and check for negative values
+        new_vx = min(vx + w, max(cw - w, 0));
         break;
-      case KEY_SLEFT:
+      case KEY_SLEFT:  // left
         new_vx = max(0, vx - w);
+        break;
     }
     // shift view
     state->view->y = new_vy;
@@ -232,6 +242,36 @@ int master_handler(State *state, WINDOW *canvas_win, WINDOW *status_win) {
     // pass character on to mode
     state->ch_in = c;
     call_mode(state->current_mode, NEW_KEY, state);
+  }
+
+  // Check if view and/or cursor is out of bounds and snap back
+  {
+    View *v = state->view;
+    const int max_x = v->canvas->num_cols - 1;
+    const int max_y = v->canvas->num_rows - 1;
+    if (v->x > max_x) {
+      v->x = max_x;
+      logd("Snapped view to max width\n");
+    }
+    if (v->y > max_y) {
+      v->y = max_y;
+      logd("Snapped view to max height\n");
+    }
+    Cursor *c = state->cursor;
+    bool redraw_flag = false;
+    if (c->x + v->x > max_x) {
+      c->x = max_x - v->x;
+      logd("Snapped cursor to max x\n");
+      redraw_flag = true;
+    }
+    if (c->y + v->y > max_y) {
+      c->y = max_y - v->y;
+      logd("Snapped cursor to max y\n");
+      redraw_flag = true;
+    }
+    if (redraw_flag) {
+      redraw_canvas_win();
+    }
   }
 
   // Move UI cursor to the right place
@@ -537,5 +577,41 @@ int mode_brush(reason_t reason, State *state) {
                  ((mode_cfg->state == PAINT_OFF) ? "OFF" : "ON"),
                  mode_cfg->pattern);
 
+  return 0;
+}
+
+/* mode_trim
+ *
+ * Trim edges of the canvas.
+ *
+ * Select a direction to trim and
+ */
+int mode_trim(reason_t reason, State *state) {
+  if (reason == NEW_KEY) {
+    int dir = 0;  // 0: top, 1: right, 2: down, 3: left
+    switch (state->ch_in) {
+      case KEY_UP:
+        dir = 0;
+        break;
+      case KEY_RIGHT:
+        dir = 1;
+        break;
+      case KEY_DOWN:
+        dir = 2;
+        break;
+      case KEY_LEFT:
+        dir = 3;
+        break;
+      default:
+        return 0;
+    }
+    Canvas *old_canvas = state->view->canvas;
+    // trimc order   :        right     bottom    left      top
+    Canvas *new_canvas =
+        canvas_trimc(old_canvas, ' ', dir == 1, dir == 2, dir == 3, dir == 0);
+    state->view->canvas = new_canvas;
+    canvas_free(old_canvas);
+    redraw_canvas_win();
+  }
   return 0;
 }
